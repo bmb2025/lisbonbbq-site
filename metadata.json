@@ -1,0 +1,6 @@
+{
+  "name": "Lisbon Barbecue & Churrasco",
+  "description": "Espaços exclusivos em Lisboa para churrascos de grupo e eventos corporativos focados em aproximar pessoas. O ritual do fogo para criar comunidade e ligações autênticas entre equipas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

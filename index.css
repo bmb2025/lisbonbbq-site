@@ -1,0 +1,37 @@
+
+@import "tailwindcss";
+
+@source "./components/**/*.{js,ts,jsx,tsx}";
+@source "./App.tsx";
+@source "./index.tsx";
+
+@theme {
+  --font-sans: "Rubik", ui-sans-serif, system-ui, sans-serif;
+
+  --color-bbq-red: #D91A2A;
+  --color-bbq-yellow: #F4B41A;
+  --color-bbq-cream: #F9F7F2;
+  --color-bbq-black: #1A1A1A;
+
+  --shadow-hard: 4px 4px 0px 0px #1A1A1A;
+  --shadow-hard-sm: 2px 2px 0px 0px #1A1A1A;
+
+  --animate-marquee: marquee 25s linear infinite;
+
+  @keyframes marquee {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-100%); }
+  }
+}
+
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.no-print {
+  @media print {
+    display: none !important;
+  }
+}

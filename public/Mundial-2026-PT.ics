@@ -1,0 +1,186 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Lisbon BBQ//Mundial 2026 PT//PT
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Mundial FIFA 2026 - Lisbon BBQ
+X-WR-TIMEZONE:Europe/Lisbon
+X-WR-CALDESC:Calendário completo de jogos do Mundial FIFA 2026 em hora de Portugal, oferecido por Lisbon BBQ.
+
+BEGIN:VEVENT
+UID:wc2026-match1@lisbonbbq.pt
+DTSTAMP:20260609T180000Z
+ORGANIZER;CN=Lisbon BBQ:mailto:pitmasters@lisbonbbq.pt
+DTSTART:20260611T203000Z
+DTEND:20260611T223000Z
+SUMMARY:⚽ México vs TBD (Jogo de Abertura) - Mundial 2026
+DESCRIPTION:Abertura oficial do Mundial FIFA 2026 no Estádio Azteca.\n\nAcompanha todos os jogos do Mundial com o melhor churrasco de Lisboa! Garanta já o seu catering para grupos em lisbonbbq.pt
+LOCATION:Estádio Azteca, Cidade do México
+END:VEVENT
+
+BEGIN:VEVENT
+UID:wc2026-match2@lisbonbbq.pt
+DTSTAMP:20260609T180000Z
+ORGANIZER;CN=Lisbon BBQ:mailto:pitmasters@lisbonbbq.pt
+DTSTART:20260612T210000Z
+DTEND:20260612T230000Z
+SUMMARY:⚽ Canadá vs TBD (Grupo B) - Mundial 2026
+DESCRIPTION:Estreia oficial do Canadá no Mundial FIFA 2026 no BMO Field.\n\nAcompanha todos os jogos de futebol com o melhor churrasco do Lisbon BBQ! Fale connosco em lisbonbbq.pt
+LOCATION:BMO Field, Toronto
+END:VEVENT
+
+BEGIN:VEVENT
+UID:wc2026-match3@lisbonbbq.pt
+DTSTAMP:20260609T180000Z
+ORGANIZER;CN=Lisbon BBQ:mailto:pitmasters@lisbonbbq.pt
+DTSTART:20260612T233000Z
+DTEND:20260613T013000Z
+SUMMARY:⚽ EUA vs TBD (Grupo D) - Mundial 2026
+DESCRIPTION:Jogo de estreia do anfitrião EUA no SoFi Stadium.\n\nAcompanha a seleção norte-americana com o tradicional barbecue americano da Lisbon BBQ! Reserve online em lisbonbbq.pt
+LOCATION:SoFi Stadium, Los Angeles
+END:VEVENT
+
+BEGIN:VEVENT
+UID:wc2026-match4@lisbonbbq.pt
+DTSTAMP:20260609T180000Z
+ORGANIZER;CN=Lisbon BBQ:mailto:pitmasters@lisbonbbq.pt
+DTSTART:20260615T180000Z
+DTEND:20260615T200000Z
+SUMMARY:⚽ PORTUGAL vs TBD (Grupo F - Estreia) - Mundial 2026
+DESCRIPTION:A grande estreia da Seleção das Quinas no Mundial FIFA 2026!\n\nHora de reunir os amigos e acender o carvão. Compre o seu menu de churrasco na Lisbon BBQ para celebrar a vitória! Encomendas em lisbonbbq.pt
+LOCATION:MetLife Stadium, New York / New Jersey
+END:VEVENT
+
+BEGIN:VEVENT
+UID:wc2026-match5@lisbonbbq.pt
+DTSTAMP:20260609T180000Z
+ORGANIZER;CN=Lisbon BBQ:mailto:pitmasters@lisbonbbq.pt
+DTSTART:20260616T193000Z
+DTEND:20260616T213000Z
+SUMMARY:⚽ Brasil vs TBD (Fase de Grupos) - Mundial 2026
+DESCRIPTION:Estreia da Seleção Canarinho no Mundial!\n\nCelebre com a picanha premium e os tradicionais acompanhamentos da Lisbon BBQ. Encomende em lisbonbbq.pt
+LOCATION:Hard Rock Stadium, Miami
+END:VEVENT
+
+BEGIN:VEVENT
+UID:wc2026-match6@lisbonbbq.pt
+DTSTAMP:20260609T180000Z
+ORGANIZER;CN=Lisbon BBQ:mailto:pitmasters@lisbonbbq.pt
+DTSTART:20260617T200000Z
+DTEND:20260617T220000Z
+SUMMARY:⚽ Argentina vs TBD (Fase de Grupos) - Mundial 2026
+DESCRIPTION:Os eternos campeões entram em campo na Geórgia!\n\nAs melhores carnes grelhadas de Lisboa acompanham as maiores jogadas em campo. Peça no Lisbon BBQ em lisbonbbq.pt
+LOCATION:Mercedes-Benz Stadium, Atlanta
+END:VEVENT
+
+BEGIN:VEVENT
+UID:wc2026-match7@lisbonbbq.pt
+DTSTAMP:20260609T180000Z
+ORGANIZER;CN=Lisbon BBQ:mailto:pitmasters@lisbonbbq.pt
+DTSTART:20260621T190000Z
+DTEND:20260621T210000Z
+SUMMARY:⚽ PORTUGAL vs TBD (Fase de Grupos - Jogo 2) - Mundial 2026
+DESCRIPTION:Segundo jogo do Grupo para Portugal!\n\nAssista à partida com os amigos e a melhor carne grelhada de Lisboa. Lisbon BBQ é a escolha n.1 para churrascos de excelência! Faça a sua reserva em lisbonbbq.pt
+LOCATION:Gillette Stadium, Boston
+END:VEVENT
+
+BEGIN:VEVENT
+UID:wc2026-match8@lisbonbbq.pt
+DTSTAMP:20260609T180000Z
+ORGANIZER;CN=Lisbon BBQ:mailto:pitmasters@lisbonbbq.pt
+DTSTART:20260622T150000Z
+DTEND:20260622T170000Z
+SUMMARY:⚽ Espanha vs TBD (Fase de Grupos) - Mundial 2026
+DESCRIPTION:Fase de grupos do Mundial FIFA 2026. A fúria espanhola no relvado!\n\nPara o almoço-churrasco perfeito com os colegas, contacte-nos em lisbonbbq.pt
+LOCATION:Lumen Field, Seattle
+END:VEVENT
+
+BEGIN:VEVENT
+UID:wc2026-match9@lisbonbbq.pt
+DTSTAMP:20260609T180000Z
+ORGANIZER;CN=Lisbon BBQ:mailto:pitmasters@lisbonbbq.pt
+DTSTART:20260626T210000Z
+DTEND:20260626T230000Z
+SUMMARY:⚽ PORTUGAL vs TBD (Fase de Grupos - Decisão) - Mundial 2026
+DESCRIPTION:Terceiro e crucial jogo de Portugal rumo aos oitavos!\n\nDeixe o fumo e as brasas connosco e concentre-se no jogo. Catering premium sob medida em lisbonbbq.pt
+LOCATION:Arrowhead Stadium, Kansas City
+END:VEVENT
+
+BEGIN:VEVENT
+UID:wc2026-match10@lisbonbbq.pt
+DTSTAMP:20260609T180000Z
+ORGANIZER;CN=Lisbon BBQ:mailto:pitmasters@lisbonbbq.pt
+DTSTART:20260704T170000Z
+DTEND:20260704T190000Z
+SUMMARY:⚽ Oitavos de Final - Jogo 1 - Mundial 2026
+DESCRIPTION:Abertura da fase a eliminar do Mundial 2026!\n\nReúna a família à volta do grelhador ou receba o nosso pitmaster ao vivo. Detalhes em lisbonbbq.pt
+LOCATION:MetLife Stadium, NY/NJ
+END:VEVENT
+
+BEGIN:VEVENT
+UID:wc2026-match11@lisbonbbq.pt
+DTSTAMP:20260609T180000Z
+ORGANIZER;CN=Lisbon BBQ:mailto:pitmasters@lisbonbbq.pt
+DTSTART:20260705T200000Z
+DTEND:20260705T220000Z
+SUMMARY:⚽ Oitavos de Final - Jogo 2 - Mundial 2026
+DESCRIPTION:Decisão vibrante nos oitavos de final.\n\nCombine o excelente futebol com o catering de excelência da Lisbon BBQ. Siga em lisbonbbq.pt
+LOCATION:SoFi Stadium, Los Angeles
+END:VEVENT
+
+BEGIN:VEVENT
+UID:wc2026-match12@lisbonbbq.pt
+DTSTAMP:20260609T180000Z
+ORGANIZER;CN=Lisbon BBQ:mailto:pitmasters@lisbonbbq.pt
+DTSTART:20260709T180000Z
+DTEND:20260709T200000Z
+SUMMARY:⚽ Quartos de Final - Jogo 1 - Mundial 2026
+DESCRIPTION:Caminho para a Glória! O primeiro jogo dos quartos de final!\n\nAs brasas já estão acesas. Faça o seu pedido para grupos no Lisbon BBQ (lisbonbbq.pt)
+LOCATION:Hard Rock Stadium, Miami
+END:VEVENT
+
+BEGIN:VEVENT
+UID:wc2026-match13@lisbonbbq.pt
+DTSTAMP:20260609T180000Z
+ORGANIZER;CN=Lisbon BBQ:mailto:pitmasters@lisbonbbq.pt
+DTSTART:20260710T200000Z
+DTEND:20260710T220000Z
+SUMMARY:⚽ Quartos de Final - Jogo 2 - Mundial 2026
+DESCRIPTION:Luta intensa por um lugar na mítica semi-final.\n\nPetiscos, cervejas geladas e churrasco de alta qualidade. Peça já em lisbonbbq.pt
+LOCATION:Gillette Stadium, Boston
+END:VEVENT
+
+BEGIN:VEVENT
+UID:wc2026-match14@lisbonbbq.pt
+DTSTAMP:20260609T180000Z
+ORGANIZER;CN=Lisbon BBQ:mailto:pitmasters@lisbonbbq.pt
+DTSTART:20260714T200000Z
+DTEND:20260714T220000Z
+SUMMARY:⚽ MEIA-FINAL 1 - Mundial 2026
+DESCRIPTION:Quem vai carimbar o primeiro passe para a grande final do Mundial 2026?\n\nOrganize um churrasco inesquecível para este jogaço. Encomendas rápidas em lisbonbbq.pt
+LOCATION:AT&T Stadium, Dallas
+END:VEVENT
+
+BEGIN:VEVENT
+UID:wc2026-match15@lisbonbbq.pt
+DTSTAMP:20260609T180000Z
+ORGANIZER;CN=Lisbon BBQ:mailto:pitmasters@lisbonbbq.pt
+DTSTART:20260715T200000Z
+DTEND:20260715T220000Z
+SUMMARY:⚽ MEIA-FINAL 2 - Mundial 2026
+DESCRIPTION:Definição do segundo finalista do Campeonato do Mundo de 2026!\n\nReforce o espírito de grupo com os nossos menus corporativos ou privados em lisbonbbq.pt
+LOCATION:Mercedes-Benz Stadium, Atlanta
+END:VEVENT
+
+BEGIN:VEVENT
+UID:wc2026-match16@lisbonbbq.pt
+DTSTAMP:20260609T180000Z
+ORGANIZER;CN=Lisbon BBQ:mailto:pitmasters@lisbonbbq.pt
+DTSTART:20260719T200000Z
+DTEND:20260719T220000Z
+SUMMARY:🏆 GRANDE FINAL - MUNDIAL FIFA 2026 🏆
+DESCRIPTION:O culminar do desporto-rei! O jogo mais importante do planeta!\n\nAs maiores emoções combinam com um churrasco de campeonato oferecido pelo Lisbon BBQ. Faça a festa connosco em lisbonbbq.pt
+LOCATION:MetLife Stadium, New York / New Jersey
+END:VEVENT
+
+END:VCALENDAR

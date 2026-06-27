@@ -1,0 +1,67 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5CYEYQ8563"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-5CYEYQ8563');
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Proposta de Experiência | Lisbon Churrasco & Barbecue</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <script>
+      // theme config still needed if using tailwind anywhere, but better to move to file
+    </script>
+    <style>
+      body {
+        background-color: #F9F7F2;
+        color: #1A1A1A;
+      }
+      @media print {
+        .no-print { display: none !important; }
+        body { background-color: white !important; padding: 0 !important; margin: 0 !important; }
+        * { 
+          -webkit-print-color-adjust: exact !important; 
+          print-color-adjust: exact !important; 
+        }
+        @page {
+          margin: 1.5cm;
+          size: auto;
+        }
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "motion": "https://esm.sh/motion@^12.38.0",
+    "motion/react": "https://esm.sh/motion@^12.38.0",
+    "framer-motion": "https://esm.sh/framer-motion@^12.4.7",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+          }
+        });
+      }
+    </script>
+    <div id="root"></div>
+    <script type="module" src="/proposal.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,35 @@
+{
+  "buildCommand": "vite build",
+  "outputDirectory": "dist",
+  "redirects": [
+    {
+      "source": "/jogosdomundial/googlecalendar",
+      "destination": "https://calendar.google.com/calendar/u/0?cid=Y19lOTdmYTQ1ZDYzZDM2ZjlmZWJkY2QzZjg3ZTlmOWUyOTMzMTk4MDcxYWIyYWY5OTRmMWM0ZjAyOTU1ZTg0M2RkQGdyb3VwLmNhbGVuZGFyLmdvb2dsZS5jb20",
+      "permanent": false
+    },
+    {
+      "source": "/jogosdomundial/outlook",
+      "destination": "webcal://storage.googleapis.com/imagens-publicas-lisbonbbq/calendars/Mundial-2026-PT.ics",
+      "permanent": false
+    },
+    {
+      "source": "/jogosdomundial/applecalendar",
+      "destination": "webcal://storage.googleapis.com/imagens-publicas-lisbonbbq/calendars/Mundial-2026-PT.ics",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    { "source": "/blog/:slug", "destination": "/api/blog/:slug" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,DELETE,OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
+      ]
+    }
+  ]
+}
