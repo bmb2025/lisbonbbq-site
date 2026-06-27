@@ -66,7 +66,7 @@ export const HomePage: React.FC<HomePageProps> = ({
   }, [filteredVenues]);
 
   const meatKg = Math.ceil(booking.guests * 0.4);
-  const drinkCount = Math.ceil(booking.guests * 3);
+  const drinkCount = Math.ceil(booking.guests * 5);
   const meats = booking.tradition ? (TRADITION_MEATS[booking.tradition] || []) : [];
 
   const canConfirmStep1 = localGuests >= 20 && !!booking.date;
@@ -110,7 +110,7 @@ export const HomePage: React.FC<HomePageProps> = ({
     argTradition: lang === 'pt' ? 'Asado Argentino' : 'Argentinian Asado',
     argTraditionSub: lang === 'pt' ? 'Vacío • Chimichurri • Fogo Lento' : 'Vacío • Chimichurri • Slow Fire',
     meatLabel: lang === 'pt' ? 'Carne' : 'Meat',
-    drinksLabel: lang === 'pt' ? 'Bebidas estimadas' : 'Estimated Drinks',
+    drinksLabel: lang === 'pt' ? 'Cervejas estimadas' : 'Estimated Beers',
     sidesLabel: lang === 'pt' ? 'Acompanhamentos' : 'Sides',
     step4: lang === 'pt' ? 'O Horário' : 'The Slot',
     step5: lang === 'pt' ? 'Extras' : 'Extras',
