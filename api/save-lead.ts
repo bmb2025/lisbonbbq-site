@@ -9,7 +9,7 @@ const supabase = createClient(
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Change to noreply@lisbonbbq.pt once domain is verified in Resend
-const FROM = "LisbonBBQ <onboarding@resend.dev>";
+const FROM = "LisbonBBQ <noreply@lisbonbbq.pt>";
 const NOTIFY_EMAIL = "forge@thefuture.pt";
 
 function formatDate(iso: string | undefined) {
