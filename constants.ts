@@ -233,3 +233,13 @@ export const TRADITION_MEATS: Record<string, string[]> = {
 // Always the same sides & drinks
 export const FIXED_SIDES = ['Arroz com feijão preto', 'Salada Mista', 'Batata Frita'];
 export const FIXED_DRINKS = ['Cerveja gelada', 'Vinho branco ou tinto', 'Sumo de Laranja Natural', 'Águas'];
+
+// Returns all venues available on a given day (ignores guest count — use for display with disabled state)
+export function getVenuesByDay(date: Date | null): VenueLocation[] {
+  if (!date) return LOCATIONS;
+  const dow = date.getDay();
+  return LOCATIONS.filter(loc => {
+    if (loc.availableDays && !loc.availableDays.includes(dow)) return false;
+    return true;
+  });
+}

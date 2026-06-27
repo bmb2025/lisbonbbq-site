@@ -5,7 +5,7 @@ import { BookingSummary } from './BookingSummary';
 import { LogoBar, PackageCard, BrandStory, VenueGrid, Referrals } from './LandingComponents';
 import { Footer } from './Footer';
 import { BookingState, CartItem, SlotTime, DailyWeather } from '../types';
-import { LOCATIONS, getAvailableVenues, TRADITION_MEATS, FIXED_SIDES, FIXED_DRINKS } from '../constants';
+import { LOCATIONS, getAvailableVenues, getVenuesByDay, TRADITION_MEATS, FIXED_SIDES, FIXED_DRINKS } from '../constants';
 import { getWeatherIcon } from '../services/weatherService';
 
 interface HomePageProps {
@@ -54,6 +54,12 @@ export const HomePage: React.FC<HomePageProps> = ({
     if (!booking.guestsConfirmed || !booking.date) return [];
     return getAvailableVenues(booking.guests, booking.date);
   }, [booking.guests, booking.guestsConfirmed, booking.date]);
+
+  // All venues available on the selected day (regardless of guest count — for display with disabled state)
+  const venuesByDay = React.useMemo(() => {
+    if (!booking.guestsConfirmed || !booking.date) return [];
+    return getVenuesByDay(booking.date);
+  }, [booking.guestsConfirmed, booking.date]);
 
   // If selected venue is no longer available after guests/date change, clear it
   React.useEffect(() => {
@@ -284,34 +290,45 @@ export const HomePage: React.FC<HomePageProps> = ({
               <h3 className="text-4xl font-black uppercase tracking-tighter">{t.step2}</h3>
             </div>
 
-            {filteredVenues.length === 0 ? (
+            {venuesByDay.length === 0 ? (
               <div className="bg-bbq-cream border-4 border-bbq-black p-10 text-center">
                 <p className="font-black uppercase text-lg text-gray-500">{t.noVenues}</p>
               </div>
             ) : (
               <div className="grid md:grid-cols-2 gap-8">
-                {filteredVenues.map(loc => (
-                  <div
-                    key={loc.id}
-                    onClick={() => setBooking(prev => ({ ...prev, locationId: loc.id, tradition: null, slot: null }))}
-                    className={`group relative border-4 p-4 text-left transition-all cursor-pointer ${booking.locationId === loc.id ? 'bg-bbq-black border-bbq-black shadow-hard translate-y-[-4px]' : 'bg-white border-gray-100 hover:border-bbq-black'}`}
-                  >
-                    <div className="aspect-video bg-gray-200 mb-6 overflow-hidden border-2 border-bbq-black relative">
-                      <img src={customAssets[`loc_${loc.id}_0`] || loc.images[0]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={loc.name} onError={handleImgError} />
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setViewerLocationId(loc.id); setCurrentImageIndex(0); }}
-                        className={`absolute bottom-4 right-4 flex items-center gap-2 text-[10px] font-black uppercase px-3 py-2 border-2 transition-all z-10 ${booking.locationId === loc.id ? 'bg-white text-bbq-black border-white hover:bg-bbq-yellow' : 'bg-bbq-black text-white border-bbq-black hover:bg-bbq-red shadow-hard-sm'}`}
-                      >
-                        <Camera size={14} /> {t.seeMore}
-                      </button>
-                      <div className="absolute top-4 left-4 bg-bbq-yellow border-2 border-bbq-black px-3 py-1 text-[10px] font-black uppercase shadow-hard-sm">
-                        {loc.minGuests}–{loc.maxGuests} {t.capacityLabel}
+                {venuesByDay.map(loc => {
+                  const guestsOk = booking.guests >= loc.minGuests && booking.guests <= loc.maxGuests;
+                  const isSelected = booking.locationId === loc.id;
+                  return (
+                    <div
+                      key={loc.id}
+                      onClick={() => guestsOk && setBooking(prev => ({ ...prev, locationId: loc.id, tradition: null, slot: null }))}
+                      className={`group relative border-4 p-4 text-left transition-all ${guestsOk ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'} ${isSelected ? 'bg-bbq-black border-bbq-black shadow-hard translate-y-[-4px]' : guestsOk ? 'bg-white border-gray-100 hover:border-bbq-black' : 'bg-gray-50 border-gray-200'}`}
+                    >
+                      <div className="aspect-video bg-gray-200 mb-6 overflow-hidden border-2 border-bbq-black relative">
+                        <img src={customAssets[`loc_${loc.id}_0`] || loc.images[0]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={loc.name} onError={handleImgError} />
+                        {guestsOk && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setViewerLocationId(loc.id); setCurrentImageIndex(0); }}
+                            className={`absolute bottom-4 right-4 flex items-center gap-2 text-[10px] font-black uppercase px-3 py-2 border-2 transition-all z-10 ${isSelected ? 'bg-white text-bbq-black border-white hover:bg-bbq-yellow' : 'bg-bbq-black text-white border-bbq-black hover:bg-bbq-red shadow-hard-sm'}`}
+                          >
+                            <Camera size={14} /> {t.seeMore}
+                          </button>
+                        )}
+                        <div className={`absolute top-4 left-4 border-2 border-bbq-black px-3 py-1 text-[10px] font-black uppercase shadow-hard-sm ${guestsOk ? 'bg-bbq-yellow' : 'bg-gray-200 text-gray-600'}`}>
+                          {loc.minGuests}–{loc.maxGuests} {t.capacityLabel}
+                        </div>
                       </div>
+                      <div className={`font-black uppercase text-2xl mb-2 ${isSelected ? 'text-bbq-yellow' : 'text-bbq-black'}`}>{loc.name}</div>
+                      <p className={`text-xs font-bold uppercase ${isSelected ? 'text-white' : 'text-gray-500'}`}>{loc.description}</p>
+                      {!guestsOk && (
+                        <p className="mt-3 text-[11px] font-black uppercase text-bbq-red">
+                          {booking.guests < loc.minGuests ? `Mínimo ${loc.minGuests} convidados` : `Máximo ${loc.maxGuests} convidados`}
+                        </p>
+                      )}
                     </div>
-                    <div className={`font-black uppercase text-2xl mb-2 ${booking.locationId === loc.id ? 'text-bbq-yellow' : 'text-bbq-black'}`}>{loc.name}</div>
-                    <p className={`text-xs font-bold uppercase ${booking.locationId === loc.id ? 'text-white' : 'text-gray-500'}`}>{loc.description}</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
