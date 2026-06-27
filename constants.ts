@@ -13,36 +13,16 @@ export const DEFAULT_ASSETS: Record<string, string> = {
 };
 
 export const BRAZILIAN_MENUS: BBQMenuItem[] = [
-  { 
-    id: 'brazilian-1', 
-    name: 'Churrasco de quintal', 
-    desc: 'Picanha, Linguiça Toscana e coxa de frango desossada.',
-    maxSides: 2
-  }
+  { id: 'brazilian-1', name: 'Churrasco de quintal', desc: 'Picanha, Linguiça Toscana e coxa de frango desossada.', maxSides: 2 }
 ];
 
 export const PORTUGUESE_MENUS: BBQMenuItem[] = [
-  {
-    id: 'portuguese-1',
-    name: 'Grelhada Mista',
-    desc: 'Lagartos, maminha e entremeada.',
-    maxSides: 2
-  },
-  {
-    id: 'portuguese-2',
-    name: 'Festa da Aldeia',
-    desc: 'Porco no Espeto',
-    maxSides: 2
-  }
+  { id: 'portuguese-1', name: 'Grelhada Mista', desc: 'Lagartos, maminha e entremeada.', maxSides: 2 },
+  { id: 'portuguese-2', name: 'Festa da Aldeia', desc: 'Porco no Espeto', maxSides: 2 }
 ];
 
 export const ARGENTINIAN_MENUS: BBQMenuItem[] = [
-  {
-    id: 'argentinian-1',
-    name: 'Juntada con asado',
-    desc: 'Vacío, Tira de asado, criollo, sal argentino e chimichurri.',
-    maxSides: 2
-  }
+  { id: 'argentinian-1', name: 'Juntada con asado', desc: 'Vacío, Tira de asado, criollo, sal argentino e chimichurri.', maxSides: 2 }
 ];
 
 export const BRAZILIAN_SIDES: SideDish[] = [
@@ -124,45 +104,104 @@ export const ADD_ONS: AddOnItem[] = [
 ];
 
 export const LOCATIONS: VenueLocation[] = [
-  { 
-    id: 'tapadinha_lisboa', 
-    name: 'Monsanto (Lisboa)', 
-    description: 'Espaço versátil rodeado de natureza no pulmão de Lisboa. Ideal para convívios ao ar livre.', 
+  {
+    id: 'tapadinha_lisboa',
+    name: 'Monsanto (Lisboa)',
+    description: 'Espaço versátil rodeado de natureza no pulmão de Lisboa. Ideal para grandes grupos ao ar livre.',
     images: [
       `${IMG}/Fotos/Locais/Tapadinha/Tapa1.webp`,
       `${IMG}/Fotos/Locais/Tapadinha/Tapa2.webp`,
       `${IMG}/Fotos/Locais/Tapadinha/Tapa3.webp`
-    ]
+    ],
+    minGuests: 80,
+    maxGuests: 1000
   },
-  { 
-    id: 'restelo_urban', 
-    name: 'Restelo', 
-    description: 'O verdadeiro churrasco em contexto urbano, bem no centro do Restelo onde a vibe tradicional impera.', 
+  {
+    id: 'restelo_urban',
+    name: 'Restelo',
+    description: 'O verdadeiro churrasco em contexto urbano, bem no centro do Restelo onde a vibe tradicional impera.',
     images: [
       `${IMG}/Fotos/Locais/Caramao/Caramao%20hero.webp`,
       `${IMG}/Fotos/Locais/Caramao/Caramao%20hero.webp`,
       `${IMG}/Fotos/Locais/Caramao/restelo3.webp`
-    ]
+    ],
+    minGuests: 20,
+    maxGuests: 100
   },
-  { 
-    id: 'carnide_local', 
-    name: 'Carnide', 
-    description: 'Um refúgio tranquilo em Carnide, ideal para grandes grupos e celebrações tradicionais.', 
+  {
+    id: 'carnide_local',
+    name: 'Carnide',
+    description: 'Um refúgio tranquilo em Carnide, ideal para grupos íntimos e celebrações tradicionais.',
     images: [
       `${IMG}/Fotos/Locais/Tasquissima/Tasq1.webp`,
       `${IMG}/Fotos/Locais/Tasquissima/Tasq2.webp`,
       `${IMG}/Fotos/Locais/Tasquissima/Tast3.webp`
-    ]
+    ],
+    minGuests: 20,
+    maxGuests: 40
   },
-  { 
-    id: 'expo_rooftop', 
-    name: 'Expo', 
-    description: 'Rooftop que nos transporta para um mundo de cor, criatividade e comunhão com a cidade', 
+  {
+    id: 'expo_rooftop',
+    name: 'Expo',
+    description: 'Rooftop que nos transporta para um mundo de cor, criatividade e comunhão com a cidade.',
     images: [
       `${IMG}/Fotos/Locais/Expo/Expo1_A.webp`,
       `${IMG}/Fotos/Locais/Expo/Expo1_E.webp`,
       `${IMG}/Fotos/Locais/Expo/Expo1_D.webp`,
       `${IMG}/Fotos/Locais/Expo/Expo1_C.webp`
+    ],
+    minGuests: 30,
+    maxGuests: 500,
+    // Special rule: Mon–Wed requires 80+ guests
+    specialRules: [
+      { days: [1, 2, 3], minGuests: 80 }
     ]
+  },
+  {
+    id: 'benfica',
+    name: 'Benfica',
+    description: 'Espaço com história e carácter em pleno coração de Benfica. Perfeito para fins de semana em família.',
+    images: [
+      'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1200&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?q=80&w=1200&auto=format&fit=crop'
+    ],
+    minGuests: 20,
+    maxGuests: 120,
+    availableDays: [0, 6] // weekends only
+  },
+  {
+    id: 'musa_marvila',
+    name: 'Musa Marvila',
+    description: 'Ambiente industrial e criativo em Marvila, a zona mais cool de Lisboa. Exclusivo às segundas-feiras.',
+    images: [
+      'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?q=80&w=1200&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?q=80&w=1200&auto=format&fit=crop'
+    ],
+    minGuests: 30,
+    maxGuests: 80,
+    availableDays: [1] // Monday only
   }
 ];
+
+// Filter venues by number of guests and date
+export function getAvailableVenues(guests: number, date: Date | null): VenueLocation[] {
+  if (!date) return LOCATIONS;
+  const dow = date.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+
+  return LOCATIONS.filter(loc => {
+    // Capacity check
+    if (guests < loc.minGuests || guests > loc.maxGuests) return false;
+
+    // Day availability check
+    if (loc.availableDays && !loc.availableDays.includes(dow)) return false;
+
+    // Special per-day min-guests rules
+    if (loc.specialRules) {
+      for (const rule of loc.specialRules) {
+        if (rule.days.includes(dow) && guests < rule.minGuests) return false;
+      }
+    }
+
+    return true;
+  });
+}

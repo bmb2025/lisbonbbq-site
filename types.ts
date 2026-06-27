@@ -63,11 +63,20 @@ export interface DailyWeather {
   code: number;
 }
 
+export interface SpecialDayRule {
+  days: number[]; // 0=Sun,1=Mon,...,6=Sat
+  minGuests: number;
+}
+
 export interface VenueLocation {
   id: string;
   name: string;
   description: string;
   images: string[];
+  minGuests: number;
+  maxGuests: number;
+  availableDays?: number[]; // undefined = all days; [0,6] = weekends; [1] = Monday only
+  specialRules?: SpecialDayRule[]; // extra min-guests constraints per day group
 }
 
 export interface Article {
