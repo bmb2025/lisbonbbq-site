@@ -205,3 +205,14 @@ export function getAvailableVenues(guests: number, date: Date | null): VenueLoca
     return true;
   });
 }
+
+// Meats per tradition (informational, not selectable)
+export const TRADITION_MEATS: Record<string, string[]> = {
+  brazilian: ['Picanha', 'Linguiça Toscana', 'Coxa de frango desossada'],
+  portuguese: ['Lagartos', 'Maminha', 'Entremeada'],
+  argentinian: ['Vacío', 'Tira de asado', 'Criollo e sal argentino'],
+};
+
+// Always the same sides & drinks
+export const FIXED_SIDES = ['Arroz com feijão preto', 'Salada Mista', 'Batata Frita'];
+export const FIXED_DRINKS = ['Cerveja gelada', 'Vinho branco ou tinto', 'Sumo de Laranja Natural', 'Águas'];

@@ -1,11 +1,11 @@
 import React from 'react';
-import { Flame, ChefHat, Castle, Utensils, ChevronLeft, ChevronRight, Sun, Cloud, Minus, Plus, CircleOff, Loader2, X, Check, Camera, Users, Beer } from 'lucide-react';
+import { Flame, ChefHat, Castle, Utensils, ChevronLeft, ChevronRight, Sun, Cloud, Minus, Plus, CircleOff, Loader2, X, Check, Camera, Users, Beer, UtensilsCrossed } from 'lucide-react';
 import { Header } from './Header';
 import { BookingSummary } from './BookingSummary';
 import { LogoBar, PackageCard, BrandStory, VenueGrid, Referrals } from './LandingComponents';
 import { Footer } from './Footer';
 import { BookingState, CartItem, SlotTime, DailyWeather } from '../types';
-import { BRAZILIAN_MENUS, PORTUGUESE_MENUS, ARGENTINIAN_MENUS, BRAZILIAN_SIDES, PORTUGUESE_SIDES, ARGENTINIAN_SIDES, LOCATIONS, getAvailableVenues } from '../constants';
+import { LOCATIONS, getAvailableVenues, TRADITION_MEATS, FIXED_SIDES, FIXED_DRINKS } from '../constants';
 import { getWeatherIcon } from '../services/weatherService';
 
 interface HomePageProps {
@@ -43,17 +43,11 @@ interface HomePageProps {
 export const HomePage: React.FC<HomePageProps> = ({
   lang, setLang, setView, booking, setBooking, cart, setCart, updateCart, customAssets, weatherData, viewDate, setViewDate,
   calendarDays, today, showQuote, setShowQuote, isSubmitted, setIsSubmitted, isSending, clientName, setClientName,
-  clientEmail, setClientEmail, clientPhone, setClientPhone, handleFormSubmit, scrollToBooking, traditionSectionRef, toggleSide
+  clientEmail, setClientEmail, clientPhone, setClientPhone, handleFormSubmit, scrollToBooking, traditionSectionRef
 }) => {
   const [viewerLocationId, setViewerLocationId] = React.useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
   const [localGuests, setLocalGuests] = React.useState(booking.guests);
-
-  const availableMenus = booking.tradition === 'brazilian' ? BRAZILIAN_MENUS :
-    booking.tradition === 'argentinian' ? ARGENTINIAN_MENUS : PORTUGUESE_MENUS;
-
-  const availableSides = booking.tradition === 'brazilian' ? BRAZILIAN_SIDES :
-    booking.tradition === 'argentinian' ? ARGENTINIAN_SIDES : PORTUGUESE_SIDES;
 
   // Filtered venues based on confirmed guests + date
   const filteredVenues = React.useMemo(() => {
@@ -66,14 +60,14 @@ export const HomePage: React.FC<HomePageProps> = ({
     if (booking.locationId && booking.guestsConfirmed && booking.date) {
       const stillAvailable = filteredVenues.some(l => l.id === booking.locationId);
       if (!stillAvailable) {
-        setBooking(prev => ({ ...prev, locationId: null, style: null, selectedSides: [], sidesConfirmed: false, slot: null }));
+        setBooking(prev => ({ ...prev, locationId: null, tradition: null, slot: null }));
       }
     }
   }, [filteredVenues]);
 
-  const meatEstimate = Math.ceil(booking.guests * 0.45);
-  const drinkEstimate = Math.ceil(booking.guests * 3);
-  const coalEstimate = Math.ceil(booking.guests / 8);
+  const meatKg = Math.ceil(booking.guests * 0.45);
+  const drinkCount = Math.ceil(booking.guests * 3);
+  const meats = booking.tradition ? (TRADITION_MEATS[booking.tradition] || []) : [];
 
   const canConfirmStep1 = localGuests >= 20 && !!booking.date;
 
@@ -82,9 +76,8 @@ export const HomePage: React.FC<HomePageProps> = ({
       ...prev,
       guests: localGuests,
       guestsConfirmed: true,
-      // Reset downstream selections
-      tradition: null,
       locationId: null,
+      tradition: null,
       style: null,
       selectedSides: [],
       sidesConfirmed: false,
@@ -93,40 +86,34 @@ export const HomePage: React.FC<HomePageProps> = ({
     }));
   };
 
+  const dayLabels = lang === 'pt'
+    ? ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
+    : ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
   const t = {
-    heroTitle: 'Lisbon Barbecue',
-    heroBranding: '& Churrasco',
-    heroSub: lang === 'pt' ? 'O teu backyard' : 'Your backyard',
-    heroBtn: lang === 'pt' ? 'Personaliza o Teu Banquete' : 'Design Your Feast',
     designer: lang === 'pt' ? 'Designer de Evento' : 'Event Designer',
     designerSub: lang === 'pt' ? 'Quando o fogo acende, a experiência começa.' : 'When the fire ignites, the experience begins.',
     step1Title: lang === 'pt' ? 'Pessoas & Data' : 'Guests & Date',
     step1Sub: lang === 'pt' ? 'Vamos encontrar o local certo para o teu evento' : 'Let\'s find the perfect venue for your event',
     guestsLabel: lang === 'pt' ? 'Convidados' : 'Guests',
-    dateLabel: lang === 'pt' ? 'Data Pretendida' : 'Preferred Date',
     confirmStep1: lang === 'pt' ? 'Ver Locais Disponíveis' : 'See Available Venues',
-    confirmedStep1: lang === 'pt' ? 'Confirmado' : 'Confirmed',
     changeStep1: lang === 'pt' ? 'Alterar' : 'Change',
+    minGuests: lang === 'pt' ? 'Mínimo 20 convidados' : 'Minimum 20 guests',
+    capacityLabel: lang === 'pt' ? 'pessoas' : 'guests',
     noVenues: lang === 'pt' ? 'Sem locais disponíveis para esta combinação. Tenta outra data ou número de pessoas.' : 'No venues available for this combination. Try another date or guest count.',
-    meat: lang === 'pt' ? 'Carne estimada' : 'Estimated Meat',
-    drinks: lang === 'pt' ? 'Bebidas estimadas' : 'Estimated Drinks',
-    coal: lang === 'pt' ? 'Sacos de Carvão' : 'Coal Bags',
-    step2: lang === 'pt' ? 'Escolher Tradição' : 'Select Tradition',
+    step2: lang === 'pt' ? 'O Local' : 'The Venue',
+    step3: lang === 'pt' ? 'A Tradição' : 'The Tradition',
     ptTradition: lang === 'pt' ? 'Churrasco Português' : 'Portuguese Barbecue',
     ptTraditionSub: lang === 'pt' ? 'Grelhada Mista • Especialidades Regionais' : 'Mixed Grill • Regional Specialities',
     brTradition: lang === 'pt' ? 'Churrasco Brasileiro' : 'Brazilian Barbecue',
     brTraditionSub: lang === 'pt' ? 'Picanha Premium • Rodízio Privado' : 'Premium Picanha • Private Rodízio',
     argTradition: lang === 'pt' ? 'Asado Argentino' : 'Argentinian Asado',
     argTraditionSub: lang === 'pt' ? 'Vacío • Chimichurri • Fogo Lento' : 'Vacío • Chimichurri • Slow Fire',
-    step3: lang === 'pt' ? 'O Local' : 'The Venue',
-    capacityLabel: lang === 'pt' ? 'pessoas' : 'guests',
-    step4: lang === 'pt' ? 'O Teu Menu' : 'Your Menu',
-    pickSides: lang === 'pt'
-      ? `Escolher até ${availableMenus.find(m => m.name === booking.style)?.maxSides || 2} acompanhamentos`
-      : `Pick up to ${availableMenus.find(m => m.name === booking.style)?.maxSides || 2} Sides`,
-    confirmSides: lang === 'pt' ? 'Confirmar Menu & Acompanhamentos' : 'Confirm Menu & Sides',
-    step5: lang === 'pt' ? 'O Horário' : 'The Slot',
-    step6: lang === 'pt' ? 'Extras' : 'Extras',
+    meatLabel: lang === 'pt' ? 'Carne' : 'Meat',
+    drinksLabel: lang === 'pt' ? 'Bebidas estimadas' : 'Estimated Drinks',
+    sidesLabel: lang === 'pt' ? 'Acompanhamentos' : 'Sides',
+    step4: lang === 'pt' ? 'O Horário' : 'The Slot',
+    step5: lang === 'pt' ? 'Extras' : 'Extras',
     finalize: lang === 'pt' ? 'Receber orçamento' : 'Get Quote',
     contactDetails: lang === 'pt' ? 'Orçamento será enviado em apenas alguns minutos' : 'Your custom quote will be ready in minutes',
     fullName: lang === 'pt' ? 'Nome Completo' : 'Full Name',
@@ -137,11 +124,10 @@ export const HomePage: React.FC<HomePageProps> = ({
     sent: lang === 'pt' ? 'Pedido Enviado!' : 'Request Sent!',
     sentSub: lang === 'pt' ? 'O nosso concierge entrará em contacto em 4 horas.' : 'Our concierge will contact you within 4 hours.',
     confirmSelection: lang === 'pt' ? 'Pedir Orçamento' : 'Get Custom Quote',
-    confirmedAction: lang === 'pt' ? 'Pedir Orçamento' : 'Get Custom Quote',
     noExtras: lang === 'pt' ? 'Não quero extras' : 'No extras, thank you',
     noExtrasSub: lang === 'pt' ? 'Prosseguir apenas com o menu base' : 'Proceed with base menu only',
     seeMore: lang === 'pt' ? 'Ver Mais' : 'See More',
-    minGuests: lang === 'pt' ? 'Mínimo 20 convidados' : 'Minimum 20 guests',
+    heroBtn: lang === 'pt' ? 'Personaliza o Teu Banquete' : 'Design Your Feast',
   };
 
   const handleImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -156,10 +142,6 @@ export const HomePage: React.FC<HomePageProps> = ({
 
   const noExtrasSelected = booking.extrasConfirmed && cart.every(item => item.quantity === 0);
 
-  const dayLabels = lang === 'pt'
-    ? ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
-    : ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-
   return (
     <div className="min-h-screen font-sans bg-bbq-cream pb-32">
       <Header setView={setView} lang={lang} setLang={setLang} />
@@ -170,10 +152,10 @@ export const HomePage: React.FC<HomePageProps> = ({
         <div className="absolute inset-0 z-20 bg-gradient-to-t from-black/95 via-black/30 to-black/50"></div>
         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center text-center p-4">
           <h2 className="text-5xl md:text-[8rem] font-black uppercase leading-none mb-6 text-white drop-shadow-[10px_10px_0px_#1A1A1A] tracking-tighter">
-            {t.heroTitle}<br /><span className="text-bbq-yellow">{t.heroBranding}</span>
+            Lisbon Barbecue<br /><span className="text-bbq-yellow">& Churrasco</span>
           </h2>
           <p className="relative text-white text-lg md:text-2xl font-black uppercase tracking-widest bg-bbq-red px-10 py-5 border-4 border-bbq-black mb-12">
-            {t.heroSub}
+            {lang === 'pt' ? 'O teu backyard' : 'Your backyard'}
           </p>
           <button onClick={scrollToBooking} className="group bg-bbq-yellow text-bbq-black text-2xl font-black uppercase px-14 py-7 border-4 border-bbq-black shadow-hard hover:translate-y-[2px] transition-all flex items-center gap-4">
             {t.heroBtn} <Flame className="w-8 h-8 group-hover:animate-bounce" />
@@ -205,13 +187,12 @@ export const HomePage: React.FC<HomePageProps> = ({
           </div>
 
           {booking.guestsConfirmed ? (
-            /* Confirmed summary bar */
-            <div className="bg-bbq-yellow border-4 border-bbq-black p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-hard mb-8">
+            <div className="bg-bbq-yellow border-4 border-bbq-black p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-hard">
               <div className="flex items-center gap-8">
                 <div className="flex items-center gap-3">
-                  <Users size={20} className="text-bbq-black" />
+                  <Users size={20} />
                   <span className="font-black text-2xl">{booking.guests}</span>
-                  <span className="font-black uppercase text-xs text-bbq-black/60">{t.capacityLabel}</span>
+                  <span className="font-black uppercase text-xs opacity-60">{t.capacityLabel}</span>
                 </div>
                 <div className="h-8 w-px bg-bbq-black/20" />
                 <div className="font-black uppercase text-sm">
@@ -226,145 +207,81 @@ export const HomePage: React.FC<HomePageProps> = ({
               </button>
             </div>
           ) : (
-            <div className="grid md:grid-cols-2 gap-8">
-              {/* Guests counter */}
-              <div className="bg-bbq-cream border-4 border-bbq-black p-8 shadow-hard">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-bbq-black text-white border-2 border-bbq-black">
-                    <Users size={20} />
+            <>
+              <div className="grid md:grid-cols-2 gap-8 mb-8">
+                {/* Guests counter */}
+                <div className="bg-bbq-cream border-4 border-bbq-black p-8 shadow-hard">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 bg-bbq-black text-white border-2 border-bbq-black"><Users size={20} /></div>
+                    <h4 className="text-xl font-black uppercase tracking-tighter">{t.guestsLabel}</h4>
                   </div>
-                  <h4 className="text-xl font-black uppercase tracking-tighter">{t.guestsLabel}</h4>
+                  <div className="relative mb-4">
+                    <input
+                      type="number" min="20" max="1000" value={localGuests}
+                      onChange={e => setLocalGuests(Math.max(20, parseInt(e.target.value) || 20))}
+                      className="w-full bg-white border-4 border-bbq-black p-6 text-5xl font-black focus:outline-none focus:ring-4 focus:ring-bbq-red shadow-hard-sm"
+                    />
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-1">
+                      <button onClick={() => setLocalGuests(g => g + 1)} className="p-1 hover:bg-gray-100 border-2 border-bbq-black bg-white active:translate-y-0.5"><Plus size={16} strokeWidth={4} /></button>
+                      <button onClick={() => setLocalGuests(g => Math.max(20, g - 1))} className="p-1 hover:bg-gray-100 border-2 border-bbq-black bg-white active:translate-y-0.5"><Minus size={16} strokeWidth={4} /></button>
+                    </div>
+                  </div>
+                  <p className="text-[10px] font-black uppercase text-bbq-black/50 tracking-widest">{t.minGuests}</p>
                 </div>
-                <div className="relative mb-4">
-                  <input
-                    type="number"
-                    min="20"
-                    max="1000"
-                    value={localGuests}
-                    onChange={e => setLocalGuests(Math.max(20, parseInt(e.target.value) || 20))}
-                    className="w-full bg-white border-4 border-bbq-black p-6 text-5xl font-black focus:outline-none focus:ring-4 focus:ring-bbq-red shadow-hard-sm"
-                  />
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-1">
-                    <button onClick={() => setLocalGuests(g => g + 1)} className="p-1 hover:bg-gray-100 border-2 border-bbq-black bg-white active:translate-y-0.5">
-                      <Plus size={16} strokeWidth={4} />
-                    </button>
-                    <button onClick={() => setLocalGuests(g => Math.max(20, g - 1))} className="p-1 hover:bg-gray-100 border-2 border-bbq-black bg-white active:translate-y-0.5">
-                      <Minus size={16} strokeWidth={4} />
-                    </button>
+
+                {/* Calendar */}
+                <div className="bg-white border-4 border-bbq-black shadow-hard">
+                  <div className="flex justify-between items-center p-4 border-b-2 border-bbq-black">
+                    <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))} className="p-2 border-2 border-bbq-black/10 hover:bg-bbq-black/5"><ChevronLeft size={16} /></button>
+                    <span className="font-black uppercase text-sm tracking-widest">{viewDate.toLocaleString('pt-PT', { month: 'long', year: 'numeric' })}</span>
+                    <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))} className="p-2 border-2 border-bbq-black/10 hover:bg-bbq-black/5"><ChevronRight size={16} /></button>
+                  </div>
+                  <div className="p-4">
+                    <div className="grid grid-cols-7 gap-1 mb-2">
+                      {dayLabels.map((d, i) => <div key={i} className="text-center font-black text-gray-400 text-[10px] py-1">{d}</div>)}
+                    </div>
+                    <div className="grid grid-cols-7 gap-1">
+                      {calendarDays.map((date, i) => {
+                        if (!date) return <div key={i} />;
+                        const isSelected = booking.date?.toDateString() === date.toDateString();
+                        const isPast = date < today;
+                        const dateStr = date.toISOString().split('T')[0];
+                        const weather = weatherData[dateStr];
+                        return (
+                          <button key={i} disabled={isPast} onClick={() => setBooking(prev => ({ ...prev, date, slot: null }))}
+                            className={`aspect-square p-1 border-2 flex flex-col items-center justify-between transition-all text-[10px] ${isSelected ? 'bg-bbq-yellow border-bbq-black' : isPast ? 'opacity-10 border-transparent cursor-not-allowed' : 'bg-bbq-cream border-bbq-black/5 hover:border-bbq-black/30'}`}>
+                            <span className="font-black text-xs">{date.getDate()}</span>
+                            {weather && (
+                              <div className="flex flex-col items-center">
+                                {getWeatherIcon(weather.code) === 'sun' ? <Sun size={8} /> : <Cloud size={8} />}
+                                <span className="text-[8px] font-black">{weather.maxTemp}°</span>
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
-                <p className="text-[10px] font-black uppercase text-bbq-black/50 tracking-widest">{t.minGuests}</p>
               </div>
 
-              {/* Calendar */}
-              <div className="bg-white border-4 border-bbq-black shadow-hard">
-                <div className="flex justify-between items-center p-4 border-b-2 border-bbq-black">
-                  <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))} className="p-2 border-2 border-bbq-black/10 hover:bg-bbq-black/5"><ChevronLeft size={16} /></button>
-                  <span className="font-black uppercase text-sm tracking-widest">{viewDate.toLocaleString('pt-PT', { month: 'long', year: 'numeric' })}</span>
-                  <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))} className="p-2 border-2 border-bbq-black/10 hover:bg-bbq-black/5"><ChevronRight size={16} /></button>
-                </div>
-                <div className="p-4">
-                  <div className="grid grid-cols-7 gap-1 mb-2">
-                    {dayLabels.map((d, i) => <div key={i} className="text-center font-black text-gray-400 text-[10px] py-1">{d}</div>)}
-                  </div>
-                  <div className="grid grid-cols-7 gap-1">
-                    {calendarDays.map((date, i) => {
-                      if (!date) return <div key={i} />;
-                      const isSelected = booking.date?.toDateString() === date.toDateString();
-                      const isPast = date < today;
-                      const dateStr = date.toISOString().split('T')[0];
-                      const weather = weatherData[dateStr];
-                      return (
-                        <button key={i} disabled={isPast} onClick={() => setBooking(prev => ({ ...prev, date, slot: null }))}
-                          className={`aspect-square p-1 border-2 flex flex-col items-center justify-between transition-all text-[10px] ${isSelected ? 'bg-bbq-yellow border-bbq-black text-bbq-black' : isPast ? 'opacity-10 border-transparent cursor-not-allowed' : 'bg-bbq-cream border-bbq-black/5 hover:border-bbq-black/30'}`}>
-                          <span className="font-black text-xs">{date.getDate()}</span>
-                          {weather && (
-                            <div className="flex flex-col items-center">
-                              {getWeatherIcon(weather.code) === 'sun' ? <Sun size={8} /> : <Cloud size={8} />}
-                              <span className="text-[8px] font-black">{weather.maxTemp}°</span>
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Confirm button */}
-          {!booking.guestsConfirmed && (
-            <button
-              onClick={handleConfirmStep1}
-              disabled={!canConfirmStep1}
-              className={`mt-8 w-full py-6 font-black uppercase text-xl border-4 border-bbq-black shadow-hard transition-all flex items-center justify-center gap-3 ${canConfirmStep1 ? 'bg-bbq-red text-white hover:bg-bbq-black' : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed shadow-none'}`}
-            >
-              <Flame size={24} /> {t.confirmStep1}
-            </button>
-          )}
-
-          {/* Logistics estimate (after confirmation) */}
-          {booking.guestsConfirmed && (
-            <div className="grid grid-cols-3 gap-4">
-              <div className="bg-white border-4 border-bbq-black p-4 flex items-center gap-4 shadow-hard-sm">
-                <div className="bg-bbq-cream p-2 border-2 border-bbq-black"><Utensils className="text-bbq-red" size={20} /></div>
-                <div>
-                  <div className="text-2xl font-black leading-none">{meatEstimate}kg</div>
-                  <div className="text-[10px] font-black uppercase text-gray-400">{t.meat}</div>
-                </div>
-              </div>
-              <div className="bg-white border-4 border-bbq-black p-4 flex items-center gap-4 shadow-hard-sm">
-                <div className="bg-bbq-cream p-2 border-2 border-bbq-black"><Beer className="text-bbq-red" size={20} /></div>
-                <div>
-                  <div className="text-2xl font-black leading-none">{drinkEstimate}</div>
-                  <div className="text-[10px] font-black uppercase text-gray-400">{t.drinks}</div>
-                </div>
-              </div>
-              <div className="bg-white border-4 border-bbq-black p-4 flex items-center gap-4 shadow-hard-sm">
-                <div className="bg-bbq-cream p-2 border-2 border-bbq-black"><Flame className="text-bbq-red" size={20} /></div>
-                <div>
-                  <div className="text-2xl font-black leading-none">{coalEstimate}</div>
-                  <div className="text-[10px] font-black uppercase text-gray-400">{t.coal}</div>
-                </div>
-              </div>
-            </div>
+              <button
+                onClick={handleConfirmStep1}
+                disabled={!canConfirmStep1}
+                className={`w-full py-6 font-black uppercase text-xl border-4 border-bbq-black shadow-hard transition-all flex items-center justify-center gap-3 ${canConfirmStep1 ? 'bg-bbq-red text-white hover:bg-bbq-black' : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed shadow-none'}`}
+              >
+                <Flame size={24} /> {t.confirmStep1}
+              </button>
+            </>
           )}
         </div>
 
-        {/* ── STEP 02: TRADITION ── */}
+        {/* ── STEP 02: VENUE (filtered by guests + date) ── */}
         {booking.guestsConfirmed && (
           <div className="mb-24 animate-in fade-in slide-in-from-bottom-10 duration-700">
             <div className="flex items-baseline gap-6 mb-12 border-b-8 border-bbq-black pb-4">
               <span className="text-8xl font-black text-bbq-red/10 leading-none">02</span>
               <h3 className="text-4xl font-black uppercase tracking-tighter">{t.step2}</h3>
-            </div>
-            <div className="grid md:grid-cols-3 gap-8">
-              <button onClick={() => setBooking(prev => ({ ...prev, tradition: 'portuguese', style: null, selectedSides: [], sidesConfirmed: false, locationId: null }))} className={`relative p-8 border-4 text-left transition-all ${booking.tradition === 'portuguese' ? 'bg-bbq-yellow text-bbq-black border-bbq-black shadow-hard translate-y-[-8px]' : 'bg-white border-gray-100 hover:border-bbq-red'}`}>
-                <Castle size={48} className="text-bbq-red mb-6" />
-                <div className="font-black uppercase text-2xl mb-2">{t.ptTradition}</div>
-                <div className="text-[10px] font-bold uppercase tracking-widest opacity-80">{t.ptTraditionSub}</div>
-              </button>
-              <button onClick={() => setBooking(prev => ({ ...prev, tradition: 'brazilian', style: null, selectedSides: [], sidesConfirmed: false, locationId: null }))} className={`relative p-8 border-4 text-left transition-all ${booking.tradition === 'brazilian' ? 'bg-bbq-yellow text-bbq-black border-bbq-black shadow-hard translate-y-[-8px]' : 'bg-white border-gray-100 hover:border-bbq-red'}`}>
-                <ChefHat size={48} className="text-bbq-red mb-6" />
-                <div className="font-black uppercase text-2xl mb-2">{t.brTradition}</div>
-                <div className="text-[10px] font-bold uppercase tracking-widest opacity-80">{t.brTraditionSub}</div>
-              </button>
-              <button onClick={() => setBooking(prev => ({ ...prev, tradition: 'argentinian', style: null, selectedSides: [], sidesConfirmed: false, locationId: null }))} className={`relative p-8 border-4 text-left transition-all ${booking.tradition === 'argentinian' ? 'bg-bbq-yellow text-bbq-black border-bbq-black shadow-hard translate-y-[-8px]' : 'bg-white border-gray-100 hover:border-bbq-red'}`}>
-                <Flame size={48} className="text-bbq-red mb-6" />
-                <div className="font-black uppercase text-2xl mb-2">{t.argTradition}</div>
-                <div className="text-[10px] font-bold uppercase tracking-widest opacity-80">{t.argTraditionSub}</div>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ── STEP 03: VENUE (filtered) ── */}
-        {booking.tradition && (
-          <div className="mb-24 animate-in fade-in slide-in-from-bottom-10 duration-700">
-            <div className="flex items-baseline gap-6 mb-12 border-b-8 border-bbq-black pb-4">
-              <span className="text-8xl font-black text-bbq-red/10 leading-none">03</span>
-              <h3 className="text-4xl font-black uppercase tracking-tighter">{t.step3}</h3>
             </div>
 
             {filteredVenues.length === 0 ? (
@@ -376,7 +293,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 {filteredVenues.map(loc => (
                   <div
                     key={loc.id}
-                    onClick={() => setBooking(prev => ({ ...prev, locationId: loc.id }))}
+                    onClick={() => setBooking(prev => ({ ...prev, locationId: loc.id, tradition: null, slot: null }))}
                     className={`group relative border-4 p-4 text-left transition-all cursor-pointer ${booking.locationId === loc.id ? 'bg-bbq-black border-bbq-black shadow-hard translate-y-[-4px]' : 'bg-white border-gray-100 hover:border-bbq-black'}`}
                   >
                     <div className="aspect-video bg-gray-200 mb-6 overflow-hidden border-2 border-bbq-black relative">
@@ -387,13 +304,12 @@ export const HomePage: React.FC<HomePageProps> = ({
                       >
                         <Camera size={14} /> {t.seeMore}
                       </button>
-                      {/* Capacity badge */}
                       <div className="absolute top-4 left-4 bg-bbq-yellow border-2 border-bbq-black px-3 py-1 text-[10px] font-black uppercase shadow-hard-sm">
                         {loc.minGuests}–{loc.maxGuests} {t.capacityLabel}
                       </div>
                     </div>
                     <div className={`font-black uppercase text-2xl mb-2 ${booking.locationId === loc.id ? 'text-bbq-yellow' : 'text-bbq-black'}`}>{loc.name}</div>
-                    <p className={`text-xs font-bold uppercase mb-4 ${booking.locationId === loc.id ? 'text-white' : 'text-gray-500'}`}>{loc.description}</p>
+                    <p className={`text-xs font-bold uppercase ${booking.locationId === loc.id ? 'text-white' : 'text-gray-500'}`}>{loc.description}</p>
                   </div>
                 ))}
               </div>
@@ -401,45 +317,102 @@ export const HomePage: React.FC<HomePageProps> = ({
           </div>
         )}
 
-        {/* ── STEP 04: MENU & SIDES ── */}
+        {/* ── STEP 03: TRADITION ── */}
         {booking.locationId && (
           <div className="mb-24 animate-in fade-in slide-in-from-bottom-10 duration-700">
             <div className="flex items-baseline gap-6 mb-12 border-b-8 border-bbq-black pb-4">
-              <span className="text-8xl font-black text-bbq-red/10 leading-none">04</span>
-              <h3 className="text-4xl font-black uppercase tracking-tighter">{t.step4}</h3>
+              <span className="text-8xl font-black text-bbq-red/10 leading-none">03</span>
+              <h3 className="text-4xl font-black uppercase tracking-tighter">{t.step3}</h3>
             </div>
-            <div className="grid md:grid-cols-2 gap-6 mb-12">
-              {availableMenus.map(m => (
-                <button key={m.id} onClick={() => setBooking(prev => ({ ...prev, style: m.name, selectedSides: [], sidesConfirmed: false }))} className={`p-8 border-4 text-left transition-all ${booking.style === m.name ? 'bg-bbq-red text-white border-bbq-black shadow-hard' : 'bg-white border-gray-100 hover:border-bbq-red'}`}>
-                  <h4 className="font-black uppercase text-xl mb-2">{m.name}</h4>
-                  <p className="text-xs font-bold opacity-80 uppercase leading-tight">{m.desc}</p>
-                </button>
-              ))}
+
+            <div className="grid md:grid-cols-3 gap-8 mb-10">
+              <button onClick={() => setBooking(prev => ({ ...prev, tradition: 'portuguese', slot: null }))} className={`relative p-8 border-4 text-left transition-all ${booking.tradition === 'portuguese' ? 'bg-bbq-yellow text-bbq-black border-bbq-black shadow-hard translate-y-[-8px]' : 'bg-white border-gray-100 hover:border-bbq-red'}`}>
+                <Castle size={48} className="text-bbq-red mb-6" />
+                <div className="font-black uppercase text-2xl mb-2">{t.ptTradition}</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest opacity-80">{t.ptTraditionSub}</div>
+              </button>
+              <button onClick={() => setBooking(prev => ({ ...prev, tradition: 'brazilian', slot: null }))} className={`relative p-8 border-4 text-left transition-all ${booking.tradition === 'brazilian' ? 'bg-bbq-yellow text-bbq-black border-bbq-black shadow-hard translate-y-[-8px]' : 'bg-white border-gray-100 hover:border-bbq-red'}`}>
+                <ChefHat size={48} className="text-bbq-red mb-6" />
+                <div className="font-black uppercase text-2xl mb-2">{t.brTradition}</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest opacity-80">{t.brTraditionSub}</div>
+              </button>
+              <button onClick={() => setBooking(prev => ({ ...prev, tradition: 'argentinian', slot: null }))} className={`relative p-8 border-4 text-left transition-all ${booking.tradition === 'argentinian' ? 'bg-bbq-yellow text-bbq-black border-bbq-black shadow-hard translate-y-[-8px]' : 'bg-white border-gray-100 hover:border-bbq-red'}`}>
+                <Flame size={48} className="text-bbq-red mb-6" />
+                <div className="font-black uppercase text-2xl mb-2">{t.argTradition}</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest opacity-80">{t.argTraditionSub}</div>
+              </button>
             </div>
-            {booking.style && (
-              <div className="bg-bbq-cream p-10 border-4 border-bbq-black">
-                <h4 className="text-2xl font-black uppercase mb-8 flex items-center gap-3"><Utensils size={24} /> {t.pickSides}</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-                  {availableSides.map(side => (
-                    <button key={side.name} onClick={() => toggleSide(side.name)} className={`p-4 border-2 font-black uppercase text-xs transition-all ${booking.selectedSides.includes(side.name) ? 'bg-bbq-black text-bbq-yellow border-bbq-black shadow-hard-sm' : 'bg-white border-bbq-black/10 hover:border-bbq-black'}`}>
-                      {side.name}
-                    </button>
-                  ))}
+
+            {/* Breakdown panel — only when tradition is chosen */}
+            {booking.tradition && (
+              <div className="grid md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {/* Meat */}
+                <div className="bg-white border-4 border-bbq-black p-6 shadow-hard">
+                  <div className="flex items-end gap-3 mb-1">
+                    <span className="text-5xl font-black leading-none">{meatKg}kg</span>
+                  </div>
+                  <div className="flex items-center gap-2 mb-5 pb-4 border-b-2 border-bbq-black/10">
+                    <Utensils size={14} className="text-bbq-red" />
+                    <span className="font-black uppercase text-xs tracking-widest text-gray-500">{t.meatLabel}</span>
+                  </div>
+                  <ul className="space-y-2">
+                    {meats.map(m => (
+                      <li key={m} className="flex items-center gap-2 text-sm font-bold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-bbq-red shrink-0" />
+                        {m}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <button onClick={() => setBooking(prev => ({ ...prev, sidesConfirmed: true }))} disabled={booking.selectedSides.length === 0} className={`w-full py-5 font-black uppercase text-xl shadow-hard transition-all ${booking.sidesConfirmed ? 'bg-green-600 text-white' : 'bg-bbq-black text-bbq-yellow hover:bg-bbq-red hover:text-white disabled:opacity-50'}`}>
-                  {booking.sidesConfirmed ? t.confirmedAction : t.confirmSides}
-                </button>
+
+                {/* Drinks */}
+                <div className="bg-white border-4 border-bbq-black p-6 shadow-hard">
+                  <div className="flex items-end gap-3 mb-1">
+                    <span className="text-5xl font-black leading-none">{drinkCount}</span>
+                  </div>
+                  <div className="flex items-center gap-2 mb-5 pb-4 border-b-2 border-bbq-black/10">
+                    <Beer size={14} className="text-bbq-red" />
+                    <span className="font-black uppercase text-xs tracking-widest text-gray-500">{t.drinksLabel}</span>
+                  </div>
+                  <ul className="space-y-2">
+                    {FIXED_DRINKS.map(d => (
+                      <li key={d} className="flex items-center gap-2 text-sm font-bold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-bbq-red shrink-0" />
+                        {d}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Sides */}
+                <div className="bg-white border-4 border-bbq-black p-6 shadow-hard">
+                  <div className="flex items-end gap-3 mb-1">
+                    <span className="text-5xl font-black leading-none">{FIXED_SIDES.length}</span>
+                  </div>
+                  <div className="flex items-center gap-2 mb-5 pb-4 border-b-2 border-bbq-black/10">
+                    <UtensilsCrossed size={14} className="text-bbq-red" />
+                    <span className="font-black uppercase text-xs tracking-widest text-gray-500">{t.sidesLabel}</span>
+                  </div>
+                  <ul className="space-y-2">
+                    {FIXED_SIDES.map(s => (
+                      <li key={s} className="flex items-center gap-2 text-sm font-bold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-bbq-red shrink-0" />
+                        {s}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             )}
           </div>
         )}
 
-        {/* ── STEP 05: TIME SLOT ── */}
-        {booking.sidesConfirmed && (
+        {/* ── STEP 04: TIME SLOT ── */}
+        {booking.tradition && (
           <div className="mb-24 animate-in fade-in slide-in-from-bottom-10 duration-700">
             <div className="flex items-baseline gap-6 mb-12 border-b-8 border-bbq-black pb-4">
-              <span className="text-8xl font-black text-bbq-red/10 leading-none">05</span>
-              <h3 className="text-4xl font-black uppercase tracking-tighter">{t.step5}</h3>
+              <span className="text-8xl font-black text-bbq-red/10 leading-none">04</span>
+              <h3 className="text-4xl font-black uppercase tracking-tighter">{t.step4}</h3>
             </div>
             <div className="bg-white p-8 border-4 border-bbq-black shadow-hard">
               <div className="mb-4 font-black uppercase text-sm text-gray-500">
@@ -447,7 +420,8 @@ export const HomePage: React.FC<HomePageProps> = ({
               </div>
               <div className="grid md:grid-cols-2 gap-4">
                 {[SlotTime.MORNING, SlotTime.AFTERNOON].map(slot => (
-                  <button key={slot} onClick={() => setBooking(prev => ({ ...prev, slot }))} className={`py-6 border-2 font-black uppercase text-sm transition-all ${booking.slot === slot ? 'bg-bbq-yellow text-bbq-black border-bbq-black shadow-hard-sm' : 'bg-white border-bbq-black/10 text-bbq-black hover:border-bbq-black'}`}>
+                  <button key={slot} onClick={() => setBooking(prev => ({ ...prev, slot }))}
+                    className={`py-6 border-2 font-black uppercase text-sm transition-all ${booking.slot === slot ? 'bg-bbq-yellow text-bbq-black border-bbq-black shadow-hard-sm' : 'bg-white border-bbq-black/10 text-bbq-black hover:border-bbq-black'}`}>
                     {slot}
                   </button>
                 ))}
@@ -456,17 +430,17 @@ export const HomePage: React.FC<HomePageProps> = ({
           </div>
         )}
 
-        {/* ── STEP 06: EXTRAS ── */}
+        {/* ── STEP 05: EXTRAS ── */}
         {booking.slot && (
           <div className="mb-24 animate-in fade-in slide-in-from-bottom-10 duration-700">
             <div className="flex items-baseline gap-6 mb-12 border-b-8 border-bbq-black pb-4">
-              <span className="text-8xl font-black text-bbq-red/10 leading-none">06</span>
-              <h3 className="text-4xl font-black uppercase tracking-tighter">{t.step6}</h3>
+              <span className="text-8xl font-black text-bbq-red/10 leading-none">05</span>
+              <h3 className="text-4xl font-black uppercase tracking-tighter">{t.step5}</h3>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
               {cart.map(item => (
                 <div key={item.id} className="bg-white border-4 border-bbq-black p-6 shadow-hard-sm flex flex-col group">
-                  <div className="aspect-square bg-gray-100 mb-4 border-2 border-bbq-black overflow-hidden relative">
+                  <div className="aspect-square bg-gray-100 mb-4 border-2 border-bbq-black overflow-hidden">
                     <img src={customAssets[`addon_${item.id}`] || item.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform" alt={item.name} onError={handleImgError} />
                   </div>
                   <h4 className="font-black uppercase text-sm mb-2 leading-none">{item.name}</h4>
@@ -492,7 +466,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 <h4 className="font-black uppercase text-xl mb-2">{t.noExtras}</h4>
                 <p className="text-[10px] font-bold uppercase opacity-60 max-w-[150px]">{t.noExtrasSub}</p>
                 {noExtrasSelected && (
-                  <div className="mt-4 bg-green-500 text-white px-4 py-1 font-black uppercase text-[10px] border-2 border-bbq-black">{t.confirmedAction}</div>
+                  <div className="mt-4 bg-green-500 text-white px-4 py-1 font-black uppercase text-[10px] border-2 border-bbq-black">{t.confirmSelection}</div>
                 )}
               </button>
             </div>
@@ -510,9 +484,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       {/* ── LOCATION PHOTO VIEWER ── */}
       {viewerLocationId && (() => {
         const loc = LOCATIONS.find(l => l.id === viewerLocationId);
-        const imgs = customAssets[`loc_${viewerLocationId}_0`]
-          ? loc?.images.map((_, i) => customAssets[`loc_${viewerLocationId}_${i}`] || loc?.images[i])
-          : loc?.images || [];
+        const imgs = loc?.images.map((img, i) => customAssets[`loc_${viewerLocationId}_${i}`] || img) || [];
         return (
           <div className="fixed inset-0 z-[70] bg-bbq-black/95 flex items-center justify-center p-4 md:p-10 backdrop-blur-md">
             <div className="bg-white w-full max-w-5xl h-full max-h-[80vh] border-[8px] border-bbq-black shadow-hard flex flex-col relative overflow-hidden">
@@ -522,8 +494,8 @@ export const HomePage: React.FC<HomePageProps> = ({
                 <div className="bg-bbq-black text-white px-4 py-1 font-black text-sm border-2 border-bbq-black">{currentImageIndex + 1} / {imgs.length}</div>
               </div>
               <div className="flex-1 relative bg-bbq-cream flex items-center justify-center overflow-hidden">
-                <button onClick={() => setCurrentImageIndex(prev => (prev > 0 ? prev - 1 : imgs.length - 1))} className="absolute left-4 z-10 bg-white border-4 border-bbq-black p-3 shadow-hard-sm hover:bg-bbq-yellow"><ChevronLeft size={32} /></button>
-                <button onClick={() => setCurrentImageIndex(prev => (prev < imgs.length - 1 ? prev + 1 : 0))} className="absolute right-4 z-10 bg-white border-4 border-bbq-black p-3 shadow-hard-sm hover:bg-bbq-yellow"><ChevronRight size={32} /></button>
+                <button onClick={() => setCurrentImageIndex(prev => prev > 0 ? prev - 1 : imgs.length - 1)} className="absolute left-4 z-10 bg-white border-4 border-bbq-black p-3 shadow-hard-sm hover:bg-bbq-yellow"><ChevronLeft size={32} /></button>
+                <button onClick={() => setCurrentImageIndex(prev => prev < imgs.length - 1 ? prev + 1 : 0)} className="absolute right-4 z-10 bg-white border-4 border-bbq-black p-3 shadow-hard-sm hover:bg-bbq-yellow"><ChevronRight size={32} /></button>
                 <div className="w-full h-full p-8 flex items-center justify-center">
                   <div className="relative w-full h-full border-4 border-bbq-black bg-white shadow-hard overflow-hidden">
                     <img src={imgs[currentImageIndex]} className="w-full h-full object-contain" alt={`View ${currentImageIndex + 1}`} onError={handleImgError} />
