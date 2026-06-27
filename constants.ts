@@ -180,6 +180,17 @@ export const LOCATIONS: VenueLocation[] = [
     minGuests: 30,
     maxGuests: 80,
     availableDays: [1] // Monday only
+  },
+  {
+    id: 'alvito',
+    name: 'Alvito',
+    description: 'Pátio histórico com pavimento em calçada portuguesa e luzes de cordão. Um ambiente íntimo e único no coração de Lisboa.',
+    images: [
+      `${IMG}/Fotos/Locais/Alvito/Alvito1.png`,
+      `${IMG}/Fotos/Locais/Alvito/Alvito2.png`
+    ],
+    minGuests: 20,
+    maxGuests: 60
   }
 ];
 
