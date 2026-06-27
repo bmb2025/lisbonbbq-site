@@ -133,12 +133,10 @@ export const LOCATIONS: VenueLocation[] = [
     name: 'Carnide',
     description: 'Um refúgio tranquilo em Carnide, ideal para grupos íntimos e celebrações tradicionais.',
     images: [
-      `${IMG}/Fotos/Locais/Tasquissima/Tasq1.webp`,
-      `${IMG}/Fotos/Locais/Tasquissima/Tasq2.webp`,
-      `${IMG}/Fotos/Locais/Tasquissima/Tast3.webp`,
-      `${IMG}/Fotos/Locais/Tasquissima/Carnide4.jpeg`,
-      `${IMG}/Fotos/Locais/Tasquissima/Carnide4_1.jpeg`,
-      `${IMG}/Fotos/Locais/Tasquissima/Carnide4_2.jpeg`
+      `${IMG}/Fotos/Locais/Carnide/Tasq1.webp`,
+      `${IMG}/Fotos/Locais/Carnide/Tasq2.webp`,
+      `${IMG}/Fotos/Locais/Carnide/Tast3.webp`,
+      `${IMG}/Fotos/Locais/Carnide/Carnide4.jpeg`,
     ],
     minGuests: 20,
     maxGuests: 40
