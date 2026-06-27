@@ -135,7 +135,10 @@ export const LOCATIONS: VenueLocation[] = [
     images: [
       `${IMG}/Fotos/Locais/Tasquissima/Tasq1.webp`,
       `${IMG}/Fotos/Locais/Tasquissima/Tasq2.webp`,
-      `${IMG}/Fotos/Locais/Tasquissima/Tast3.webp`
+      `${IMG}/Fotos/Locais/Tasquissima/Tast3.webp`,
+      `${IMG}/Fotos/Locais/Tasquissima/Carnide4.jpeg`,
+      `${IMG}/Fotos/Locais/Tasquissima/Carnide4_1.jpeg`,
+      `${IMG}/Fotos/Locais/Tasquissima/Carnide4_2.jpeg`
     ],
     minGuests: 20,
     maxGuests: 40
