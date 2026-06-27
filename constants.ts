@@ -165,8 +165,11 @@ export const LOCATIONS: VenueLocation[] = [
     name: 'Benfica',
     description: 'Espaço com história e carácter em pleno coração de Benfica. Perfeito para fins de semana em família.',
     images: [
-      'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?q=80&w=1200&auto=format&fit=crop'
+      `${IMG}/Fotos/Locais/Benfica/Benfica1.jpeg`,
+      `${IMG}/Fotos/Locais/Benfica/Benfica2.jpeg`,
+      `${IMG}/Fotos/Locais/Benfica/Benfica3.webp`,
+      `${IMG}/Fotos/Locais/Benfica/Benfica4.jpeg`,
+      `${IMG}/Fotos/Locais/Benfica/Benfica5.jpeg`
     ],
     minGuests: 20,
     maxGuests: 120,
