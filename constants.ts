@@ -1,13 +1,15 @@
 
 import { AddOnItem, VenueLocation, BBQMenuItem, SideDish } from './types';
 
+const IMG = "https://mlqdpjiolbyewcumvajn.supabase.co/storage/v1/object/public/lisbonbbq-media";
+
 export const DEFAULT_ASSETS: Record<string, string> = {
-  hero: "https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Hero.webp",
-  stressFree: "https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Churrasco%20People.png",
+  hero: `${IMG}/Fotos/Hero.webp`,
+  stressFree: `${IMG}/Fotos/Churrasco%20People.png`,
   noExtras: "https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?q=80&w=800&auto=format&fit=crop",
-  venueFeature1: "https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/B1.webp",
-  venueFeature2: "https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/B2.webp",
-  venueFeature3: "https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/B3.webp"
+  venueFeature1: `${IMG}/Fotos/B1.webp`,
+  venueFeature2: `${IMG}/Fotos/B2.webp`,
+  venueFeature3: `${IMG}/Fotos/B3.webp`
 };
 
 export const BRAZILIAN_MENUS: BBQMenuItem[] = [
@@ -69,7 +71,7 @@ export const ADD_ONS: AddOnItem[] = [
     description: 'Inclui balões númericos cheios com hélio, velas e bolo de aniversário.',
     unit: 'unidade',
     category: 'service',
-    image: 'https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Aniver_opt.webp'
+    image: `${IMG}/Fotos/Aniver_opt.webp`
   },
   {
     id: 'wheelbarrow_beer',
@@ -77,7 +79,7 @@ export const ADD_ONS: AddOnItem[] = [
     description: 'A forma mais original e refrescante de manter as bebidas geladas durante todo o evento.',
     unit: 'unidade',
     category: 'service',
-    image: 'https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Carrinho%20de%20mao%20gelo.webp'
+    image: `${IMG}/Fotos/Carrinho%20de%20mao%20gelo.webp`
   },
   {
     id: 'da_bomb',
@@ -85,7 +87,7 @@ export const ADD_ONS: AddOnItem[] = [
     description: 'Molho picante Da Bomb para os mais corajosos.',
     unit: 'unidade',
     category: 'starter',
-    image: 'https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Da_bomb.webp'
+    image: `${IMG}/Fotos/Da_bomb.webp`
   },
   {
     id: 'pitmaster',
@@ -93,7 +95,7 @@ export const ADD_ONS: AddOnItem[] = [
     description: 'Especialista em grelhados que assume o pit enquanto dá uma verdadeira aula.',
     unit: 'serviço',
     category: 'service',
-    image: 'https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Pitmasters.webp'
+    image: `${IMG}/Fotos/Pitmasters.webp`
   },
   {
     id: 'cheese_board',
@@ -101,7 +103,7 @@ export const ADD_ONS: AddOnItem[] = [
     description: 'As melhores gordices para os convidados mais exigentes.',
     unit: 'unidade',
     category: 'starter',
-    image: 'https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Enchidos.webp'
+    image: `${IMG}/Fotos/Enchidos.webp`
   },
   {
     id: 'pro_photographer',
@@ -109,7 +111,7 @@ export const ADD_ONS: AddOnItem[] = [
     description: 'Registe o momento especial com um fotógrafo totalmente dedicado ao seu evento.',
     unit: 'serviço',
     category: 'service',
-    image: 'https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Fotografo.png'
+    image: `${IMG}/Fotos/Fotografo.png`
   },
   {
     id: 'inflatable_kids',
@@ -117,7 +119,7 @@ export const ADD_ONS: AddOnItem[] = [
     description: 'Diversão garantida para os mais pequenos enquanto os adultos dominam o grelhador.',
     unit: 'unidade',
     category: 'service',
-    image: 'https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/escorrega-palmeiras1.jpeg'
+    image: `${IMG}/Fotos/escorrega-palmeiras1.jpeg`
   }
 ];
 
@@ -127,9 +129,9 @@ export const LOCATIONS: VenueLocation[] = [
     name: 'Monsanto (Lisboa)', 
     description: 'Espaço versátil rodeado de natureza no pulmão de Lisboa. Ideal para convívios ao ar livre.', 
     images: [
-      'https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Locais/Tapadinha/Tapa1.webp',
-      'https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Locais/Tapadinha/Tapa2.webp',
-      'https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Locais/Tapadinha/Tapa3.webp'
+      `${IMG}/Fotos/Locais/Tapadinha/Tapa1.webp`,
+      `${IMG}/Fotos/Locais/Tapadinha/Tapa2.webp`,
+      `${IMG}/Fotos/Locais/Tapadinha/Tapa3.webp`
     ]
   },
   { 
@@ -137,9 +139,9 @@ export const LOCATIONS: VenueLocation[] = [
     name: 'Restelo', 
     description: 'O verdadeiro churrasco em contexto urbano, bem no centro do Restelo onde a vibe tradicional impera.', 
     images: [
-      'https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Locais/Caramao/Carama%CC%83o%20hero.webp',
-      'https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Locais/Caramao/Carama%CC%83o%20hero.webp',
-      'https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Locais/Caramao/restelo3.webp'
+      `${IMG}/Fotos/Locais/Caramao/Caramao%20hero.webp`,
+      `${IMG}/Fotos/Locais/Caramao/Caramao%20hero.webp`,
+      `${IMG}/Fotos/Locais/Caramao/restelo3.webp`
     ]
   },
   { 
@@ -147,9 +149,9 @@ export const LOCATIONS: VenueLocation[] = [
     name: 'Carnide', 
     description: 'Um refúgio tranquilo em Carnide, ideal para grandes grupos e celebrações tradicionais.', 
     images: [
-      'https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Locais/Tasquissima/Tasq1.webp',
-      'https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Locais/Tasquissima/Tasq2.webp',
-      'https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Locais/Tasquissima/Tast3.webp'
+      `${IMG}/Fotos/Locais/Tasquissima/Tasq1.webp`,
+      `${IMG}/Fotos/Locais/Tasquissima/Tasq2.webp`,
+      `${IMG}/Fotos/Locais/Tasquissima/Tast3.webp`
     ]
   },
   { 
@@ -157,10 +159,10 @@ export const LOCATIONS: VenueLocation[] = [
     name: 'Expo', 
     description: 'Rooftop que nos transporta para um mundo de cor, criatividade e comunhão com a cidade', 
     images: [
-      'https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Locais/Expo/Expo1_A%20(1).webp',
-      'https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Locais/Expo/Expo1_E%20(1).webp',
-      'https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Locais/Expo/Expo1_D%20(1).webp',
-      'https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Locais/Expo/Expo1_C%20(1).webp'
+      `${IMG}/Fotos/Locais/Expo/Expo1_A.webp`,
+      `${IMG}/Fotos/Locais/Expo/Expo1_E.webp`,
+      `${IMG}/Fotos/Locais/Expo/Expo1_D.webp`,
+      `${IMG}/Fotos/Locais/Expo/Expo1_C.webp`
     ]
   }
 ];

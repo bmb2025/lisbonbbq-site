@@ -58,13 +58,13 @@ const LOCATIONS_DATA: VenueLocation[] = [
     id: 'restelo_urban', 
     name: 'Restelo', 
     description: 'O verdadeiro churrasco em contexto urbano, bem no centro do Restelo onde a vibe tradicional impera.', 
-    images: ['https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Carama%CC%83o%20hero.webp']
+    images: ['https://mlqdpjiolbyewcumvajn.supabase.co/storage/v1/object/public/lisbonbbq-media/Fotos/Locais/Caramao/Caramao%20hero.webp']
   },
   { 
     id: 'expo_rooftop', 
     name: 'Expo', 
     description: 'Rooftop que nos transporta para um mundo de cor, criatividade e comunhão com a cidade', 
-    images: ['https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Locais/Expo/Expo1_A%20(1).webp']
+    images: ['https://mlqdpjiolbyewcumvajn.supabase.co/storage/v1/object/public/lisbonbbq-media/Fotos/Locais/Expo/Expo1_A.webp']
   }
 ];
 

@@ -97,7 +97,7 @@ export const QuemSomosView: React.FC<QuemSomosViewProps> = ({ lang, onBack }) =>
             <div className="relative">
               <div className="absolute inset-0 bg-bbq-black translate-x-4 translate-y-4 -z-10"></div>
               <img 
-                src="https://storage.googleapis.com/imagens-publicas-lisbonbbq/Fotos/Pitmasters.webp" 
+                src="https://mlqdpjiolbyewcumvajn.supabase.co/storage/v1/object/public/lisbonbbq-media/Fotos/Pitmasters.webp" 
                 alt="Pitmasters LisbonBBQ" 
                 className="w-full border-4 border-bbq-black grayscale hover:grayscale-0 transition-all duration-700"
               />

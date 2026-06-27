@@ -9,12 +9,12 @@
     },
     {
       "source": "/jogosdomundial/outlook",
-      "destination": "webcal://storage.googleapis.com/imagens-publicas-lisbonbbq/calendars/Mundial-2026-PT.ics",
+      "destination": "/Mundial-2026-PT.ics",
       "permanent": false
     },
     {
       "source": "/jogosdomundial/applecalendar",
-      "destination": "webcal://storage.googleapis.com/imagens-publicas-lisbonbbq/calendars/Mundial-2026-PT.ics",
+      "destination": "/Mundial-2026-PT.ics",
       "permanent": false
     }
   ],
@@ -29,6 +29,12 @@
         { "key": "Access-Control-Allow-Origin", "value": "*" },
         { "key": "Access-Control-Allow-Methods", "value": "GET,POST,DELETE,OPTIONS" },
         { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
+      ]
+    },
+    {
+      "source": "/Mundial-2026-PT.ics",
+      "headers": [
+        { "key": "Content-Type", "value": "text/calendar; charset=utf-8" }
       ]
     }
   ]
