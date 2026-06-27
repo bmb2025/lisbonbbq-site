@@ -174,8 +174,10 @@ export const LOCATIONS: VenueLocation[] = [
     name: 'Musa Marvila',
     description: 'Ambiente industrial e criativo em Marvila, a zona mais cool de Lisboa. Exclusivo às segundas-feiras.',
     images: [
-      'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?q=80&w=1200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?q=80&w=1200&auto=format&fit=crop'
+      \`\${IMG}/Fotos/Locais/Marvila/Marvila1.jpg\`,
+      \`\${IMG}/Fotos/Locais/Marvila/Marvila2.webp\`,
+      \`\${IMG}/Fotos/Locais/Marvila/Marvila3.webp\`,
+      \`\${IMG}/Fotos/Locais/Marvila/Marvila4.jpg\`
     ],
     minGuests: 30,
     maxGuests: 80,
