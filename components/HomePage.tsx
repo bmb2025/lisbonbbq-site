@@ -65,7 +65,7 @@ export const HomePage: React.FC<HomePageProps> = ({
     }
   }, [filteredVenues]);
 
-  const meatKg = Math.ceil(booking.guests * 0.4);
+  const meatKg = Math.ceil(booking.guests * 0.45);
   const drinkCount = Math.ceil(booking.guests * 5);
   const meats = booking.tradition ? (TRADITION_MEATS[booking.tradition] || []) : [];
 
