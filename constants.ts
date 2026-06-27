@@ -5,7 +5,7 @@ const IMG = "https://mlqdpjiolbyewcumvajn.supabase.co/storage/v1/object/public/l
 
 export const DEFAULT_ASSETS: Record<string, string> = {
   hero: `${IMG}/Fotos/Hero.webp`,
-  stressFree: `${IMG}/Fotos/Churrasco%20People.png`,
+  stressFree: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?q=80&w=1200&auto=format&fit=crop",
   noExtras: "https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?q=80&w=800&auto=format&fit=crop",
   venueFeature1: `${IMG}/Fotos/B1.webp`,
   venueFeature2: `${IMG}/Fotos/B2.webp`,
