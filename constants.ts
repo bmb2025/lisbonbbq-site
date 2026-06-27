@@ -121,9 +121,9 @@ export const LOCATIONS: VenueLocation[] = [
     name: 'Restelo',
     description: 'O verdadeiro churrasco em contexto urbano, bem no centro do Restelo onde a vibe tradicional impera.',
     images: [
-      `${IMG}/Fotos/Locais/Caramao/restelo1.jpeg`,
-      `${IMG}/Fotos/Locais/Caramao/restelo2.jpeg`,
-      `${IMG}/Fotos/Locais/Caramao/restelo3.jpeg`
+      `${IMG}/Fotos/Locais/Restelo/restelo1.png`,
+      `${IMG}/Fotos/Locais/Restelo/restelo3.webp`,
+      `${IMG}/Fotos/Locais/Restelo/restelo4.webp`
     ],
     minGuests: 20,
     maxGuests: 100
