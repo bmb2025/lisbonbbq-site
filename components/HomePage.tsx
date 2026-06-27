@@ -65,7 +65,7 @@ export const HomePage: React.FC<HomePageProps> = ({
     }
   }, [filteredVenues]);
 
-  const meatKg = Math.ceil(booking.guests * 0.45);
+  const meatKg = Math.ceil(booking.guests * 0.4);
   const drinkCount = Math.ceil(booking.guests * 3);
   const meats = booking.tradition ? (TRADITION_MEATS[booking.tradition] || []) : [];
 
@@ -363,6 +363,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                       </li>
                     ))}
                   </ul>
+                  <p className="mt-4 text-[10px] font-black uppercase text-bbq-black/40 tracking-widest border-t border-bbq-black/10 pt-3">Opção vegetariana disponível</p>
                 </div>
 
                 {/* Drinks */}
@@ -382,6 +383,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                       </li>
                     ))}
                   </ul>
+                  <p className="mt-4 text-[10px] font-black uppercase text-bbq-black/40 tracking-widest border-t border-bbq-black/10 pt-3">Opção bar aberto opcional</p>
                 </div>
 
                 {/* Sides */}
