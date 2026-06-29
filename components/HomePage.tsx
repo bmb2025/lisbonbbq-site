@@ -116,6 +116,7 @@ export const HomePage: React.FC<HomePageProps> = ({
     confirmStep1: lang === 'pt' ? 'Ver Locais Disponíveis' : 'See Available Venues',
     changeStep1: lang === 'pt' ? 'Alterar' : 'Change',
     minGuests: lang === 'pt' ? 'Mínimo 20 convidados' : 'Minimum 20 guests',
+    guestsAlert: lang === 'pt' ? 'Mínimo de 20 convidados para reservar' : 'Minimum 20 guests required to book',
     capacityLabel: lang === 'pt' ? 'pessoas' : 'guests',
     noVenues: lang === 'pt' ? 'Sem locais disponíveis para esta combinação. Tenta outra data ou número de pessoas.' : 'No venues available for this combination. Try another date or guest count.',
     step2: lang === 'pt' ? 'O Local' : 'The Venue',
@@ -242,16 +243,23 @@ export const HomePage: React.FC<HomePageProps> = ({
                   </div>
                   <div className="relative mb-4">
                     <input
-                      type="number" min="20" max="1000" value={localGuests}
-                      onChange={e => setLocalGuests(Math.max(20, parseInt(e.target.value) || 20))}
+                      type="number" min="1" max="1000" value={localGuests || ''}
+                      placeholder="20"
+                      onChange={e => { const v = parseInt(e.target.value); setLocalGuests(Number.isNaN(v) ? 0 : Math.min(1000, v)); }}
                       className="w-full bg-white border-4 border-bbq-black p-6 text-5xl font-black focus:outline-none focus:ring-4 focus:ring-bbq-red shadow-hard-sm"
                     />
                     <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-1">
-                      <button onClick={() => setLocalGuests(g => g + 1)} className="p-1 hover:bg-gray-100 border-2 border-bbq-black bg-white active:translate-y-0.5"><Plus size={16} strokeWidth={4} /></button>
-                      <button onClick={() => setLocalGuests(g => Math.max(20, g - 1))} className="p-1 hover:bg-gray-100 border-2 border-bbq-black bg-white active:translate-y-0.5"><Minus size={16} strokeWidth={4} /></button>
+                      <button onClick={() => setLocalGuests(g => Math.min(1000, g + 1))} className="p-1 hover:bg-gray-100 border-2 border-bbq-black bg-white active:translate-y-0.5"><Plus size={16} strokeWidth={4} /></button>
+                      <button onClick={() => setLocalGuests(g => Math.max(1, g - 1))} className="p-1 hover:bg-gray-100 border-2 border-bbq-black bg-white active:translate-y-0.5"><Minus size={16} strokeWidth={4} /></button>
                     </div>
                   </div>
-                  <p className="text-[10px] font-black uppercase text-bbq-black/50 tracking-widest">{t.minGuests}</p>
+                  {localGuests < 20 ? (
+                    <p className="text-[11px] font-black uppercase text-bbq-red tracking-widest flex items-center gap-2">
+                      <span className="text-sm leading-none">⚠</span> {t.guestsAlert}
+                    </p>
+                  ) : (
+                    <p className="text-[10px] font-black uppercase text-bbq-black/50 tracking-widest">{t.minGuests}</p>
+                  )}
                 </div>
 
                 {/* Calendar */}
