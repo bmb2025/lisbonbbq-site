@@ -10,7 +10,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Change to noreply@lisbonbbq.pt once domain is verified in Resend
 const FROM = "LisbonBBQ <noreply@lisbonbbq.pt>";
-const NOTIFY_EMAIL = "forge@thefuture.pt";
+const NOTIFY_EMAIL = "pitmasters@lisbonbbq.pt";
 
 function formatDate(iso: string | undefined) {
   if (!iso) return "—";
