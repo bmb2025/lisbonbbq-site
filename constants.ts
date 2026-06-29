@@ -1,5 +1,5 @@
 
-import { AddOnItem, VenueLocation, BBQMenuItem, SideDish } from './types';
+import { AddOnItem, VenueLocation, BBQMenuItem, SideDish, BBQTradition } from './types';
 
 const IMG = "https://mlqdpjiolbyewcumvajn.supabase.co/storage/v1/object/public/lisbonbbq-media";
 
@@ -100,8 +100,20 @@ export const ADD_ONS: AddOnItem[] = [
     unit: 'unidade',
     category: 'service',
     image: `${IMG}/Fotos/escorrega-palmeiras1.jpeg`
+  },
+  {
+    id: 'open_bar',
+    name: 'Bar aberto',
+    description: 'Serviço de bar aberto com bebidas à descrição durante todo o evento. Opcional.',
+    unit: 'evento',
+    category: 'service',
+    image: `${IMG}/Fotos/Bar.webp`
   }
 ];
+
+// Special "venue" option for clients who already have their own space.
+export const OWN_LOCATION_ID = 'own_location';
+export const OWN_LOCATION_NAME = 'Local próprio';
 
 export const LOCATIONS: VenueLocation[] = [
   {
@@ -230,9 +242,25 @@ export const TRADITION_MEATS: Record<string, string[]> = {
   argentinian: ['Vacío', 'Tira de asado', 'Criollo e sal argentino'],
 };
 
-// Always the same sides & drinks
+// Always the same drinks
+export const FIXED_DRINKS = ['Cerveja gelada', 'Vinho branco e tinto', 'Sumo de Laranja Natural', 'Águas'];
+
+// Sides depend on tradition: black-bean rice only for Brazilian, white rice for
+// Portuguese, no rice for Argentinian.
 export const FIXED_SIDES = ['Arroz com feijão preto', 'Salada Mista', 'Batata Frita'];
-export const FIXED_DRINKS = ['Cerveja gelada', 'Vinho branco ou tinto', 'Sumo de Laranja Natural', 'Águas'];
+
+export function getFixedSides(tradition: BBQTradition | null): string[] {
+  switch (tradition) {
+    case 'brazilian':
+      return ['Arroz com feijão preto', 'Salada Mista', 'Batata Frita'];
+    case 'portuguese':
+      return ['Arroz branco', 'Salada Mista', 'Batata Frita'];
+    case 'argentinian':
+      return ['Salada Mista', 'Batata Frita'];
+    default:
+      return FIXED_SIDES;
+  }
+}
 
 // Returns all venues available on a given day (ignores guest count — use for display with disabled state)
 export function getVenuesByDay(date: Date | null): VenueLocation[] {

@@ -12,7 +12,7 @@ import { VerBolaView } from './components/VerBolaView';
 import { BlogList, ArticleDetail } from './components/BlogComponents';
 import { BlogAdmin } from './components/CMSComponents';
 import { SpotifyPlayer } from './components/SpotifyPlayer';
-import { ADD_ONS, LOCATIONS, DEFAULT_ASSETS, BRAZILIAN_MENUS, PORTUGUESE_MENUS, ARGENTINIAN_MENUS } from './constants';
+import { ADD_ONS, LOCATIONS, DEFAULT_ASSETS, BRAZILIAN_MENUS, PORTUGUESE_MENUS, ARGENTINIAN_MENUS, OWN_LOCATION_ID, OWN_LOCATION_NAME } from './constants';
 import { BookingState, CartItem, DailyWeather, Article } from './types';
 import { getLisbonWeather } from './services/weatherService';
 import { cloudService } from './services/cloudService';
@@ -146,6 +146,7 @@ const App: React.FC = () => {
   const [clientPhone, setClientPhone] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [leadCaptured, setLeadCaptured] = useState(false);
   const [leadSource, setLeadSource] = useState<'direct' | 'corporate'>('direct');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showQuote, setShowQuote] = useState(false);
@@ -301,6 +302,40 @@ const App: React.FC = () => {
     return days;
   }, [viewDate]);
 
+  // Early lead capture — name + phone collected before the extras step.
+  // Saves to the database immediately (no emails yet — email is collected at the
+  // final quote popup). Captures the lead even if the user drops off at extras.
+  const handleLeadCapture = async () => {
+    if (!clientName.trim() || !clientPhone.trim() || leadCaptured) return;
+    setLeadCaptured(true); // reveal extras right away
+    const selectedMenuId = [...BRAZILIAN_MENUS, ...PORTUGUESE_MENUS, ...ARGENTINIAN_MENUS].find(m => m.name === booking.style)?.id || 'brazilian-1';
+
+    const partialLead = {
+      id: `LB-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      stage: 'partial',
+      client: { name: clientName, phone: clientPhone },
+      booking: { ...booking, date: booking.date?.toISOString(), styleId: selectedMenuId },
+      extras: [],
+      summary: {
+        totalGuests: booking.guests,
+        location: booking.locationId === OWN_LOCATION_ID ? OWN_LOCATION_NAME : (LOCATIONS.find(l => l.id === booking.locationId)?.name || booking.locationId),
+        locationId: booking.locationId,
+        menu: booking.style,
+        menuId: selectedMenuId
+      },
+      package: selectedMenuId,
+      location: booking.locationId,
+      guests: booking.guests,
+      name: clientName,
+      phone: clientPhone,
+      event_date: booking.date?.toISOString(),
+      source: leadSource,
+    };
+
+    await cloudService.saveLead(partialLead);
+  };
+
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (clientName && clientEmail && clientPhone && !isSending) {
@@ -315,7 +350,7 @@ const App: React.FC = () => {
         extras: cart.filter(c => c.quantity > 0).map(c => ({ id: c.id, name: c.name, qty: c.quantity })),
         summary: {
           totalGuests: booking.guests,
-          location: LOCATIONS.find(l => l.id === booking.locationId)?.name || booking.locationId,
+          location: booking.locationId === OWN_LOCATION_ID ? OWN_LOCATION_NAME : (LOCATIONS.find(l => l.id === booking.locationId)?.name || booking.locationId),
           locationId: booking.locationId,
           menu: booking.style,
           menuId: selectedMenuId
@@ -353,8 +388,9 @@ const App: React.FC = () => {
             showQuote={showQuote} setShowQuote={setShowQuote} isSubmitted={isSubmitted} 
             setIsSubmitted={setIsSubmitted} isSending={isSending} clientName={clientName} 
             setClientName={setClientName} clientEmail={clientEmail} setClientEmail={setClientEmail} 
-            clientPhone={clientPhone} setClientPhone={setClientPhone} handleFormSubmit={handleFormSubmit} 
+            clientPhone={clientPhone} setClientPhone={setClientPhone} handleFormSubmit={handleFormSubmit}
             scrollToBooking={scrollToBooking} traditionSectionRef={traditionSectionRef} toggleSide={toggleSide}
+            leadCaptured={leadCaptured} setLeadCaptured={setLeadCaptured} handleLeadCapture={handleLeadCapture}
           />
         } />
         <Route path="/blog" element={<BlogListPage lang={lang} setLang={setLang} setView={setView} articles={articles} onArticleClick={handleArticleClick} />} />

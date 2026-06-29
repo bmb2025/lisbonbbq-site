@@ -1,11 +1,11 @@
 import React from 'react';
-import { Flame, ChefHat, Castle, Utensils, ChevronLeft, ChevronRight, Sun, Cloud, Minus, Plus, CircleOff, Loader2, X, Check, Camera, Users, Beer, UtensilsCrossed } from 'lucide-react';
+import { Flame, ChefHat, Castle, Utensils, ChevronLeft, ChevronRight, Sun, Cloud, Minus, Plus, CircleOff, Loader2, X, Check, Camera, Users, User, Phone, Beer, UtensilsCrossed } from 'lucide-react';
 import { Header } from './Header';
 import { BookingSummary } from './BookingSummary';
 import { LogoBar, PackageCard, BrandStory, VenueGrid, Referrals } from './LandingComponents';
 import { Footer } from './Footer';
 import { BookingState, CartItem, SlotTime, DailyWeather } from '../types';
-import { LOCATIONS, getAvailableVenues, getVenuesByDay, TRADITION_MEATS, FIXED_SIDES, FIXED_DRINKS } from '../constants';
+import { LOCATIONS, getAvailableVenues, getVenuesByDay, TRADITION_MEATS, getFixedSides, FIXED_DRINKS, OWN_LOCATION_ID, OWN_LOCATION_NAME } from '../constants';
 import { getWeatherIcon } from '../services/weatherService';
 
 interface HomePageProps {
@@ -38,12 +38,16 @@ interface HomePageProps {
   scrollToBooking: () => void;
   traditionSectionRef: React.RefObject<HTMLDivElement>;
   toggleSide: (side: string) => void;
+  leadCaptured: boolean;
+  setLeadCaptured: (b: boolean) => void;
+  handleLeadCapture: () => void;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({
   lang, setLang, setView, booking, setBooking, cart, setCart, updateCart, customAssets, weatherData, viewDate, setViewDate,
   calendarDays, today, showQuote, setShowQuote, isSubmitted, setIsSubmitted, isSending, clientName, setClientName,
-  clientEmail, setClientEmail, clientPhone, setClientPhone, handleFormSubmit, scrollToBooking, traditionSectionRef
+  clientEmail, setClientEmail, clientPhone, setClientPhone, handleFormSubmit, scrollToBooking, traditionSectionRef,
+  leadCaptured, setLeadCaptured, handleLeadCapture
 }) => {
   const [viewerLocationId, setViewerLocationId] = React.useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
@@ -71,9 +75,15 @@ export const HomePage: React.FC<HomePageProps> = ({
     }
   }, [filteredVenues]);
 
+  // Reset the early lead capture if the user steps back before the slot.
+  React.useEffect(() => {
+    if (!booking.slot) setLeadCaptured(false);
+  }, [booking.slot]);
+
   const meatKg = Math.ceil(booking.guests * 0.45);
   const drinkCount = Math.ceil(booking.guests * 5);
   const meats = booking.tradition ? (TRADITION_MEATS[booking.tradition] || []) : [];
+  const sides = getFixedSides(booking.tradition);
 
   const canConfirmStep1 = localGuests >= 20 && !!booking.date;
 
@@ -134,6 +144,12 @@ export const HomePage: React.FC<HomePageProps> = ({
     noExtrasSub: lang === 'pt' ? 'Prosseguir apenas com o menu base' : 'Proceed with base menu only',
     seeMore: lang === 'pt' ? 'Ver Mais' : 'See More',
     heroBtn: lang === 'pt' ? 'Personaliza o Teu Banquete' : 'Design Your Feast',
+    ownLocation: lang === 'pt' ? 'Já tenho o local próprio' : 'I already have my own venue',
+    ownLocationSub: lang === 'pt' ? 'O evento acontece num espaço teu. Tratamos de tudo o resto.' : 'The event takes place at your own space. We handle everything else.',
+    contactStep: lang === 'pt' ? 'Os Teus Dados' : 'Your Details',
+    contactStepSub: lang === 'pt' ? 'Deixa o teu contacto para avançar e receberes a proposta' : 'Leave your contact to continue and receive your quote',
+    contactContinue: lang === 'pt' ? 'Continuar' : 'Continue',
+    editContact: lang === 'pt' ? 'Alterar' : 'Change',
   };
 
   const handleImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -290,13 +306,13 @@ export const HomePage: React.FC<HomePageProps> = ({
               <h3 className="text-4xl font-black uppercase tracking-tighter">{t.step2}</h3>
             </div>
 
-            {venuesByDay.length === 0 ? (
-              <div className="bg-bbq-cream border-4 border-bbq-black p-10 text-center">
+            {venuesByDay.length === 0 && (
+              <div className="bg-bbq-cream border-4 border-bbq-black p-10 text-center mb-8">
                 <p className="font-black uppercase text-lg text-gray-500">{t.noVenues}</p>
               </div>
-            ) : (
-              <div className="grid md:grid-cols-2 gap-8">
-                {venuesByDay.map(loc => {
+            )}
+            <div className="grid md:grid-cols-2 gap-8">
+              {venuesByDay.map(loc => {
                   const guestsOk = booking.guests >= loc.minGuests && booking.guests <= loc.maxGuests;
                   const isSelected = booking.locationId === loc.id;
                   return (
@@ -329,8 +345,27 @@ export const HomePage: React.FC<HomePageProps> = ({
                     </div>
                   );
                 })}
-              </div>
-            )}
+
+                {/* Own venue option — always available, no guest restriction */}
+                {(() => {
+                  const isSelected = booking.locationId === OWN_LOCATION_ID;
+                  return (
+                    <div
+                      onClick={() => setBooking(prev => ({ ...prev, locationId: OWN_LOCATION_ID, tradition: null, slot: null }))}
+                      className={`group relative border-4 p-4 text-left transition-all cursor-pointer ${isSelected ? 'bg-bbq-black border-bbq-black shadow-hard translate-y-[-4px]' : 'bg-white border-gray-100 hover:border-bbq-black'}`}
+                    >
+                      <div className="aspect-video bg-bbq-cream mb-6 overflow-hidden border-2 border-bbq-black relative flex items-center justify-center">
+                        <Castle size={64} className={isSelected ? 'text-bbq-yellow' : 'text-bbq-black/20'} />
+                        <div className="absolute top-4 left-4 border-2 border-bbq-black px-3 py-1 text-[10px] font-black uppercase shadow-hard-sm bg-bbq-yellow">
+                          {lang === 'pt' ? 'O teu espaço' : 'Your space'}
+                        </div>
+                      </div>
+                      <div className={`font-black uppercase text-2xl mb-2 ${isSelected ? 'text-bbq-yellow' : 'text-bbq-black'}`}>{t.ownLocation}</div>
+                      <p className={`text-xs font-bold uppercase ${isSelected ? 'text-white' : 'text-gray-500'}`}>{t.ownLocationSub}</p>
+                    </div>
+                  );
+                })()}
+            </div>
           </div>
         )}
 
@@ -406,14 +441,14 @@ export const HomePage: React.FC<HomePageProps> = ({
                 {/* Sides */}
                 <div className="bg-white border-4 border-bbq-black p-6 shadow-hard">
                   <div className="flex items-end gap-3 mb-1">
-                    <span className="text-5xl font-black leading-none">{FIXED_SIDES.length}</span>
+                    <span className="text-5xl font-black leading-none">{sides.length}</span>
                   </div>
                   <div className="flex items-center gap-2 mb-5 pb-4 border-b-2 border-bbq-black/10">
                     <UtensilsCrossed size={14} className="text-bbq-red" />
                     <span className="font-black uppercase text-xs tracking-widest text-gray-500">{t.sidesLabel}</span>
                   </div>
                   <ul className="space-y-2">
-                    {FIXED_SIDES.map(s => (
+                    {sides.map(s => (
                       <li key={s} className="flex items-center gap-2 text-sm font-bold">
                         <span className="w-1.5 h-1.5 rounded-full bg-bbq-red shrink-0" />
                         {s}
@@ -449,11 +484,66 @@ export const HomePage: React.FC<HomePageProps> = ({
           </div>
         )}
 
-        {/* ── STEP 05: EXTRAS ── */}
+        {/* ── STEP 05: CONTACT (lead capture before extras) ── */}
         {booking.slot && (
           <div className="mb-24 animate-in fade-in slide-in-from-bottom-10 duration-700">
             <div className="flex items-baseline gap-6 mb-12 border-b-8 border-bbq-black pb-4">
               <span className="text-8xl font-black text-bbq-red/10 leading-none">05</span>
+              <div>
+                <h3 className="text-4xl font-black uppercase tracking-tighter">{t.contactStep}</h3>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mt-1">{t.contactStepSub}</p>
+              </div>
+            </div>
+
+            {leadCaptured ? (
+              <div className="bg-bbq-yellow border-4 border-bbq-black p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-hard">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
+                  <div className="flex items-center gap-3">
+                    <User size={20} />
+                    <span className="font-black text-lg">{clientName}</span>
+                  </div>
+                  <div className="hidden sm:block h-8 w-px bg-bbq-black/20" />
+                  <div className="flex items-center gap-3">
+                    <Phone size={18} />
+                    <span className="font-black uppercase text-sm">{clientPhone}</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setLeadCaptured(false)}
+                  className="text-[10px] font-black uppercase border-2 border-bbq-black px-4 py-2 hover:bg-bbq-black hover:text-bbq-yellow transition-all"
+                >
+                  {t.editContact}
+                </button>
+              </div>
+            ) : (
+              <div className="bg-white border-4 border-bbq-black p-8 shadow-hard">
+                <div className="grid md:grid-cols-2 gap-6 mb-6">
+                  <input
+                    type="text" value={clientName} onChange={e => setClientName(e.target.value)} placeholder={t.fullName}
+                    className="w-full border-4 border-bbq-black p-5 text-xl font-black focus:outline-none focus:ring-4 focus:ring-bbq-yellow"
+                  />
+                  <input
+                    type="tel" value={clientPhone} onChange={e => setClientPhone(e.target.value)} placeholder={t.phone}
+                    className="w-full border-4 border-bbq-black p-5 text-xl font-black focus:outline-none focus:ring-4 focus:ring-bbq-yellow"
+                  />
+                </div>
+                <button
+                  onClick={handleLeadCapture}
+                  disabled={!clientName.trim() || !clientPhone.trim()}
+                  className={`w-full py-6 font-black uppercase text-xl border-4 border-bbq-black shadow-hard transition-all flex items-center justify-center gap-3 ${clientName.trim() && clientPhone.trim() ? 'bg-bbq-red text-white hover:bg-bbq-black' : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed shadow-none'}`}
+                >
+                  <Flame size={24} /> {t.contactContinue}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── STEP 06: EXTRAS ── */}
+        {booking.slot && leadCaptured && (
+          <div className="mb-24 animate-in fade-in slide-in-from-bottom-10 duration-700">
+            <div className="flex items-baseline gap-6 mb-12 border-b-8 border-bbq-black pb-4">
+              <span className="text-8xl font-black text-bbq-red/10 leading-none">06</span>
               <h3 className="text-4xl font-black uppercase tracking-tighter">{t.step5}</h3>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">

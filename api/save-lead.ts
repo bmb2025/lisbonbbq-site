@@ -128,6 +128,13 @@ export default async function handler(req: any, res: any) {
     return res.status(500).json({ success: false, error: "Database error" });
   }
 
+  // Early capture (name + phone collected before the extras step): persist to the
+  // database only. The confirmation/notification emails are sent on the final
+  // submission, once the client provides their email and chooses extras.
+  if (leadData?.stage === "partial") {
+    return res.json({ success: true, stage: "partial", message: "Lead parcial guardada." });
+  }
+
   // 2. Send emails via Resend
   try {
     const notifyTo = leadData?.target_email || NOTIFY_EMAIL;

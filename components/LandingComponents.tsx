@@ -65,7 +65,7 @@ export const PackageCard: React.FC<{ onBook: () => void, lang: 'pt' | 'en', cust
                </h3>
                <p className="text-lg font-bold uppercase text-gray-400 mb-8 tracking-wide">
                  {lang === 'pt' 
-                   ? 'Nós tratamos de tudo. Tu só tens de aparecer e brilhar no grelhador.' 
+                   ? 'Nós tratamos de tudo. Tu só tens de aparecer e desfrutar do momento com grelhados feitos na hora pelo pitmaster.'
                    : 'We handle the mess. You just show up and master the grill.'}
                </p>
                <div className="space-y-3 mb-10">
