@@ -22,7 +22,7 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onBack, onSu
     email: '',
     phone: '',
     company: '',
-    guests: '20',
+    guests: '10-20',
     message: ''
   });
   const [submitted, setSubmitted] = useState(false);
@@ -38,7 +38,7 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onBack, onSu
     const success = await onSubmit(formData);
     if (success) {
       setSubmitted(true);
-      setFormData({ name: '', email: '', phone: '', company: '', guests: '20', message: '' });
+      setFormData({ name: '', email: '', phone: '', company: '', guests: '10-20', message: '' });
     } else {
       setError(true);
     }
