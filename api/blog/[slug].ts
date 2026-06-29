@@ -39,18 +39,19 @@ function parseMarkdown(md: string): Article {
   };
 }
 
-async function findArticle(slug: string): Promise<Article | null> {
-  // Fast path: filename matches the slug (true for most articles).
+// Fetch by exact filename ({slug}.md). Returns the parsed article if the file
+// exists — even if its front-matter slug differs (that case triggers a 301).
+async function fetchByFilename(slug: string): Promise<Article | null> {
   try {
     const direct = await fetch(`${RAW_BASE}/${encodeURIComponent(slug)}.md`);
-    if (direct.ok) {
-      const art = parseMarkdown(await direct.text());
-      if (art.slug === slug || art.slug === "") return { ...art, slug };
-    }
-  } catch (_) { /* fall through to directory scan */ }
+    if (direct.ok) return parseMarkdown(await direct.text());
+  } catch (_) { /* not found */ }
+  return null;
+}
 
-  // Fallback: the front-matter slug differs from the filename — list the folder
-  // and match by the slug inside each .md.
+// Fallback: list the folder and match by the slug inside each .md front-matter
+// (handles the case where the front-matter slug differs from the filename).
+async function scanBySlug(slug: string): Promise<Article | null> {
   try {
     const listRes = await fetch(API_DIR, { headers: { "User-Agent": "lisbonbbq-site" } });
     if (!listRes.ok) return null;
@@ -67,7 +68,6 @@ async function findArticle(slug: string): Promise<Article | null> {
       } catch (_) { /* skip this file */ }
     }
   } catch (_) { /* nothing found */ }
-
   return null;
 }
 
@@ -158,15 +158,31 @@ export default async function handler(req: any, res: any) {
     (req.url || "").split("?")[0].split("/").filter(Boolean).pop();
 
   try {
-    const article = await findArticle(decodeURIComponent(slug));
+    const reqSlug = decodeURIComponent(slug);
+
+    // 1) Try the file named after the requested slug.
+    let article = await fetchByFilename(reqSlug);
+    if (article) {
+      // The URL hit a real file but the canonical (front-matter) slug differs —
+      // e.g. an old indexed accented URL. 301 to the canonical slug to keep the
+      // existing SEO equity and avoid duplicate content.
+      if (article.slug && article.slug !== reqSlug) {
+        return res.redirect(301, `/blog/${article.slug}`);
+      }
+    } else {
+      // 2) Requested by the canonical slug whose filename differs — scan for it.
+      article = await scanBySlug(reqSlug);
+    }
+
     if (!article || !article.isPublished) {
       return res.redirect(307, "/blog");
     }
 
+    const canonicalSlug = article.slug || reqSlug;
     const html = htmlShell({
       title: article.title,
       description: article.excerpt,
-      canonical: `https://lisbonbbq.pt/blog/${slug}`,
+      canonical: `https://lisbonbbq.pt/blog/${canonicalSlug}`,
       coverImage: article.coverImage || null,
       bodyHtml: `<h1 class="h1">${escapeHtml(article.title)}</h1><div>${renderBodyAsHtml(article.content)}</div>`,
     });
