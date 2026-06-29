@@ -197,6 +197,12 @@ const App: React.FC = () => {
     setBooking(prev => ({ ...prev, extrasConfirmed: false }));
   };
 
+  // Extras are now on/off chips — selecting toggles the quantity between 0 and 1.
+  const toggleCartItem = (id: string) => {
+    setCart(prev => prev.map(item => item.id === id ? { ...item, quantity: item.quantity > 0 ? 0 : 1 } : item));
+    setBooking(prev => ({ ...prev, extrasConfirmed: false }));
+  };
+
   const scrollToBooking = () => {
     setLeadSource('corporate');
     setView('booking');
@@ -386,7 +392,7 @@ const App: React.FC = () => {
         <Route path="/" element={
           <HomePage 
             lang={lang} setLang={setLang} setView={setView} booking={booking} setBooking={setBooking} 
-            cart={cart} setCart={setCart} updateCart={updateCart} customAssets={customAssets} weatherData={weatherData} 
+            cart={cart} setCart={setCart} updateCart={updateCart} toggleCartItem={toggleCartItem} customAssets={customAssets} weatherData={weatherData}
             viewDate={viewDate} setViewDate={setViewDate} calendarDays={calendarDays} today={today} 
             showQuote={showQuote} setShowQuote={setShowQuote} isSubmitted={isSubmitted} 
             setIsSubmitted={setIsSubmitted} isSending={isSending} clientName={clientName} 

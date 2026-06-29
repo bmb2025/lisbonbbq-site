@@ -17,6 +17,7 @@ interface HomePageProps {
   cart: CartItem[];
   setCart: React.Dispatch<React.SetStateAction<CartItem[]>>;
   updateCart: (id: string, delta: number) => void;
+  toggleCartItem: (id: string) => void;
   customAssets: Record<string, string>;
   weatherData: Record<string, DailyWeather>;
   viewDate: Date;
@@ -44,7 +45,7 @@ interface HomePageProps {
 }
 
 export const HomePage: React.FC<HomePageProps> = ({
-  lang, setLang, setView, booking, setBooking, cart, setCart, updateCart, customAssets, weatherData, viewDate, setViewDate,
+  lang, setLang, setView, booking, setBooking, cart, setCart, updateCart, toggleCartItem, customAssets, weatherData, viewDate, setViewDate,
   calendarDays, today, showQuote, setShowQuote, isSubmitted, setIsSubmitted, isSending, clientName, setClientName,
   clientEmail, setClientEmail, clientPhone, setClientPhone, handleFormSubmit, scrollToBooking, traditionSectionRef,
   leadCaptured, setLeadCaptured, handleLeadCapture
@@ -150,6 +151,8 @@ export const HomePage: React.FC<HomePageProps> = ({
     contactStepSub: lang === 'pt' ? 'Deixa o teu contacto para avançar e receberes a proposta' : 'Leave your contact to continue and receive your quote',
     contactContinue: lang === 'pt' ? 'Continuar' : 'Continue',
     editContact: lang === 'pt' ? 'Alterar' : 'Change',
+    extraAdd: lang === 'pt' ? 'Adicionar' : 'Add',
+    extraSelected: lang === 'pt' ? 'Selecionado' : 'Selected',
   };
 
   const handleImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -547,23 +550,35 @@ export const HomePage: React.FC<HomePageProps> = ({
               <h3 className="text-4xl font-black uppercase tracking-tighter">{t.step5}</h3>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-              {cart.map(item => (
-                <div key={item.id} className="bg-white border-4 border-bbq-black p-6 shadow-hard-sm flex flex-col group">
-                  <div className="aspect-square bg-gray-100 mb-4 border-2 border-bbq-black overflow-hidden">
-                    <img src={customAssets[`addon_${item.id}`] || item.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform" alt={item.name} onError={handleImgError} />
-                  </div>
-                  <h4 className="font-black uppercase text-sm mb-2 leading-none">{item.name}</h4>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase leading-tight mb-4 flex-1">{item.description}</p>
-                  <div className="flex items-center justify-between border-t-2 border-bbq-black/5 pt-4">
-                    <div className="flex border-2 border-bbq-black">
-                      <button onClick={() => updateCart(item.id, -1)} className="p-2 bg-bbq-cream hover:bg-bbq-yellow"><Minus size={14} /></button>
-                      <div className="px-4 py-2 font-black text-sm bg-white border-x-2 border-bbq-black">{item.quantity}</div>
-                      <button onClick={() => updateCart(item.id, 1)} className="p-2 bg-bbq-cream hover:bg-bbq-yellow"><Plus size={14} /></button>
+              {cart.map(item => {
+                const selected = item.quantity > 0;
+                return (
+                  <button
+                    type="button"
+                    key={item.id}
+                    onClick={() => toggleCartItem(item.id)}
+                    aria-pressed={selected}
+                    className={`text-left bg-white border-4 p-6 shadow-hard-sm flex flex-col group transition-all ${selected ? 'border-bbq-black ring-4 ring-bbq-yellow ring-inset' : 'border-bbq-black hover:border-bbq-red'}`}
+                  >
+                    <div className="aspect-square bg-gray-100 mb-4 border-2 border-bbq-black overflow-hidden relative">
+                      <img src={customAssets[`addon_${item.id}`] || item.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform" alt={item.name} onError={handleImgError} />
+                      {selected && (
+                        <div className="absolute top-2 right-2 bg-bbq-yellow border-2 border-bbq-black w-9 h-9 flex items-center justify-center shadow-hard-sm">
+                          <Check size={20} strokeWidth={4} />
+                        </div>
+                      )}
                     </div>
-                    <div className="text-[9px] font-black uppercase opacity-60">por {item.unit}</div>
-                  </div>
-                </div>
-              ))}
+                    <h4 className="font-black uppercase text-sm mb-2 leading-none">{item.name}</h4>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase leading-tight mb-4 flex-1">{item.description}</p>
+                    <div className="flex items-center justify-between border-t-2 border-bbq-black/5 pt-4 mt-auto">
+                      <span className={`px-4 py-2 font-black uppercase text-xs border-2 border-bbq-black flex items-center gap-2 ${selected ? 'bg-bbq-black text-bbq-yellow' : 'bg-bbq-cream text-bbq-black'}`}>
+                        {selected ? <><Check size={14} strokeWidth={4} /> {t.extraSelected}</> : <><Plus size={14} strokeWidth={4} /> {t.extraAdd}</>}
+                      </span>
+                      <div className="text-[9px] font-black uppercase opacity-60">por {item.unit}</div>
+                    </div>
+                  </button>
+                );
+              })}
 
               <button
                 onClick={handleNoExtras}

@@ -28,7 +28,7 @@ function traditionLabel(t: string, lang: "pt" | "en" = "pt") {
 function internalEmail(lead: any) {
   const b = lead.booking || {};
   const c = lead.client || {};
-  const extras = (lead.extras || []).map((e: any) => `${e.name} ×${e.qty}`).join(", ") || "Nenhum";
+  const extras = (lead.extras || []).map((e: any) => e.qty > 1 ? `${e.name} ×${e.qty}` : e.name).join(", ") || "Nenhum";
 
   return `
 <!DOCTYPE html>
