@@ -9,7 +9,8 @@ export const DEFAULT_ASSETS: Record<string, string> = {
   noExtras: "https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?q=80&w=800&auto=format&fit=crop",
   venueFeature1: `${IMG}/Fotos/B1.webp`,
   venueFeature2: `${IMG}/Fotos/grill.webp`,
-  venueFeature3: `${IMG}/Fotos/B3.webp`
+  venueFeature3: `${IMG}/Fotos/B3.webp`,
+  ownLocation: `${IMG}/Fotos/backyard.webp`
 };
 
 export const BRAZILIAN_MENUS: BBQMenuItem[] = [

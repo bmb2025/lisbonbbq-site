@@ -365,8 +365,8 @@ export const HomePage: React.FC<HomePageProps> = ({
                       onClick={() => setBooking(prev => ({ ...prev, locationId: OWN_LOCATION_ID, tradition: null, slot: null }))}
                       className={`group relative border-4 p-4 text-left transition-all cursor-pointer ${isSelected ? 'bg-bbq-black border-bbq-black shadow-hard translate-y-[-4px]' : 'bg-white border-gray-100 hover:border-bbq-black'}`}
                     >
-                      <div className="aspect-video bg-bbq-cream mb-6 overflow-hidden border-2 border-bbq-black relative flex items-center justify-center">
-                        <Castle size={64} className={isSelected ? 'text-bbq-yellow' : 'text-bbq-black/20'} />
+                      <div className="aspect-video bg-bbq-cream mb-6 overflow-hidden border-2 border-bbq-black relative">
+                        <img src={customAssets.ownLocation} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={t.ownLocation} onError={handleImgError} />
                         <div className="absolute top-4 left-4 border-2 border-bbq-black px-3 py-1 text-[10px] font-black uppercase shadow-hard-sm bg-bbq-yellow">
                           {lang === 'pt' ? 'O teu espaço' : 'Your space'}
                         </div>
