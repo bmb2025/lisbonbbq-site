@@ -68,15 +68,29 @@ function parseMarkdown(md: string): CmsArticle {
   const front = parts[1].trim();
   const body = parts.slice(2).join("---").trim();
 
+  // Parse front-matter, handling values that span multiple lines inside double
+  // quotes (e.g. a long `excerpt:` — otherwise it was truncated at the 1st line).
   const meta: Record<string, string> = {};
-  front.split("\n").forEach((line) => {
-    const idx = line.indexOf(":");
-    if (idx === -1) return;
-    const key = line.slice(0, idx).trim();
-    // Removemos possíveis aspas ou espaços extras do valor
-    const value = line.slice(idx + 1).trim().replace(/^["']|["']$/g, '');
+  const lines = front.split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    const idx = lines[i].indexOf(":");
+    if (idx === -1) continue;
+    const key = lines[i].slice(0, idx).trim();
+    if (!key) continue;
+    let value = lines[i].slice(idx + 1).trim();
+    if (value.startsWith('"') && !(value.length > 1 && value.endsWith('"'))) {
+      const buf = [value.slice(1)];
+      while (++i < lines.length) {
+        const end = lines[i].indexOf('"');
+        if (end !== -1) { buf.push(lines[i].slice(0, end).trim()); break; }
+        buf.push(lines[i].trim());
+      }
+      value = buf.join(" ").replace(/\s+/g, " ").trim();
+    } else {
+      value = value.replace(/^["']|["']$/g, '');
+    }
     meta[key] = value;
-  });
+  }
 
   return {
     id: meta.id ?? Math.random().toString(36).substr(2, 9),

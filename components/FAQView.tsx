@@ -213,8 +213,21 @@ export const FAQView: React.FC<FAQViewProps> = ({ lang, onBack }) => {
     }
   ];
 
+  // FAQPage structured data — eligible for rich results and citable by AI answer
+  // engines. Built from the PT questions (numbering stripped).
+  const faqJsonLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q.pt.replace(/^\d+\.\s*/, ""),
+      acceptedAnswer: { "@type": "Answer", text: f.a.pt },
+    })),
+  }).replace(/</g, "\\u003c");
+
   return (
     <div className="bg-bbq-cream min-h-screen py-24 px-4">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: faqJsonLd }} />
       <div className="max-w-4xl mx-auto">
         <button 
           onClick={onBack}
@@ -230,9 +243,9 @@ export const FAQView: React.FC<FAQViewProps> = ({ lang, onBack }) => {
           </div>
 
           <div className="relative z-10">
-            <h2 className="text-5xl md:text-7xl font-black uppercase tracking-tighter mb-8 leading-none">
+            <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter mb-8 leading-none">
               FAQ do Mestre
-            </h2>
+            </h1>
             <div className="h-2 w-32 bg-bbq-red mb-12"></div>
             
             <p className="text-xl font-bold uppercase text-gray-500 mb-16 leading-relaxed max-w-2xl">

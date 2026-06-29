@@ -14,9 +14,9 @@ export const Header: React.FC<HeaderProps> = ({ setView, lang, setLang }) => {
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
         <button onClick={() => setView('booking')} className="flex items-center gap-2 hover:opacity-90 transition-opacity">
           <Flame className="w-8 h-8 fill-bbq-yellow text-bbq-black" />
-          <h1 className="text-xl md:text-2xl font-black tracking-tighter uppercase">
+          <span className="text-xl md:text-2xl font-black tracking-tighter uppercase">
             Lisbon Barbecue & Churrasco
-          </h1>
+          </span>
         </button>
         
         <nav className="flex gap-4 md:gap-6 font-bold text-[10px] md:text-sm uppercase tracking-widest items-center">

@@ -10,24 +10,45 @@ type Article = {
   excerpt: string;
   content: string;
   coverImage: string;
+  author: string;
+  publishedAt: string;
   isPublished: boolean;
 };
 
-// Same front-matter parsing the client uses (services/gitCms.ts), kept inline so
-// this serverless function has no cross-file imports.
+// Parse YAML-ish front-matter, handling values that span multiple lines inside
+// double quotes (e.g. a long `excerpt:`). Kept inline so this serverless function
+// has no cross-file imports.
+function parseFront(front: string): Record<string, string> {
+  const meta: Record<string, string> = {};
+  const lines = front.split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    const idx = lines[i].indexOf(":");
+    if (idx === -1) continue;
+    const key = lines[i].slice(0, idx).trim();
+    if (!key) continue;
+    let value = lines[i].slice(idx + 1).trim();
+    // Opening quote without a closing quote on the same line → folded value.
+    if (value.startsWith('"') && !(value.length > 1 && value.endsWith('"'))) {
+      const buf = [value.slice(1)];
+      while (++i < lines.length) {
+        const end = lines[i].indexOf('"');
+        if (end !== -1) { buf.push(lines[i].slice(0, end).trim()); break; }
+        buf.push(lines[i].trim());
+      }
+      value = buf.join(" ").replace(/\s+/g, " ").trim();
+    } else {
+      value = value.replace(/^["']|["']$/g, "");
+    }
+    meta[key] = value;
+  }
+  return meta;
+}
+
 function parseMarkdown(md: string): Article {
   const parts = md.split("---");
   const front = parts.length >= 3 ? parts[1].trim() : "";
   const body = parts.length >= 3 ? parts.slice(2).join("---").trim() : md.trim();
-
-  const meta: Record<string, string> = {};
-  front.split("\n").forEach((line) => {
-    const idx = line.indexOf(":");
-    if (idx === -1) return;
-    const key = line.slice(0, idx).trim();
-    const value = line.slice(idx + 1).trim().replace(/^["']|["']$/g, "");
-    if (key) meta[key] = value;
-  });
+  const meta = parseFront(front);
 
   return {
     slug: meta.slug ?? "",
@@ -35,6 +56,8 @@ function parseMarkdown(md: string): Article {
     excerpt: meta.excerpt ?? "",
     content: body,
     coverImage: meta.coverImage ?? "https://lisbonbbq.pt/og-image.jpg",
+    author: meta.author ?? "LisbonBBQ",
+    publishedAt: meta.publishedAt ?? "",
     isPublished: meta.isPublished === "true",
   };
 }
@@ -91,7 +114,8 @@ function renderBodyAsHtml(content = "") {
       if (!t) return `<div style="height:16px"></div>`;
       if (t.startsWith("### ")) return `<h3 class="h3">${inline(t.slice(4))}</h3>`;
       if (t.startsWith("## ")) return `<h2 class="h2">${inline(t.slice(3))}</h2>`;
-      if (t.startsWith("# ")) return `<h1 class="h1">${inline(t.slice(2))}</h1>`;
+      // Body H1 markdown → h2; the article title (rendered separately) is the only <h1>.
+      if (t.startsWith("# ")) return `<h2 class="h2">${inline(t.slice(2))}</h2>`;
       return `<p class="p">${inline(t)}</p>`;
     })
     .join("");
@@ -103,12 +127,14 @@ function htmlShell({
   canonical,
   coverImage,
   bodyHtml,
+  jsonLd,
 }: {
   title: string;
   description: string;
   canonical: string;
   coverImage: string | null;
   bodyHtml: string;
+  jsonLd?: string;
 }) {
   const ogImage = coverImage ? escapeHtml(coverImage) : "https://lisbonbbq.pt/og-image.jpg";
   return `<!doctype html>
@@ -124,6 +150,7 @@ function htmlShell({
   <meta property="og:description" content="${escapeHtml(description)}" />
   <meta property="og:url" content="${escapeHtml(canonical)}" />
   <meta property="og:image" content="${ogImage}" />
+  ${jsonLd ? `<script type="application/ld+json">${jsonLd}</script>` : ""}
   <style>
     :root{--r:#D91A2A;--y:#F4B41A;--b:#1A1A1A;--c:#F9F7F2}
     body{margin:0;background:var(--c);color:var(--b);font-family:system-ui,sans-serif}
@@ -179,12 +206,39 @@ export default async function handler(req: any, res: any) {
     }
 
     const canonicalSlug = article.slug || reqSlug;
-    const html = htmlShell({
-      title: article.title,
+    const canonical = `https://lisbonbbq.pt/blog/${canonicalSlug}`;
+
+    // BlogPosting structured data — rich results + citable by AI answer engines.
+    const ld: any = {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      headline: article.title,
       description: article.excerpt,
-      canonical: `https://lisbonbbq.pt/blog/${canonicalSlug}`,
+      image: article.coverImage || undefined,
+      author: { "@type": "Person", name: article.author },
+      publisher: {
+        "@type": "Organization",
+        name: "LisbonBBQ",
+        logo: {
+          "@type": "ImageObject",
+          url: "https://mlqdpjiolbyewcumvajn.supabase.co/storage/v1/object/public/lisbonbbq-media/Fotos/Favicon.png",
+        },
+      },
+      mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
+    };
+    if (article.publishedAt) {
+      ld.datePublished = article.publishedAt;
+      ld.dateModified = article.publishedAt;
+    }
+    const jsonLd = JSON.stringify(ld).replace(/</g, "\\u003c");
+
+    const html = htmlShell({
+      title: `${article.title} | LisbonBBQ`,
+      description: article.excerpt,
+      canonical,
       coverImage: article.coverImage || null,
       bodyHtml: `<h1 class="h1">${escapeHtml(article.title)}</h1><div>${renderBodyAsHtml(article.content)}</div>`,
+      jsonLd,
     });
 
     res.setHeader("Content-Type", "text/html; charset=utf-8");

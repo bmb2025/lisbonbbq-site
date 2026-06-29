@@ -35,9 +35,9 @@ export const BlogList: React.FC<{ articles: Article[]; onArticleClick: (slug: st
     <section className="py-24 px-4 bg-bbq-cream">
       <div className="max-w-6xl mx-auto">
         <div className="mb-16">
-          <h2 className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-none mb-4">
+          <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-none mb-4">
             O Jornal <br/><span className="text-bbq-red">Do Fogo</span>
-          </h2>
+          </h1>
           <p className="text-xl font-bold uppercase text-gray-400 tracking-widest">Dicas, Histórias e a Cultura do Churrasco em Lisboa.</p>
         </div>
         
@@ -116,13 +116,14 @@ export const ArticleDetail: React.FC<{ article: Article; onBack: () => void; lan
       }
 
       if (trimmedLine.startsWith('# ')) {
+        // Body H1 markdown is demoted to h2 — the article title is the only <h1>.
         return (
-          <h1
+          <h2
             key={i}
             className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-bbq-red mt-16 mb-8 leading-none italic"
           >
             {trimmedLine.replace('# ', '')}
-          </h1>
+          </h2>
         );
       }
 

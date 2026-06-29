@@ -177,9 +177,9 @@ export const HomePage: React.FC<HomePageProps> = ({
         <img src={customAssets.hero} className="w-full h-full object-cover opacity-70" alt="Hero BBQ" onError={handleImgError} />
         <div className="absolute inset-0 z-20 bg-gradient-to-t from-black/95 via-black/30 to-black/50"></div>
         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center text-center p-4">
-          <h2 className="text-5xl md:text-[8rem] font-black uppercase leading-none mb-6 text-white drop-shadow-[10px_10px_0px_#1A1A1A] tracking-tighter">
+          <h1 className="text-5xl md:text-[8rem] font-black uppercase leading-none mb-6 text-white drop-shadow-[10px_10px_0px_#1A1A1A] tracking-tighter">
             Lisbon Barbecue<br /><span className="text-bbq-yellow">& Churrasco</span>
-          </h2>
+          </h1>
           <p className="relative text-white text-lg md:text-2xl font-black uppercase tracking-widest bg-bbq-red px-10 py-5 border-4 border-bbq-black mb-12">
             {lang === 'pt' ? 'O teu backyard' : 'Your backyard'}
           </p>
