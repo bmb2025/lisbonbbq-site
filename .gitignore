@@ -25,5 +25,5 @@ dist-ssr
 .env
 leads-corp.json
 setup.sh
-run_setup.command
-.env
+# Helper scripts may contain secrets (Supabase service_role keys, tokens)
+*.command
