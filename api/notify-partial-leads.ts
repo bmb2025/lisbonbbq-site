@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import { createHash } from "crypto";
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -79,8 +80,13 @@ const WAIT_MINUTES = 5;
  * only collected on the final submission); completed/corporate leads do not.
  */
 export default async function handler(req: any, res: any) {
+  // Auth: the scheduler sends the SHA-256 of the service-role key (a non-secret
+  // value), so the actual key is never embedded in the cron job definition.
+  const expected = createHash("sha256")
+    .update(process.env.SUPABASE_SERVICE_ROLE_KEY || "")
+    .digest("hex");
   const secret = req.headers?.["x-cron-secret"];
-  if (secret !== process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  if (secret !== expected) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
