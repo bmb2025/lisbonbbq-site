@@ -12,15 +12,17 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = "LisbonBBQ <noreply@lisbonbbq.pt>";
 const NOTIFY_EMAIL = "pitmasters@lisbonbbq.pt";
 
-function formatDate(iso: string | undefined) {
+function formatDate(iso: string | undefined, lang: "pt" | "en" = "pt") {
   if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("pt-PT", {
+  return new Date(iso).toLocaleDateString(lang === "en" ? "en-GB" : "pt-PT", {
     weekday: "long", year: "numeric", month: "long", day: "numeric"
   });
 }
 
-function traditionLabel(t: string) {
-  return { brazilian: "Churrasco Brasileiro 🇧🇷", portuguese: "Churrasco Português 🇵🇹", argentinian: "Asado Argentino 🇦🇷" }[t] || t;
+function traditionLabel(t: string, lang: "pt" | "en" = "pt") {
+  const pt: Record<string, string> = { brazilian: "Churrasco Brasileiro 🇧🇷", portuguese: "Churrasco Português 🇵🇹", argentinian: "Asado Argentino 🇦🇷" };
+  const en: Record<string, string> = { brazilian: "Brazilian Barbecue 🇧🇷", portuguese: "Portuguese Barbecue 🇵🇹", argentinian: "Argentinian Asado 🇦🇷" };
+  return (lang === "en" ? en : pt)[t] || t;
 }
 
 function internalEmail(lead: any) {
@@ -60,9 +62,44 @@ function internalEmail(lead: any) {
 </html>`;
 }
 
-function confirmationEmail(lead: any) {
+function confirmationEmail(lead: any, lang: "pt" | "en" = "pt") {
   const b = lead.booking || {};
   const c = lead.client || {};
+  const isCorporate = lead.source === "corporate";
+
+  const en = lang === "en";
+  const T = {
+    title: en ? "🔥 Request received — LisbonBBQ" : "🔥 Pedido recebido — LisbonBBQ",
+    hi: en ? "Hi" : "Olá",
+    intro: en
+      ? "We've received your request. Our team will be in touch shortly to confirm the details and send your proposal."
+      : "Recebemos o teu pedido. A nossa equipa vai entrar em contacto em breve para confirmar os detalhes e enviar proposta.",
+    rDate: en ? "Date" : "Data",
+    rVenue: en ? "Venue" : "Local",
+    rTradition: en ? "Tradition" : "Tradição",
+    rSlot: en ? "Time" : "Horário",
+    rGuests: en ? "Guests" : "Convidados",
+    rCompany: en ? "Company" : "Empresa",
+    pax: en ? "pax" : "pax",
+    any: en
+      ? "Any questions, just reply to this email or contact us directly."
+      : "Qualquer dúvida responde a este email ou contacta-nos diretamente.",
+    thanks: en ? "Thank you," : "Obrigado,",
+    team: en ? "The LisbonBBQ Team" : "Equipa LisbonBBQ",
+  };
+
+  // Corporate leads carry placeholder booking data (Local "TBD", etc.), so show a
+  // clean, corporate-specific summary instead of the booking-flow fields.
+  const rows = isCorporate
+    ? `
+      <tr><td>${T.rCompany}</td><td>${lead.corporate?.company || lead.company || "—"}</td></tr>
+      <tr><td>${T.rGuests}</td><td>${lead.corporate?.guests || b.guests || "—"} ${T.pax}</td></tr>`
+    : `
+      <tr><td>${T.rDate}</td><td>${formatDate(b.date, lang)}</td></tr>
+      <tr><td>${T.rVenue}</td><td>${lead.summary?.location || b.locationId || "—"}</td></tr>
+      <tr><td>${T.rTradition}</td><td>${traditionLabel(b.tradition, lang)}</td></tr>
+      <tr><td>${T.rSlot}</td><td>${b.slot || "—"}</td></tr>
+      <tr><td>${T.rGuests}</td><td>${b.guests || "—"} ${T.pax}</td></tr>`;
 
   return `
 <!DOCTYPE html>
@@ -80,20 +117,15 @@ function confirmationEmail(lead: any) {
 </style></head>
 <body>
 <div class="card">
-  <h1>🔥 Pedido recebido — LisbonBBQ</h1>
-  <p>Olá <strong>${c.name?.split(" ")[0] || ""}!</strong></p>
-  <p>Recebemos o teu pedido de reserva. A nossa equipa vai entrar em contacto em breve para confirmar os detalhes e enviar proposta.</p>
+  <h1>${T.title}</h1>
+  <p>${T.hi} <strong>${c.name?.split(" ")[0] || ""}!</strong></p>
+  <p>${T.intro}</p>
   <div class="highlight">
-    <table>
-      <tr><td>Data</td><td>${formatDate(b.date)}</td></tr>
-      <tr><td>Local</td><td>${lead.summary?.location || b.locationId || "—"}</td></tr>
-      <tr><td>Tradição</td><td>${traditionLabel(b.tradition)}</td></tr>
-      <tr><td>Horário</td><td>${b.slot || "—"}</td></tr>
-      <tr><td>Convidados</td><td>${b.guests || "—"} pax</td></tr>
+    <table>${rows}
     </table>
   </div>
-  <p>Qualquer dúvida responde a este email ou contacta-nos diretamente.</p>
-  <p>Obrigado,<br><strong>Equipa LisbonBBQ</strong></p>
+  <p>${T.any}</p>
+  <p>${T.thanks}<br><strong>${T.team}</strong></p>
   <div class="footer">LisbonBBQ · Lisboa, Portugal · lisbonbbq.pt</div>
 </div>
 </body>
@@ -138,9 +170,14 @@ export default async function handler(req: any, res: any) {
   // 2. Send emails via Resend
   try {
     const notifyTo = leadData?.target_email || NOTIFY_EMAIL;
+    // Client confirmation follows the language of the site the lead came from.
+    const lang: "pt" | "en" = leadData?.lang === "en" ? "en" : "pt";
+    const clientSubject = lang === "en"
+      ? "LisbonBBQ — Request received 🔥"
+      : "LisbonBBQ — Pedido recebido 🔥";
 
     await Promise.all([
-      // Internal notification
+      // Internal notification (kept in PT — read by the LisbonBBQ team)
       resend.emails.send({
         from: FROM,
         to: notifyTo,
@@ -151,8 +188,8 @@ export default async function handler(req: any, res: any) {
       ...(email ? [resend.emails.send({
         from: FROM,
         to: email,
-        subject: "LisbonBBQ — Pedido recebido 🔥",
-        html: confirmationEmail(leadData),
+        subject: clientSubject,
+        html: confirmationEmail(leadData, lang),
       })] : []),
     ]);
 

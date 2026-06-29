@@ -227,6 +227,7 @@ const App: React.FC = () => {
       client: { name: data.name, email: data.email, phone: data.phone },
       corporate: { company: data.company, guests: data.guests, message: data.message },
       source: 'corporate',
+      lang,
       target_email: 'pitmasters@lisbonbbq.pt', // Explicit for corporate
 
       // Direct root compatibility
@@ -331,6 +332,7 @@ const App: React.FC = () => {
       phone: clientPhone,
       event_date: booking.date?.toISOString(),
       source: leadSource,
+      lang,
     };
 
     await cloudService.saveLead(partialLead);
@@ -363,6 +365,7 @@ const App: React.FC = () => {
         event_date: booking.date?.toISOString(),
         drinks: 'mixed', // Por defeito
         source: leadSource,
+        lang,
         target_email: leadSource === 'corporate' ? 'pitmasters@lisbonbbq.pt' : undefined
       };
       

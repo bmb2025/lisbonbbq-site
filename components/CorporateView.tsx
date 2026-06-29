@@ -348,7 +348,7 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onBack, onSu
                   <Check size={40} />
                 </div>
                 <h3 className="text-2xl font-black uppercase mb-2">{lang === 'pt' ? 'Proposta Solicitada!' : 'Proposal Requested!'}</h3>
-                <p className="font-bold uppercase text-xs text-gray-500">{lang === 'pt' ? 'Entraremos em contacto em menos de 24h.' : 'We will contact you in less than 24h.'}</p>
+                <p className="font-bold uppercase text-xs text-gray-500">{lang === 'pt' ? 'Entraremos em contacto em breve.' : 'We will be in touch shortly.'}</p>
                 <button 
                   onClick={() => setSubmitted(false)}
                   className="mt-8 text-bbq-red font-black uppercase text-xs tracking-widest underline underline-offset-4"

@@ -138,7 +138,7 @@ export const HomePage: React.FC<HomePageProps> = ({
     send: lang === 'pt' ? 'Enviar Pedido' : 'Send Request',
     sending: lang === 'pt' ? 'A Enviar...' : 'Sending...',
     sent: lang === 'pt' ? 'Pedido Enviado!' : 'Request Sent!',
-    sentSub: lang === 'pt' ? 'O nosso concierge entrará em contacto em 4 horas.' : 'Our concierge will contact you within 4 hours.',
+    sentSub: lang === 'pt' ? 'O nosso concierge entrará em contacto em breve.' : 'Our concierge will be in touch shortly.',
     confirmSelection: lang === 'pt' ? 'Pedir Orçamento' : 'Get Custom Quote',
     noExtras: lang === 'pt' ? 'Não quero extras' : 'No extras, thank you',
     noExtrasSub: lang === 'pt' ? 'Prosseguir apenas com o menu base' : 'Proceed with base menu only',
