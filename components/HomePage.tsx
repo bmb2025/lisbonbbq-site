@@ -134,7 +134,7 @@ export const HomePage: React.FC<HomePageProps> = ({
     step5: lang === 'pt' ? 'Extras' : 'Extras',
     finalize: lang === 'pt' ? 'Receber orçamento' : 'Get Quote',
     contactDetails: lang === 'pt' ? 'Orçamento será enviado em apenas alguns minutos' : 'Your custom quote will be ready in minutes',
-    fullName: lang === 'pt' ? 'Nome Completo' : 'Full Name',
+    fullName: lang === 'pt' ? 'Nome e Apelido' : 'Full Name',
     email: lang === 'pt' ? 'E-mail' : 'Email Address',
     phone: lang === 'pt' ? 'Telemóvel' : 'Phone Number',
     send: lang === 'pt' ? 'Enviar Pedido' : 'Send Request',
