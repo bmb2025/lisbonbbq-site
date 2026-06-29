@@ -1,6 +1,75 @@
 const REPO_OWNER = "lisbonbbq";
 const REPO_NAME = "lisbonbbq-content";
 const CONTENT_PATH = "content/articles";
+const RAW_BASE = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${CONTENT_PATH}`;
+const API_DIR = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${CONTENT_PATH}`;
+
+type Article = {
+  slug: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  coverImage: string;
+  isPublished: boolean;
+};
+
+// Same front-matter parsing the client uses (services/gitCms.ts), kept inline so
+// this serverless function has no cross-file imports.
+function parseMarkdown(md: string): Article {
+  const parts = md.split("---");
+  const front = parts.length >= 3 ? parts[1].trim() : "";
+  const body = parts.length >= 3 ? parts.slice(2).join("---").trim() : md.trim();
+
+  const meta: Record<string, string> = {};
+  front.split("\n").forEach((line) => {
+    const idx = line.indexOf(":");
+    if (idx === -1) return;
+    const key = line.slice(0, idx).trim();
+    const value = line.slice(idx + 1).trim().replace(/^["']|["']$/g, "");
+    if (key) meta[key] = value;
+  });
+
+  return {
+    slug: meta.slug ?? "",
+    title: meta.title ?? "Sem Título",
+    excerpt: meta.excerpt ?? "",
+    content: body,
+    coverImage: meta.coverImage ?? "https://lisbonbbq.pt/og-image.jpg",
+    isPublished: meta.isPublished === "true",
+  };
+}
+
+async function findArticle(slug: string): Promise<Article | null> {
+  // Fast path: filename matches the slug (true for most articles).
+  try {
+    const direct = await fetch(`${RAW_BASE}/${encodeURIComponent(slug)}.md`);
+    if (direct.ok) {
+      const art = parseMarkdown(await direct.text());
+      if (art.slug === slug || art.slug === "") return { ...art, slug };
+    }
+  } catch (_) { /* fall through to directory scan */ }
+
+  // Fallback: the front-matter slug differs from the filename — list the folder
+  // and match by the slug inside each .md.
+  try {
+    const listRes = await fetch(API_DIR, { headers: { "User-Agent": "lisbonbbq-site" } });
+    if (!listRes.ok) return null;
+    const files = await listRes.json();
+    const mdFiles = (Array.isArray(files) ? files : []).filter(
+      (f: any) => f?.type === "file" && typeof f?.name === "string" && f.name.endsWith(".md")
+    );
+    for (const f of mdFiles) {
+      try {
+        const res = await fetch(f.download_url);
+        if (!res.ok) continue;
+        const art = parseMarkdown(await res.text());
+        if (art.slug === slug) return art;
+      } catch (_) { /* skip this file */ }
+    }
+  } catch (_) { /* nothing found */ }
+
+  return null;
+}
 
 function escapeHtml(str = "") {
   return String(str)
@@ -12,15 +81,18 @@ function escapeHtml(str = "") {
 }
 
 function renderBodyAsHtml(content = "") {
+  // Escape first, then apply a couple of inline markdown niceties (**bold**).
+  const inline = (s: string) =>
+    escapeHtml(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   return content
     .split("\n")
     .map((line) => {
       const t = line.trim();
       if (!t) return `<div style="height:16px"></div>`;
-      if (t.startsWith("### ")) return `<h3 class="h3">${escapeHtml(t.slice(4))}</h3>`;
-      if (t.startsWith("## ")) return `<h2 class="h2">${escapeHtml(t.slice(3))}</h2>`;
-      if (t.startsWith("# ")) return `<h1 class="h1">${escapeHtml(t.slice(2))}</h1>`;
-      return `<p class="p">${escapeHtml(t)}</p>`;
+      if (t.startsWith("### ")) return `<h3 class="h3">${inline(t.slice(4))}</h3>`;
+      if (t.startsWith("## ")) return `<h2 class="h2">${inline(t.slice(3))}</h2>`;
+      if (t.startsWith("# ")) return `<h1 class="h1">${inline(t.slice(2))}</h1>`;
+      return `<p class="p">${inline(t)}</p>`;
     })
     .join("");
 }
@@ -83,13 +155,13 @@ function htmlShell({
 export default async function handler(req: any, res: any) {
   const slug =
     req.query?.slug ||
-    (req.url || "").split("/").filter(Boolean).pop();
+    (req.url || "").split("?")[0].split("/").filter(Boolean).pop();
 
   try {
-    const apiUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${CONTENT_PATH}/${slug}.json`;
-    const response = await fetch(apiUrl);
-    if (!response.ok) throw new Error("Article not found");
-    const article = await response.json();
+    const article = await findArticle(decodeURIComponent(slug));
+    if (!article || !article.isPublished) {
+      return res.redirect(307, "/blog");
+    }
 
     const html = htmlShell({
       title: article.title,
@@ -100,8 +172,9 @@ export default async function handler(req: any, res: any) {
     });
 
     res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.setHeader("Cache-Control", "public, s-maxage=600, stale-while-revalidate=86400");
     return res.send(html);
   } catch (_) {
-    return res.redirect("/blog");
+    return res.redirect(307, "/blog");
   }
 }
