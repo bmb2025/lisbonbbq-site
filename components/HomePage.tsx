@@ -146,7 +146,7 @@ export const HomePage: React.FC<HomePageProps> = ({
     noExtrasSub: lang === 'pt' ? 'Prosseguir apenas com o menu base' : 'Proceed with base menu only',
     seeMore: lang === 'pt' ? 'Ver Mais' : 'See More',
     heroBtn: lang === 'pt' ? 'Personaliza o Teu Banquete' : 'Design Your Feast',
-    ownLocation: lang === 'pt' ? 'Já tenho o local próprio' : 'I already have my own venue',
+    ownLocation: lang === 'pt' ? 'Já tenho o meu próprio local' : 'I already have my own venue',
     ownLocationSub: lang === 'pt' ? 'O evento acontece num espaço teu. Tratamos de tudo o resto.' : 'The event takes place at your own space. We handle everything else.',
     contactStep: lang === 'pt' ? 'Os Teus Dados' : 'Your Details',
     contactStepSub: lang === 'pt' ? 'Deixa o teu contacto para avançar e receberes a proposta' : 'Leave your contact to continue and receive your quote',
