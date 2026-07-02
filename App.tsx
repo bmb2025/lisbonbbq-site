@@ -18,6 +18,7 @@ import { ADD_ONS, LOCATIONS, DEFAULT_ASSETS, BRAZILIAN_MENUS, PORTUGUESE_MENUS, 
 import { BookingState, CartItem, DailyWeather, Article } from './types';
 import { getLisbonWeather } from './services/weatherService';
 import { cloudService } from './services/cloudService';
+import { track, identifyLead } from './services/analytics';
 import { fetchArticles, fetchArticleBySlug } from './services/gitCms';
 import { Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
 
@@ -281,6 +282,10 @@ const App: React.FC = () => {
     };
     
     const success = await cloudService.saveLead(newLead);
+    if (success) {
+      track('corporate_form_submitted', { guests_range: data.guests, company: data.company });
+      identifyLead({ email: data.email, name: data.name, phone: data.phone });
+    }
     setIsSending(false);
     return success;
   };
@@ -344,6 +349,14 @@ const App: React.FC = () => {
     };
 
     await cloudService.saveLead(partialLead);
+    track('lead_capture_submitted', {
+      guests: booking.guests,
+      location: partialLead.summary.location,
+      tradition: booking.tradition,
+      slot: booking.slot,
+      source: leadSource,
+    });
+    identifyLead({ name: clientName, phone: clientPhone });
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -378,7 +391,20 @@ const App: React.FC = () => {
       };
       
       const success = await cloudService.saveLead(newLead);
-      
+
+      if (success) {
+        track('quote_request_submitted', {
+          guests: booking.guests,
+          location: newLead.summary.location,
+          tradition: booking.tradition,
+          slot: booking.slot,
+          extras: newLead.extras.map(e => e.id),
+          extras_count: newLead.extras.length,
+          source: leadSource,
+        });
+        identifyLead({ email: clientEmail, name: clientName, phone: clientPhone });
+      }
+
       setLeads(prev => [newLead, ...prev]);
       setIsSending(false);
       setIsSubmitted(true);
