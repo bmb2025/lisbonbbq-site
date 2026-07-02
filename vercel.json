@@ -3,6 +3,12 @@
   "outputDirectory": "dist",
   "redirects": [
     {
+      "source": "/",
+      "has": [{ "type": "host", "value": "lisbonbbq-site.vercel.app" }],
+      "destination": "https://lisbonbbq.pt/",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "has": [{ "type": "host", "value": "lisbonbbq-site.vercel.app" }],
       "destination": "https://lisbonbbq.pt/:path*",
