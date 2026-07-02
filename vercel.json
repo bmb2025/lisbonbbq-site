@@ -3,6 +3,12 @@
   "outputDirectory": "dist",
   "redirects": [
     {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "lisbonbbq-site.vercel.app" }],
+      "destination": "https://lisbonbbq.pt/:path*",
+      "permanent": true
+    },
+    {
       "source": "/jogosdomundial/googlecalendar",
       "destination": "https://calendar.google.com/calendar/u/0?cid=Y19lOTdmYTQ1ZDYzZDM2ZjlmZWJkY2QzZjg3ZTlmOWUyOTMzMTk4MDcxYWIyYWY5OTRmMWM0ZjAyOTU1ZTg0M2RkQGdyb3VwLmNhbGVuZGFyLmdvb2dsZS5jb20",
       "permanent": false
