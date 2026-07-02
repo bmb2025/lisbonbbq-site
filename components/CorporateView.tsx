@@ -50,8 +50,8 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onBack, onSu
     const schema = {
       "@context": "https://schema.org",
       "@type": "Service",
-      "name": "Lisbon BBQ Team Building",
-      "serviceType": "Team building",
+      "name": "LisbonBBQ Eventos Corporativos & Team Building",
+      "serviceType": "Eventos corporativos, team building e festas de empresa",
       "provider": {
         "@type": "Organization",
         "name": "Lisbon BBQ",
@@ -71,15 +71,15 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onBack, onSu
   }, []);
 
   const t = {
-    heroTitle: lang === 'pt' ? 'Team building em Lisboa, sem complicações' : 'Team building in Lisbon, hassle-free',
+    heroTitle: lang === 'pt' ? 'Eventos corporativos em Lisboa, sem complicações' : 'Corporate events in Lisbon, hassle-free',
     heroSub: lang === 'pt' 
       ? 'Organizamos churrascos completos para equipas — espaço, grelhador, bebidas e logística incluídos.'
       : 'We organize complete BBQs for teams — venue, grill, drinks, and logistics included.',
     ctaPrimary: lang === 'pt' ? 'Pedir Proposta' : 'Request Proposal',
     ctaSecondary: lang === 'pt' ? 'Ver opções de evento' : 'View Event Options',
     definition: lang === 'pt'
-      ? 'Lisbon BBQ é um serviço de organização de eventos para empresas em Lisboa, especializado em team building com churrascos privados.'
-      : 'Lisbon BBQ is a corporate event organization service in Lisbon, specialized in team building with private BBQs.',
+      ? 'A LisbonBBQ organiza eventos corporativos em Lisboa — team building, summer parties e festas de equipa — em espaços privados com churrasco, comida e bebida incluídos, desde 35€/pessoa.'
+      : 'LisbonBBQ organizes corporate events in Lisbon — team building, summer parties and team celebrations — in private venues with barbecue, food and drinks included, from €35/person.',
     forWhom: {
       title: lang === 'pt' ? 'Para quem é' : 'Who is it for',
       items: [

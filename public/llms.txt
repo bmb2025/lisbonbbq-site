@@ -11,7 +11,8 @@
 
 ## Páginas principais
 - [Início / reservar](https://lisbonbbq.pt/): personalizar e pedir orçamento de churrasco.
-- [Churrascos para empresas](https://lisbonbbq.pt/corporate): team building e eventos corporativos em Lisboa.
+- [Eventos corporativos](https://lisbonbbq.pt/corporate): team building, summer parties e festas de empresa em Lisboa, desde 35€/pessoa.
+- [Espaço para eventos pequenos](https://lisbonbbq.pt/espaco-para-eventos-pequenos): espaços privados para grupos de 20 a 100 pessoas — Carnide (20–40), Alvito (20–60), Marvila (30–80), Restelo (20–100).
 - [Quem somos](https://lisbonbbq.pt/quem-somos)
 - [Perguntas frequentes](https://lisbonbbq.pt/faqs)
 - [Blog](https://lisbonbbq.pt/blog): guias e dicas de churrasco em Lisboa.

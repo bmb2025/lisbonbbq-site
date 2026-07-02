@@ -10,6 +10,7 @@ import { FAQView } from './components/FAQView';
 import { QuemSomosView } from './components/QuemSomosView';
 import { CorporateView } from './components/CorporateView';
 import { VerBolaView } from './components/VerBolaView';
+import { SmallEventsView } from './components/SmallEventsView';
 import { BlogList, ArticleDetail } from './components/BlogComponents';
 import { BlogAdmin } from './components/CMSComponents';
 import { SpotifyPlayer } from './components/SpotifyPlayer';
@@ -413,7 +414,8 @@ const App: React.FC = () => {
         <Route path="/privacy" element={<><Seo path="/privacy" title="Política de Privacidade | LisbonBBQ" description="Política de privacidade do LisbonBBQ." /><Header setView={setView} lang={lang} setLang={setLang} /><LegalView type="privacy" lang={lang} onBack={() => setView('booking')} /><Footer setView={setView} lang={lang} /></>} />
         <Route path="/terms" element={<><Seo path="/terms" title="Termos e Condições | LisbonBBQ" description="Termos e condições do serviço LisbonBBQ." /><Header setView={setView} lang={lang} setLang={setLang} /><LegalView type="terms" lang={lang} onBack={() => setView('booking')} /><Footer setView={setView} lang={lang} /></>} />
         <Route path="/faqs" element={<><Seo path="/faqs" title="Perguntas Frequentes | LisbonBBQ" description="Respostas às perguntas frequentes sobre os churrascos LisbonBBQ: o que está incluído, locais, número de convidados, extras e como reservar." /><Header setView={setView} lang={lang} setLang={setLang} /><FAQView lang={lang} onBack={() => setView('booking')} /><Footer setView={setView} lang={lang} /></>} />
-        <Route path="/corporate" element={<><Seo path="/corporate" title="Churrascos para Empresas e Team Building em Lisboa | LisbonBBQ" description="Organizamos churrascos para empresas em Lisboa — team building, summer parties e eventos de equipa. Espaço, grelhador, comida e bebida, chave na mão." /><Header setView={setView} lang={lang} setLang={setLang} /><CorporateView lang={lang} onBack={() => {
+        <Route path="/espaco-para-eventos-pequenos" element={<><Seo path="/espaco-para-eventos-pequenos" title="Espaço para Eventos Pequenos em Lisboa (20–100 pessoas) | LisbonBBQ" description="Espaços privados em Lisboa para eventos de 20 a 100 pessoas, com churrasco, bebidas e logística incluídos — desde 35€/pessoa. Pede orçamento em minutos." /><Header setView={setView} lang={lang} setLang={setLang} /><SmallEventsView lang={lang} onBook={() => setView('booking')} onCorporate={() => setView('corporate')} /><Footer setView={setView} lang={lang} /></>} />
+        <Route path="/corporate" element={<><Seo path="/corporate" title="Eventos Corporativos e Team Building em Lisboa | LisbonBBQ" description="Eventos corporativos em Lisboa sem complicações: churrascos para empresas, team building e festas de equipa. Espaço, comida e bebida — chave na mão, desde 35€/pessoa." /><Header setView={setView} lang={lang} setLang={setLang} /><CorporateView lang={lang} onBack={() => {
           const el = document.getElementById('corporate-form');
           if (el) el.scrollIntoView({ behavior: 'smooth' });
           else scrollToBooking();

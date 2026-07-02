@@ -5,7 +5,7 @@ const API_DIR = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/content
 const SITE = "https://lisbonbbq.pt";
 
 // Static, indexable routes of the SPA (besides the home + blog list).
-const STATIC_ROUTES = ["/corporate", "/quem-somos", "/faqs"];
+const STATIC_ROUTES = ["/corporate", "/espaco-para-eventos-pequenos", "/quem-somos", "/faqs"];
 
 function frontMatter(md: string): Record<string, string> {
   const parts = md.split("---");
