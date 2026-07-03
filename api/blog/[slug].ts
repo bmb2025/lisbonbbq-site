@@ -168,6 +168,8 @@ function htmlShell({
     .h2{margin:24px 0 10px;font-size:28px;font-weight:900;text-transform:uppercase}
     .h3{margin:16px 0 8px;font-size:20px;font-weight:900;border-left:8px solid var(--y);padding-left:10px}
     .p{margin:0 0 12px;font-size:15px;line-height:1.6;color:#444}
+    .promo{margin:0 0 18px;padding:12px 16px;border-left:8px solid var(--y);background:#FFF6DF;font-size:14px;line-height:1.5;font-weight:600;color:#333}
+    .promo a{color:var(--r);font-weight:900}
     img.hero{width:100%;border:4px solid var(--b);margin:12px 0}
     .cta{margin-top:24px}
     .cta a{display:inline-block;background:var(--b);color:#fff;padding:12px 24px;text-decoration:none;font-weight:900;text-transform:uppercase}
@@ -244,7 +246,7 @@ export default async function handler(req: any, res: any) {
       description: article.excerpt,
       canonical,
       coverImage: article.coverImage || null,
-      bodyHtml: `<h1 class="h1">${escapeHtml(article.title)}</h1><div>${renderBodyAsHtml(article.content)}</div>`,
+      bodyHtml: `<h1 class="h1">${escapeHtml(article.title)}</h1><blockquote class="promo">Este conteúdo é oferecido pelo <strong>Lisbon Barbecue &amp; Churrasco</strong>, um serviço de <em>arrive, party &amp; leave</em> de churrascos urbanos na cidade de Lisboa → <a href="https://lisbonbbq.pt/">lisbonbbq.pt</a></blockquote><div>${renderBodyAsHtml(article.content)}</div>`,
       jsonLd,
     });
 

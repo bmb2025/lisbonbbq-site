@@ -173,7 +173,16 @@ export const ArticleDetail: React.FC<{ article: Article; onBack: () => void; lan
           </div>
         </header>
 
-        <div className="article-body border-t-4 border-bbq-black pt-12">{renderContent(article.content)}</div>
+        <div className="article-body border-t-4 border-bbq-black pt-12">
+          <blockquote className="border-l-8 border-bbq-yellow bg-bbq-cream px-5 py-4 mb-10 text-sm md:text-base font-bold uppercase tracking-tight text-gray-700">
+            {lang === 'pt' ? (
+              <>Este conteúdo é oferecido pelo Lisbon Barbecue &amp; Churrasco, um serviço de arrive, party &amp; leave de churrascos urbanos na cidade de Lisboa → <a href="https://lisbonbbq.pt/" className="text-bbq-red underline hover:text-bbq-black transition-colors">lisbonbbq.pt</a></>
+            ) : (
+              <>This content is brought to you by Lisbon Barbecue &amp; Churrasco, an arrive, party &amp; leave urban barbecue service in Lisbon → <a href="https://lisbonbbq.pt/" className="text-bbq-red underline hover:text-bbq-black transition-colors">lisbonbbq.pt</a></>
+            )}
+          </blockquote>
+          {renderContent(article.content)}
+        </div>
 
         <footer className="mt-24 pt-12 border-t-4 border-bbq-black flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex items-center gap-4">
