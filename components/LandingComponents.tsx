@@ -31,11 +31,11 @@ export const PackageCard: React.FC<{ onBook: () => void, lang: 'pt' | 'en', cust
   };
 
   const features = [
-    { pt: 'Carnes selecionadas', en: 'Selected Meats' },
-    { pt: 'Acompanhamentos frescos', en: 'Fresh Sides' },
-    { pt: 'Grelha profissional & utensílios', en: 'Professional Grill & Utensils' },
-    { pt: 'Carvão e consumíveis', en: 'Charcoal & Supplies' },
-    { pt: 'Os locais mais incríveis em Lisboa', en: 'The most amazing spots in Lisbon' },
+    { pt: 'Carnes e cortes selecionados', en: 'Selected meats & cuts' },
+    { pt: 'Acompanhamentos frescos', en: 'Fresh sides' },
+    { pt: 'Grelha com pitmaster profissional', en: 'Grill with professional pitmaster' },
+    { pt: 'Local em exclusivo para os convidados', en: 'Exclusive venue for your guests' },
+    { pt: 'Os melhores locais ao ar livre...em Lisboa', en: 'The best outdoor spots...in Lisbon' },
   ];
 
   return (
