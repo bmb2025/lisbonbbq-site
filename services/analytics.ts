@@ -28,6 +28,18 @@ export function initAnalytics() {
 export function track(event: string, properties?: Record<string, any>) {
   if (!enabled) return;
   posthog.capture(event, properties);
+
+  // Mirror conversion events to GA4 (gtag already on the page) so they can be
+  // marked as key events and imported into Google Ads as conversions.
+  const gtag = (window as any).gtag;
+  if (typeof gtag === 'function') {
+    const params: Record<string, any> = {};
+    for (const [k, v] of Object.entries(properties ?? {})) {
+      // GA4 params must be scalars — flatten arrays.
+      params[k] = Array.isArray(v) ? v.join(',') : v;
+    }
+    gtag('event', event, params);
+  }
 }
 
 // Ties the anonymous visitor to the lead once we know who they are.
