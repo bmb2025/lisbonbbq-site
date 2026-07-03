@@ -34,7 +34,7 @@ export const PackageCard: React.FC<{ onBook: () => void, lang: 'pt' | 'en', cust
     { pt: 'Carnes e cortes selecionados', en: 'Selected meats & cuts' },
     { pt: 'Acompanhamentos frescos', en: 'Fresh sides' },
     { pt: 'Grelha com pitmaster profissional', en: 'Grill with professional pitmaster' },
-    { pt: 'Local em exclusivo para os convidados', en: 'Exclusive venue for your guests' },
+    { pt: 'Localização exclusiva para o grupo de convidados', en: 'Exclusive location for your group of guests' },
     { pt: 'Os melhores locais ao ar livre...em Lisboa', en: 'The best outdoor spots...in Lisbon' },
   ];
 
