@@ -20,9 +20,9 @@
     <!-- End Google Tag Manager -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="keywords" content="churrasco lisboa, aluguer grelhador monsanto, barbecue restelo, picanha premium lisboa, churrasco concierge, eventos lisboa" />
-    <!-- title, description, canonical e og:url/title/description são definidos por página
-         pelo componente Seo (React 19 hoista <title>/<meta>/<link> para o <head>) -->
+    <!-- title, description, canonical e og:url/title/description são definidos por página:
+         no HTML servido pelo scripts/prerender.mjs (tags data-ssg, para crawlers) e,
+         após o arranque da SPA, pelo componente Seo (React 19 hoista para o <head>) -->
 
     <!-- Favicon -->
     <link rel="icon" href="https://mlqdpjiolbyewcumvajn.supabase.co/storage/v1/object/public/lisbonbbq-media/Fotos/Favicon.png" sizes="48x48" type="image/png">
@@ -49,7 +49,31 @@
       "email": "pitmasters@lisbonbbq.pt",
       "priceRange": "€€",
       "areaServed": { "@type": "City", "name": "Lisboa" },
-      "address": { "@type": "PostalAddress", "addressLocality": "Lisboa", "addressCountry": "PT" }
+      "address": { "@type": "PostalAddress", "addressLocality": "Lisboa", "addressCountry": "PT" },
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+        "opens": "00:00",
+        "closes": "23:59"
+      },
+      "sameAs": [
+        "https://www.instagram.com/lisbon.barbecue.churrasco/",
+        "https://www.linkedin.com/company/111318289/",
+        "https://x.com/Lisbonbbq"
+      ],
+      "makesOffer": {
+        "@type": "Offer",
+        "name": "Churrasco corporate chave na mão",
+        "url": "https://lisbonbbq.pt/corporate",
+        "priceCurrency": "EUR",
+        "price": "35",
+        "priceSpecification": {
+          "@type": "UnitPriceSpecification",
+          "price": 35,
+          "priceCurrency": "EUR",
+          "unitText": "por pessoa"
+        }
+      }
     }
     </script>
 

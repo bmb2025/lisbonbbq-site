@@ -1,4 +1,5 @@
 import React from 'react';
+import seoData from '../seo/seo-data.json';
 
 const SITE = 'https://lisbonbbq.pt';
 
@@ -27,4 +28,14 @@ export const Seo: React.FC<SeoProps> = ({ title, description, path }) => {
       <meta property="og:url" content={canonical} />
     </>
   );
+};
+
+/**
+ * Seo alimentado por seo/seo-data.json — a mesma fonte usada pelo
+ * scripts/prerender.mjs para gerar o <head> estático de cada rota.
+ */
+export const SeoFor: React.FC<{ path: string }> = ({ path }) => {
+  const route = seoData.routes.find((r) => r.path === path);
+  if (!route) return null;
+  return <Seo path={route.path} title={route.title} description={route.description} />;
 };
