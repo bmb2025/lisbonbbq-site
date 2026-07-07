@@ -239,7 +239,19 @@ export default async function handler(req: any, res: any) {
       ld.datePublished = article.publishedAt;
       ld.dateModified = article.publishedAt;
     }
-    const jsonLd = JSON.stringify(ld).replace(/</g, "\\u003c");
+    // BreadcrumbList — substitui o URL cru por "lisbonbbq.pt › Blog › Artigo" na SERP.
+    const breadcrumbLd = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Início", item: "https://lisbonbbq.pt/" },
+        { "@type": "ListItem", position: 2, name: "Blog", item: "https://lisbonbbq.pt/blog" },
+        { "@type": "ListItem", position: 3, name: article.title, item: canonical },
+      ],
+    };
+    const jsonLd = [ld, breadcrumbLd]
+      .map((o) => JSON.stringify(o).replace(/</g, "\\u003c"))
+      .join(`</script>\n  <script type="application/ld+json">`);
 
     const html = htmlShell({
       title: `${article.title} | LisbonBBQ`,

@@ -1,5 +1,5 @@
 {
-  "buildCommand": "vite build",
+  "buildCommand": "vite build && node scripts/prerender.mjs",
   "outputDirectory": "dist",
   "redirects": [
     {
@@ -33,6 +33,13 @@
   "rewrites": [
     { "source": "/blog/:slug", "destination": "/api/blog/:slug" },
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/blog", "destination": "/blog/index.html" },
+    { "source": "/quem-somos", "destination": "/quem-somos/index.html" },
+    { "source": "/faqs", "destination": "/faqs/index.html" },
+    { "source": "/espaco-para-eventos-pequenos", "destination": "/espaco-para-eventos-pequenos/index.html" },
+    { "source": "/corporate", "destination": "/corporate/index.html" },
+    { "source": "/privacy", "destination": "/privacy/index.html" },
+    { "source": "/terms", "destination": "/terms/index.html" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "headers": [

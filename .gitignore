@@ -27,3 +27,4 @@ leads-corp.json
 setup.sh
 # Helper scripts may contain secrets (Supabase service_role keys, tokens)
 *.command
+.claude/

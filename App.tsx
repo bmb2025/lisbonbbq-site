@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Header } from './components/Header';
 import { HomePage } from './components/HomePage';
-import { Seo } from './components/Seo';
+import { SeoFor } from './components/Seo';
 import { Footer } from './components/Footer';
 import { ProposalView } from './components/ProposalView';
 import { LegalView } from './components/LegalView';
@@ -127,6 +127,13 @@ const App: React.FC = () => {
     fetchArticles()
       .then((cmsArticles) => setArticles(cmsArticles as any))
       .catch((e) => console.error('CMS fetchArticles failed:', e));
+  }, []);
+
+  // As tags de <head> pré-renderizadas (data-ssg, geradas por scripts/prerender.mjs)
+  // servem os crawlers; a partir daqui o componente Seo assume, por isso
+  // removem-se para não haver <title>/<meta> duplicados na navegação SPA.
+  useEffect(() => {
+    document.querySelectorAll('[data-ssg]').forEach((el) => el.remove());
   }, []);
 
   const customAssets = useMemo(() => {
@@ -419,7 +426,7 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/" element={
           <>
-          <Seo path="/" title="Lisbon Barbecue & Churrasco | Reserva o Teu Backyard para um Churrasco Inesquecível!" description="Espaços exclusivos em Lisboa para churrascos de grupo. Chegas e está tudo pronto: grelhador, carvão, carne, bebidas e mesas. Ideal para aniversários e convívios." />
+          <SeoFor path="/" />
           <HomePage
             lang={lang} setLang={setLang} setView={setView} booking={booking} setBooking={setBooking}
             cart={cart} setCart={setCart} updateCart={updateCart} toggleCartItem={toggleCartItem} customAssets={customAssets} weatherData={weatherData}
@@ -433,15 +440,15 @@ const App: React.FC = () => {
           />
           </>
         } />
-        <Route path="/blog" element={<><Seo path="/blog" title="Blog | LisbonBBQ — Dicas e Guias de Churrasco em Lisboa" description="Guias, dicas e ideias sobre churrasco em Lisboa: cortes de carne, locais, aniversários e eventos de empresa. Pelo LisbonBBQ." /><BlogListPage lang={lang} setLang={setLang} setView={setView} articles={articles} onArticleClick={handleArticleClick} /></>} />
+        <Route path="/blog" element={<><SeoFor path="/blog" /><BlogListPage lang={lang} setLang={setLang} setView={setView} articles={articles} onArticleClick={handleArticleClick} /></>} />
         <Route path="/blog/:slug" element={<BlogArticlePage lang={lang} setLang={setLang} setView={setView} onBack={() => navigate('/blog')} />} />
-        <Route path="/quem-somos" element={<><Seo path="/quem-somos" title="Quem Somos | LisbonBBQ" description="Conhece o LisbonBBQ: organizamos churrascos completos em espaços exclusivos de Lisboa, com tudo tratado para só teres de aparecer e desfrutar." /><Header setView={setView} lang={lang} setLang={setLang} /><QuemSomosView lang={lang} onBack={() => setView('booking')} /><Footer setView={setView} lang={lang} /></>} />
+        <Route path="/quem-somos" element={<><SeoFor path="/quem-somos" /><Header setView={setView} lang={lang} setLang={setLang} /><QuemSomosView lang={lang} onBack={() => setView('booking')} /><Footer setView={setView} lang={lang} /></>} />
         <Route path="/proposal" element={<><Header setView={setView} lang={lang} setLang={setLang} /><ProposalView onReturn={() => setView('booking')} assets={customAssets} booking={booking} cart={cart} lang={lang} /><Footer setView={setView} lang={lang} /></>} />
-        <Route path="/privacy" element={<><Seo path="/privacy" title="Política de Privacidade | LisbonBBQ" description="Política de privacidade do LisbonBBQ." /><Header setView={setView} lang={lang} setLang={setLang} /><LegalView type="privacy" lang={lang} onBack={() => setView('booking')} /><Footer setView={setView} lang={lang} /></>} />
-        <Route path="/terms" element={<><Seo path="/terms" title="Termos e Condições | LisbonBBQ" description="Termos e condições do serviço LisbonBBQ." /><Header setView={setView} lang={lang} setLang={setLang} /><LegalView type="terms" lang={lang} onBack={() => setView('booking')} /><Footer setView={setView} lang={lang} /></>} />
-        <Route path="/faqs" element={<><Seo path="/faqs" title="Perguntas Frequentes | LisbonBBQ" description="Respostas às perguntas frequentes sobre os churrascos LisbonBBQ: o que está incluído, locais, número de convidados, extras e como reservar." /><Header setView={setView} lang={lang} setLang={setLang} /><FAQView lang={lang} onBack={() => setView('booking')} /><Footer setView={setView} lang={lang} /></>} />
-        <Route path="/espaco-para-eventos-pequenos" element={<><Seo path="/espaco-para-eventos-pequenos" title="Espaço para Eventos Pequenos em Lisboa (20–100 pessoas) | LisbonBBQ" description="Espaços privados em Lisboa para eventos de 20 a 100 pessoas, com churrasco, bebidas e logística incluídos — desde 35€/pessoa. Pede orçamento em minutos." /><Header setView={setView} lang={lang} setLang={setLang} /><SmallEventsView lang={lang} onBook={() => setView('booking')} onCorporate={() => setView('corporate')} /><Footer setView={setView} lang={lang} /></>} />
-        <Route path="/corporate" element={<><Seo path="/corporate" title="Eventos Corporativos e Team Building em Lisboa | LisbonBBQ" description="Eventos corporativos em Lisboa sem complicações: churrascos para empresas, team building e festas de equipa. Espaço, comida e bebida — chave na mão, desde 35€/pessoa." /><Header setView={setView} lang={lang} setLang={setLang} /><CorporateView lang={lang} onBack={() => {
+        <Route path="/privacy" element={<><SeoFor path="/privacy" /><Header setView={setView} lang={lang} setLang={setLang} /><LegalView type="privacy" lang={lang} onBack={() => setView('booking')} /><Footer setView={setView} lang={lang} /></>} />
+        <Route path="/terms" element={<><SeoFor path="/terms" /><Header setView={setView} lang={lang} setLang={setLang} /><LegalView type="terms" lang={lang} onBack={() => setView('booking')} /><Footer setView={setView} lang={lang} /></>} />
+        <Route path="/faqs" element={<><SeoFor path="/faqs" /><Header setView={setView} lang={lang} setLang={setLang} /><FAQView lang={lang} onBack={() => setView('booking')} /><Footer setView={setView} lang={lang} /></>} />
+        <Route path="/espaco-para-eventos-pequenos" element={<><SeoFor path="/espaco-para-eventos-pequenos" /><Header setView={setView} lang={lang} setLang={setLang} /><SmallEventsView lang={lang} onBook={() => setView('booking')} onCorporate={() => setView('corporate')} /><Footer setView={setView} lang={lang} /></>} />
+        <Route path="/corporate" element={<><SeoFor path="/corporate" /><Header setView={setView} lang={lang} setLang={setLang} /><CorporateView lang={lang} onBack={() => {
           const el = document.getElementById('corporate-form');
           if (el) el.scrollIntoView({ behavior: 'smooth' });
           else scrollToBooking();
