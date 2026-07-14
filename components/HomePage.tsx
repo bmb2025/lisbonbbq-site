@@ -617,7 +617,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 <button onClick={() => setCurrentImageIndex(prev => prev < imgs.length - 1 ? prev + 1 : 0)} className="absolute right-4 z-10 bg-white border-4 border-bbq-black p-3 shadow-hard-sm hover:bg-bbq-yellow"><ChevronRight size={32} /></button>
                 <div className="w-full h-full p-8 flex items-center justify-center">
                   <div className="relative w-full h-full border-4 border-bbq-black bg-white shadow-hard overflow-hidden">
-                    <img src={imgs[currentImageIndex]} className="w-full h-full object-contain" alt={`View ${currentImageIndex + 1}`} onError={handleImgError} />
+                    <img src={imgs[currentImageIndex]} className="w-full h-full object-contain" alt={`${loc?.name} — foto ${currentImageIndex + 1}`} onError={handleImgError} />
                   </div>
                 </div>
               </div>

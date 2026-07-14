@@ -210,6 +210,18 @@ export const LOCATIONS: VenueLocation[] = [
     ],
     minGuests: 20,
     maxGuests: 60
+  },
+  {
+    id: 'alcantara_rooftop',
+    name: 'Alcântara',
+    description: 'Um churrasco num rooftop com uma vista incrível sobre Lisboa, onde cada momento pede para ser vivido.',
+    images: [
+      `${IMG}/Fotos/Locais/Alcantara/Alcantara1.webp`,
+      `${IMG}/Fotos/Locais/Alcantara/Alcantara2.webp`
+    ],
+    minGuests: 100,
+    maxGuests: 500,
+    availableDays: [0, 1, 2, 3, 4, 6] // every day except Friday
   }
 ];
 
