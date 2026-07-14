@@ -220,7 +220,7 @@ export const LOCATIONS: VenueLocation[] = [
       `${IMG}/Fotos/Locais/Alcantara/Alcantara2.webp`
     ],
     minGuests: 100,
-    maxGuests: 500,
+    maxGuests: 300,
     availableDays: [0, 1, 2, 3, 4, 6] // every day except Friday
   }
 ];
