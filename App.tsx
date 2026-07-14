@@ -20,9 +20,20 @@ import { getLisbonWeather } from './services/weatherService';
 import { cloudService } from './services/cloudService';
 import { track, identifyLead } from './services/analytics';
 import { fetchArticles, fetchArticleBySlug } from './services/gitCms';
-import { Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useParams, useLocation } from 'react-router-dom';
 
 const BOOKINGS_STORAGE_KEY = 'bbq_leads_db_v1';
+
+// O react-router mantém a posição de scroll entre navegações; como os links de
+// navegação vivem no footer, cada página nova abria já no fundo. Repõe o topo
+// a cada mudança de rota.
+const ScrollToTop: React.FC = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
 
 interface ViewProps {
   lang: 'pt' | 'en';
@@ -423,6 +434,7 @@ const App: React.FC = () => {
 
   return (
     <>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={
           <>
