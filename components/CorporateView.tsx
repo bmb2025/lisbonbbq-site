@@ -1,13 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
-import { 
-  Users, MapPin, CheckCircle2, Flame, Camera, 
-  MessageCircle, Send, Check, X, Info, 
-  Clock, ShieldCheck, Heart, Coffee, Utensils
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Flame, Check, MessageCircle, Images, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { LOCATIONS } from '../constants';
-import { cloudService } from '../services/cloudService';
 
 interface CorporateViewProps {
   lang: 'pt' | 'en';
@@ -16,17 +10,83 @@ interface CorporateViewProps {
   isSending: boolean;
 }
 
-export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onBack, onSubmit, isSending }) => {
+// Assinatura visual do contexto corporate — desligável.
+const SHOW_DOTS = true;
+
+const IMG = 'https://mlqdpjiolbyewcumvajn.supabase.co/storage/v1/object/public/lisbonbbq-media/Fotos';
+
+const scrollToId = (id: string) => {
+  const el = document.getElementById(id);
+  if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 72, behavior: 'smooth' });
+};
+
+const Dots: React.FC = () => (
+  SHOW_DOTS ? (
+    <div
+      className="absolute inset-0 pointer-events-none"
+      style={{ backgroundImage: 'radial-gradient(rgba(26,26,26,0.14) 1.5px, transparent 1.5px)', backgroundSize: '24px 24px' }}
+    />
+  ) : null
+);
+
+const Badge: React.FC<{ variant: 'red' | 'black' | 'yellow'; children: React.ReactNode }> = ({ variant, children }) => {
+  const colors = {
+    red: 'bg-bbq-red text-white',
+    black: 'bg-bbq-black text-bbq-cream',
+    yellow: 'bg-bbq-yellow text-bbq-black',
+  };
+  return (
+    <span className={`inline-block border-2 border-bbq-black shadow-hard-sm px-4 py-1.5 font-black uppercase text-xs tracking-widest ${colors[variant]}`}>
+      {children}
+    </span>
+  );
+};
+
+const btnBase = 'inline-flex items-center justify-center gap-3 border-4 border-bbq-black shadow-hard px-10 py-5 font-black uppercase text-lg tracking-tight transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none cursor-pointer';
+
+export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, isSending }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     company: '',
-    guests: '10-20',
+    guests: '',
     message: ''
   });
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState(false);
+  const [gallery, setGallery] = useState<{ name: string; images: string[]; index: number } | null>(null);
+  const heroVideoRef = useRef<HTMLVideoElement>(null);
+
+  // Navegação da galeria por teclado (Esc fecha, setas avançam/recuam).
+  useEffect(() => {
+    if (!gallery) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setGallery(null);
+      if (e.key === 'ArrowRight') setGallery(g => g && { ...g, index: (g.index + 1) % g.images.length });
+      if (e.key === 'ArrowLeft') setGallery(g => g && { ...g, index: (g.index - 1 + g.images.length) % g.images.length });
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [gallery]);
+
+  // Acessibilidade: quem pede menos movimento vê só o poster estático.
+  // Nos restantes casos, retoma o loop quando a tab volta a estar visível
+  // (o browser pausa vídeos em tabs em segundo plano).
+  useEffect(() => {
+    const vid = heroVideoRef.current;
+    if (!vid) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      vid.pause();
+      return;
+    }
+    const resume = () => {
+      if (document.visibilityState === 'visible') vid.play().catch(() => {});
+    };
+    document.addEventListener('visibilitychange', resume);
+    resume();
+    return () => document.removeEventListener('visibilitychange', resume);
+  }, []);
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -38,11 +98,12 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onBack, onSu
     const success = await onSubmit(formData);
     if (success) {
       setSubmitted(true);
-      setFormData({ name: '', email: '', phone: '', company: '', guests: '10-20', message: '' });
+      setFormData({ name: '', email: '', phone: '', company: '', guests: '', message: '' });
     } else {
       setError(true);
     }
   };
+
   // SEO & GEO Optimization: JSON-LD Structured Data
   useEffect(() => {
     const script = document.createElement('script');
@@ -61,7 +122,7 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onBack, onSu
         "@type": "City",
         "name": "Lisbon"
       },
-      "description": "Serviço de organização de team building em Lisboa, focado em churrascos privados para empresas com tudo incluído."
+      "description": "Churrascos privados chave-na-mão para empresas em Lisboa, para equipas de 20 a 200 pessoas, desde 35€/pessoa."
     };
     script.innerHTML = JSON.stringify(schema);
     document.head.appendChild(script);
@@ -70,379 +131,476 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onBack, onSu
     };
   }, []);
 
-  const t = {
-    heroTitle: lang === 'pt' ? 'Eventos corporativos em Lisboa, sem complicações' : 'Corporate events in Lisbon, hassle-free',
-    heroSub: lang === 'pt' 
-      ? 'Organizamos churrascos completos para equipas — espaço, grelhador, bebidas e logística incluídos.'
-      : 'We organize complete BBQs for teams — venue, grill, drinks, and logistics included.',
-    ctaPrimary: lang === 'pt' ? 'Pedir Proposta' : 'Request Proposal',
-    ctaSecondary: lang === 'pt' ? 'Ver opções de evento' : 'View Event Options',
-    definition: lang === 'pt'
-      ? 'A LisbonBBQ organiza eventos corporativos em Lisboa — team building, summer parties e festas de equipa — em espaços privados com churrasco, comida e bebida incluídos, desde 35€/pessoa.'
-      : 'LisbonBBQ organizes corporate events in Lisbon — team building, summer parties and team celebrations — in private venues with barbecue, food and drinks included, from €35/person.',
-    forWhom: {
-      title: lang === 'pt' ? 'Para quem é' : 'Who is it for',
-      items: [
-        lang === 'pt' ? 'Equipas de 10 a 80 pessoas' : 'Teams of 10 to 80 people',
-        lang === 'pt' ? 'Empresas que querem eventos informais' : 'Companies looking for informal events',
-        lang === 'pt' ? 'Convívios, celebrações, onboarding, offsites' : 'Gatherings, celebrations, onboarding, offsites'
-      ]
+  const pt = lang === 'pt';
+
+  const facts = pt
+    ? ['Desde 35€/pessoa', 'Equipas de 20 a 200', '4+ espaços em Lisboa', 'Logística 100% incluída']
+    : ['From €35/person', 'Teams of 20 to 200', '4+ venues in Lisbon', 'Logistics 100% included'];
+
+  const conceptCards = [
+    {
+      img: `${IMG}/Churrasco%20People.png`,
+      alt: pt ? 'Equipa à volta do grelhador' : 'Team around the grill',
+      title: pt ? 'Conversa a sério' : 'Real conversation',
+      text: pt
+        ? 'Comida de qualidade, conversa com significado e presença humana genuína, em vez de música alta e espaços lotados'
+        : 'Quality food, meaningful conversation and genuine human presence, instead of loud music and crowded venues'
     },
-    included: {
-      title: lang === 'pt' ? 'O que está incluído' : 'What is included',
-      items: [
-        lang === 'pt' ? 'Espaço reservado' : 'Reserved space',
-        lang === 'pt' ? 'Grelhador + carvão' : 'Grill + charcoal',
-        lang === 'pt' ? 'Utensílios e descartáveis' : 'Utensils and disposables',
-        lang === 'pt' ? 'Bebidas' : 'Drinks',
-        lang === 'pt' ? 'Setup e limpeza' : 'Setup and cleanup'
-      ]
+    {
+      img: `${IMG}/grill.webp`,
+      alt: pt ? 'Grelhador em ação' : 'Grill in action',
+      title: pt ? 'O fogo faz o trabalho' : 'The fire does the work',
+      text: pt
+        ? 'Grelhar juntos é o team building mais antigo do mundo. Não é preciso guião, dinâmicas nem quebra-gelos forçados.'
+        : "Grilling together is the world's oldest team building. No script, no dynamics, no forced icebreakers."
     },
-    howItWorks: {
-      title: lang === 'pt' ? 'Como funciona' : 'How it works',
-      steps: [
-        { t: lang === 'pt' ? 'Escolher data e local' : 'Choose date and venue' },
-        { t: lang === 'pt' ? 'Confirmar reserva' : 'Confirm reservation' },
-        { t: lang === 'pt' ? 'Aparecer — tudo preparado' : 'Show up — everything ready' }
-      ]
+    {
+      img: `${IMG}/Carrinho%20de%20mao%20gelo.webp`,
+      alt: pt ? 'Bebidas frescas no gelo' : 'Cold drinks on ice',
+      title: pt ? 'Zero trabalho para ti' : 'Zero work for you',
+      text: pt
+        ? 'Espaço, carvão, comida, bebida fresca e limpeza — tudo tratado. Quem organiza também merece aproveitar o evento.'
+        : 'Venue, charcoal, food, cold drinks and cleanup — all handled. Whoever organizes deserves to enjoy the event too.'
+    }
+  ];
+
+  const steps = [
+    {
+      title: pt ? 'Escolhe data e espaço' : 'Pick a date and venue',
+      text: pt
+        ? 'Diz-nos quantos são e quando. Ajudamos a escolher o espaço certo para a tua equipa.'
+        : 'Tell us how many you are and when. We help you pick the right venue for your team.'
     },
-    comparison: {
-      title: lang === 'pt' ? 'Diferenciação' : 'Differentiation',
-      columns: [
-        { name: lang === 'pt' ? 'Restaurante' : 'Restaurant', items: [lang === 'pt' ? 'Baixa interação' : 'Low interaction', lang === 'pt' ? 'Experiência standard' : 'Standard experience'] },
-        { name: lang === 'pt' ? 'Evento tradicional' : 'Traditional Event', items: [lang === 'pt' ? 'Complexo de organizar' : 'Complex to organize', lang === 'pt' ? 'Custo elevado' : 'High cost'] },
-        { name: 'Lisbon BBQ', items: [lang === 'pt' ? 'Social e informal' : 'Social and informal', lang === 'pt' ? 'Logística resolvida' : 'Logistics solved', lang === 'pt' ? 'Formato simples' : 'Simple format'] }
-      ]
+    {
+      title: pt ? 'Nós montamos tudo' : 'We set everything up',
+      text: pt
+        ? 'Grelhador aceso, comida pronta a grelhar, bebidas no gelo, mesas postas. Antes de vocês chegarem.'
+        : 'Grill lit, food ready to grill, drinks on ice, tables set. Before you arrive.'
     },
-    pricingTitle: lang === 'pt' ? 'Investimento' : 'Investment',
-    pricingAnchor: lang === 'pt' ? 'A partir de 35€/pessoa' : 'From 35€/person',
-    faqTitle: lang === 'pt' ? 'FAQs (Perguntas Frequentes)' : 'FAQs (Frequently Asked Questions)',
-    faqs: [
-      { q: lang === 'pt' ? 'O que é o Lisbon BBQ?' : 'What is Lisbon BBQ?', a: lang === 'pt' ? 'Serviço de team building com churrasco incluído.' : 'Team building service with BBQ included.' },
-      { q: lang === 'pt' ? 'O que está incluído num evento?' : 'What is included in an event?', a: lang === 'pt' ? 'Espaço, grelhador, bebidas, logística completa.' : 'Venue, grill, drinks, full logistics.' },
-      { q: lang === 'pt' ? 'Para que tipo de empresas é indicado?' : 'What type of companies is it for?', a: lang === 'pt' ? 'Equipas de 10–80 pessoas.' : 'Teams of 10–80 people.' },
-      { q: lang === 'pt' ? 'Onde são realizados os eventos?' : 'Where are the events held?', a: lang === 'pt' ? 'Em locais pré-definidos na zona de Lisboa.' : 'In pre-defined locations in the Lisbon area.' },
-      { q: lang === 'pt' ? 'É necessário organizar alguma coisa internamente?' : 'Do I need to organize anything internally?', a: lang === 'pt' ? 'Não. O serviço é completo.' : 'No. It is a full service.' }
-    ]
-  };
+    {
+      title: pt ? 'A equipa aparece' : 'The team shows up',
+      text: pt
+        ? 'E fica. Sem louça para lavar, sem emails de logística no dia seguinte.'
+        : 'And stays. No dishes to wash, no logistics emails the next day.'
+    }
+  ];
+
+  const venueImages = (id: string) => LOCATIONS.find(l => l.id === id)?.images ?? [];
+
+  const venues = [
+    {
+      images: venueImages('alcantara_rooftop'),
+      cover: 0,
+      tag: pt ? 'Lisboa · Alcântara' : 'Lisbon · Alcântara',
+      name: 'Alcântara',
+      text: pt
+        ? 'Rooftop com Lisboa e o rio aos pés. O cenário certo para summer parties em grande.'
+        : 'A rooftop with Lisbon and the river at your feet. The right stage for summer parties at scale.',
+      capacity: pt ? '100–300 pessoas' : '100–300 people'
+    },
+    {
+      images: venueImages('musa_marvila'),
+      cover: 1,
+      tag: pt ? 'Lisboa · Marvila' : 'Lisbon · Marvila',
+      name: 'Marvila',
+      text: pt
+        ? 'Ambiente industrial e criativo na zona mais cool da cidade, com cerveja artesanal ao lado.'
+        : "Industrial, creative vibe in the city's coolest quarter, with craft beer next door.",
+      capacity: pt ? '30–80 pessoas' : '30–80 people'
+    },
+    {
+      images: venueImages('tapadinha_lisboa'),
+      cover: 0,
+      tag: pt ? 'Lisboa · Tapadinha' : 'Lisbon · Tapadinha',
+      name: 'Tapadinha',
+      text: pt
+        ? 'Quintal amplo à sombra das árvores, feito para equipas grandes. O clássico dos nossos churrascos de empresa.'
+        : 'A big backyard in the shade of the trees, built for large teams. The classic of our company barbecues.',
+      capacity: pt ? '80+ pessoas' : '80+ people'
+    },
+    {
+      images: venueImages('expo_rooftop'),
+      cover: 0,
+      tag: pt ? 'Parque das Nações' : 'Parque das Nações',
+      name: 'Expo',
+      text: pt
+        ? 'Prático para equipas na zona oriental. Chega-se a pé do escritório, sai-se com cheiro a fumo e boa disposição.'
+        : 'Convenient for teams on the east side. Walk over from the office, leave smelling of smoke and in high spirits.',
+      capacity: pt ? '30–500 pessoas' : '30–500 people'
+    }
+  ];
+
+  // Carnide: a última foto do LOCATIONS é a que abre a box/galeria.
+  const carnideImages = venueImages('carnide_local');
+  const miniVenues = [
+    { images: [...carnideImages.slice(-1), ...carnideImages.slice(0, -1)], cover: 0, name: 'Carnide' },
+    { images: venueImages('benfica'), cover: 2, name: 'Benfica' },
+    { images: venueImages('alvito'), cover: 0, name: 'Alvito' },
+    { images: venueImages('restelo_urban'), cover: 1, name: 'Restelo' }
+  ];
+
+  const included = pt
+    ? [
+        { strong: 'Espaço reservado', text: ' — só para a vossa equipa, sem estranhos na festa.' },
+        { strong: 'Grelhador + carvão', text: ' — o fogo está pronto quando chegam.' },
+        { strong: 'Comida e bebida', text: ' — carnes, acompanhamentos e bebidas frescas no gelo.' },
+        { strong: 'Utensílios e descartáveis', text: ' — ninguém traz nada de casa.' },
+        { strong: 'Setup e limpeza', text: ' — chegam a evento montado, saem sem olhar para trás.' }
+      ]
+    : [
+        { strong: 'Reserved venue', text: ' — just for your team, no strangers at the party.' },
+        { strong: 'Grill + charcoal', text: ' — the fire is ready when you arrive.' },
+        { strong: 'Food and drinks', text: ' — meats, sides and cold drinks on ice.' },
+        { strong: 'Utensils and disposables', text: ' — nobody brings anything from home.' },
+        { strong: 'Setup and cleanup', text: ' — arrive to a ready event, leave without looking back.' }
+      ];
+
+  const occasions = pt
+    ? ['Team building', 'Summer party', 'Onboarding', 'Fecho de trimestre', 'Offsite', 'Despedida de colega', '"Precisamos de sair do escritório"']
+    : ['Team building', 'Summer party', 'Onboarding', 'End of quarter', 'Offsite', 'Colleague farewell', '"We need to get out of the office"'];
+
+  const faqs = pt
+    ? [
+        { q: 'Temos de grelhar nós?', a: 'Só se quiserem. Há sempre alguém da nossa equipa a dominar o fogo — mas quem quiser pegar na pinça tem lugar cativo ao pé do grelhador. É metade da graça.' },
+        { q: 'E se chover?', a: 'Acompanhamos a meteorologia contigo na semana do evento e, se for preciso, remarcamos ou mudamos para um espaço com cobertura. Ninguém fica à chuva.' },
+        { q: 'Há opções vegetarianas e restrições alimentares?', a: 'Sim. Diz-nos as restrições no pedido de proposta e o menu adapta-se — vegetariano, sem glúten, sem porco, o que a equipa precisar.' },
+        { q: 'Quanto tempo dura o evento?', a: 'Tipicamente 3 a 5 horas, mas o formato é vosso. Tarde, fim de dia, sunset — combinamos o horário que fizer sentido para a equipa.' },
+        { q: 'O que temos de organizar internamente?', a: 'Nada. Escolhem a data, confirmam o número de pessoas e aparecem. Toda a logística — espaço, comida, bebida, material e limpeza — é connosco.' }
+      ]
+    : [
+        { q: 'Do we have to do the grilling?', a: "Only if you want to. Someone from our team is always in charge of the fire — but anyone who wants to grab the tongs has a reserved spot by the grill. It's half the fun." },
+        { q: 'What if it rains?', a: 'We track the weather with you during the week of the event and, if needed, we reschedule or move to a covered venue. Nobody gets rained on.' },
+        { q: 'Are there vegetarian options and dietary restrictions?', a: 'Yes. Tell us the restrictions in your proposal request and the menu adapts — vegetarian, gluten-free, no pork, whatever the team needs.' },
+        { q: 'How long does the event last?', a: 'Typically 3 to 5 hours, but the format is yours. Afternoon, end of day, sunset — we set the schedule that makes sense for the team.' },
+        { q: 'What do we need to organize internally?', a: 'Nothing. Pick the date, confirm the headcount and show up. All the logistics — venue, food, drinks, equipment and cleanup — are on us.' }
+      ];
+
+  const inputClass = 'w-full box-border min-w-0 border-4 border-bbq-black rounded-none p-3.5 font-sans font-bold text-base bg-white focus:outline-4 focus:outline-bbq-yellow';
+  const labelClass = 'font-black text-xs uppercase tracking-widest grid gap-2';
 
   return (
     <div className="min-h-screen bg-bbq-cream font-sans text-bbq-black selection:bg-bbq-red selection:text-white">
-      {/* 8. SEO (ON-PAGE) - Hidden keywords for indexers if needed, but headlines below cover it */}
-      
-      {/* 12. Floating WhatsApp */}
-      <a 
-        href="https://wa.me/351961058571" 
-        target="_blank" 
+      {/* Floating WhatsApp */}
+      <a
+        href="https://wa.me/351961058571"
+        target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 z-50 bg-[#25D366] text-white p-4 rounded-full shadow-hard transition-transform hover:scale-110 flex items-center justify-center"
       >
         <MessageCircle size={24} />
       </a>
 
-      {/* 6.1 HERO */}
-      <section className="relative px-6 py-20 md:py-32 border-b-4 border-bbq-black overflow-hidden bg-white">
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter leading-none mb-6 italic">
-              {t.heroTitle}
-            </h1>
-            <p className="text-xl md:text-2xl font-bold uppercase tracking-tight text-gray-600 mb-10 max-w-2xl mx-auto">
-              {t.heroSub}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button 
-                onClick={onBack}
-                className="bg-bbq-red text-white px-10 py-5 font-black uppercase text-lg border-4 border-bbq-black shadow-hard hover:bg-bbq-yellow hover:text-bbq-black transition-all transform hover:-translate-y-1"
-              >
-                {t.ctaPrimary}
-              </button>
-              <button 
-                onClick={() => document.getElementById('venues')?.scrollIntoView({ behavior: 'smooth' })}
-                className="bg-white text-bbq-black px-10 py-5 font-black uppercase text-lg border-4 border-bbq-black shadow-hard hover:bg-gray-50 transition-all transform hover:-translate-y-1"
-              >
-                {t.ctaSecondary}
-              </button>
-            </div>
-          </motion.div>
+      {/* HERO */}
+      <section className="relative min-h-[86vh] flex items-center overflow-hidden">
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/videos/hero-corporate-poster.webp')" }} />
+        <video
+          ref={heroVideoRef}
+          autoPlay
+          muted
+          loop
+          playsInline
+          poster="/videos/hero-corporate-poster.webp"
+          className="absolute inset-0 w-full h-full object-cover"
+        >
+          <source src="/videos/hero-corporate.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.3) 55%, rgba(0,0,0,0.5))' }} />
+        <div className="relative w-full max-w-6xl mx-auto text-center px-6 pt-28 pb-24">
+          <h1 className="mx-auto max-w-[14ch] text-[clamp(48px,8.5vw,120px)] font-black uppercase tracking-tighter leading-[0.95] text-white [text-shadow:10px_10px_0_#1A1A1A]">
+            {pt ? 'A tua equipa ' : 'Your team '}
+            <span className="text-bbq-yellow">{pt ? 'à volta do fogo' : 'around the fire'}</span>
+          </h1>
+          <p className="text-white font-bold uppercase tracking-tight text-[clamp(15px,1.6vw,19px)] max-w-[60ch] mx-auto mt-8 mb-10 leading-relaxed [text-shadow:2px_2px_0_rgba(26,26,26,0.85)]">
+            {pt
+              ? 'Churrascos privados para empresas em Lisboa. Conceito arrive, party and leave. Pensado para conexões reais.'
+              : 'Private barbecues for companies in Lisbon. Arrive, party and leave. Built for real connections.'}
+          </p>
+          <div className="flex gap-5 justify-center flex-wrap">
+            <button onClick={() => scrollToId('proposta')} className={`${btnBase} bg-bbq-red text-white hover:bg-bbq-yellow hover:text-bbq-black`}>
+              {pt ? 'Pedir proposta' : 'Request a proposal'}
+            </button>
+            <button onClick={() => scrollToId('espacos')} className={`${btnBase} bg-bbq-yellow text-bbq-black hover:bg-white`}>
+              <Flame size={22} /> {pt ? 'Ver os espaços' : 'See the venues'}
+            </button>
+          </div>
         </div>
-        {/* Subtle grid pattern background */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:20px_20px]" />
       </section>
 
-      {/* 6.2 DEFINITION (CRITICAL FOR GEO) */}
-      <section className="bg-bbq-yellow py-12 px-6 border-b-4 border-bbq-black">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-lg md:text-xl font-bold uppercase tracking-wide leading-relaxed">
-            {t.definition}
+      {/* FACTS BAND */}
+      <div className="bg-bbq-yellow border-y-4 border-bbq-black">
+        <div className="max-w-6xl mx-auto flex justify-center gap-x-14 gap-y-1 flex-wrap px-6 py-[18px]">
+          {facts.map((f, i) => (
+            <div key={i} className="font-black uppercase tracking-wide text-[15px]">{f}</div>
+          ))}
+        </div>
+      </div>
+
+      {/* CONCEPT */}
+      <section className="relative py-24">
+        <Dots />
+        <div className="relative max-w-6xl mx-auto px-6">
+          <div className="mb-6"><Badge variant="red">{pt ? 'Porquê um churrasco?' : 'Why a barbecue?'}</Badge></div>
+          <p className="m-0 font-black uppercase tracking-tighter text-[clamp(26px,3.4vw,42px)] leading-[1.1]">
+            {pt ? 'A profundidade da conversa e o calor da brasa ' : 'The depth of the conversation and the heat of the coals '}
+            <span className="text-bbq-red">{pt ? 'serão as únicas métricas que interessam.' : 'will be the only metrics that matter.'}</span>
+          </p>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-8 mt-14">
+            {conceptCards.map((card, i) => (
+              <div key={i} className="group bg-white border-4 border-bbq-black shadow-hard transition-transform duration-150 hover:-translate-y-1">
+                <div className="h-[220px] overflow-hidden border-b-4 border-bbq-black">
+                  <img src={card.img} alt={card.alt} referrerPolicy="no-referrer" className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" />
+                </div>
+                <div className="p-6">
+                  <h3 className="m-0 mb-3 text-xl font-black uppercase tracking-tighter">{card.title}</h3>
+                  <p className="m-0 text-[13px] font-bold uppercase tracking-tight leading-[1.7] text-gray-500">{card.text}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* MANIFESTO STRIP */}
+      <div className="bg-bbq-black py-13 border-t-4 border-bbq-black">
+        <div className="max-w-6xl mx-auto px-6 py-2">
+          <p className="m-0 text-bbq-cream font-black uppercase tracking-tight text-[clamp(21px,2.8vw,34px)] text-center leading-tight">
+            {pt ? 'Menos ecrãs, mais brasas. ' : 'Fewer screens, more embers. '}
+            <span className="text-bbq-yellow">{pt ? 'É disto que uma equipa precisa.' : "It's what a team needs."}</span>
           </p>
         </div>
-      </section>
+      </div>
 
-      {/* 6.3 FOR WHOM & 6.4 WHAT IS INCLUDED */}
-      <section className="grid grid-cols-1 md:grid-cols-2 border-b-4 border-bbq-black">
-        <div className="p-8 md:p-16 border-b-4 md:border-b-0 md:border-r-4 border-bbq-black bg-white">
-          <h2 className="text-3xl font-black uppercase italic mb-8">{t.forWhom.title}</h2>
-          <ul className="space-y-4">
-            {t.forWhom.items.map((item, i) => (
-              <li key={i} className="flex gap-4 items-start">
-                <CheckCircle2 className="text-bbq-red mt-1 shrink-0" size={20} />
-                <span className="font-bold uppercase text-sm tracking-tight">{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="p-8 md:p-16 bg-bbq-cream">
-          <h2 className="text-3xl font-black uppercase italic mb-8">{t.included.title}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {t.included.items.map((item, i) => (
-              <div key={i} className="flex gap-3 items-center">
-                <Check className="text-bbq-red font-black" size={24} />
-                <span className="font-black uppercase text-xs tracking-widest">{item}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 6.5 HOW IT WORKS */}
-      <section className="py-20 px-6 bg-white border-b-4 border-bbq-black">
-        <div className="max-w-5xl mx-auto text-center">
-          <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-16 italic">{t.howItWorks.title}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
-            <div className="hidden md:block absolute top-[60px] left-[20%] right-[20%] h-1 border-t-4 border-dashed border-bbq-black opacity-20" />
-            {t.howItWorks.steps.map((step, i) => (
-              <div key={i} className="relative z-10 flex flex-col items-center">
-                <div className="w-16 h-16 rounded-full bg-bbq-red text-white flex items-center justify-center font-black text-2xl border-4 border-bbq-black shadow-hard-sm mb-6">
-                  {i + 1}
-                </div>
-                <p className="font-black uppercase tracking-widest text-sm leading-tight max-w-[150px]">
-                  {step.t}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 6.6 DIFFERENTIATION (COMPARISON) */}
-      <section className="py-20 px-6 bg-bbq-cream border-b-4 border-bbq-black">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-16 italic text-center">{t.comparison.title}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {t.comparison.columns.map((col, i) => (
-              <div 
-                key={i} 
-                className={`p-8 border-4 border-bbq-black shadow-hard ${i === 2 ? 'bg-bbq-yellow' : 'bg-white'}`}
-              >
-                <div className="flex items-center gap-2 mb-6">
-                  {i === 2 && <Flame size={20} className="fill-bbq-red" />}
-                  <h3 className="font-black uppercase text-xl italic">{col.name}</h3>
-                </div>
-                <ul className="space-y-4">
-                  {col.items.map((item, j) => (
-                    <li key={j} className="flex gap-3 items-center">
-                      {i === 2 ? <Check size={16} /> : <X size={16} className="text-gray-300" />}
-                      <span className={`font-bold uppercase text-[10px] tracking-widest ${i === 2 ? 'text-bbq-black' : 'text-gray-500'}`}>
-                        {item}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 6.7 LOCALS AVAILABLE */}
-      <section id="venues" className="py-20 px-6 bg-white border-b-4 border-bbq-black">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex justify-between items-end mb-16">
-            <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter italic">Locais Disponíveis</h2>
-            <p className="hidden md:block font-bold uppercase text-[10px] tracking-[0.2em] opacity-40">Lisbon & Area</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {LOCATIONS.slice(0, 4).map((loc, idx) => (
-              <div key={loc.id} className="group flex flex-col h-full border-4 border-bbq-black bg-white shadow-hard">
-                <div className="aspect-[4/3] overflow-hidden border-b-4 border-bbq-black">
-                  <img 
-                    src={loc.images[0]} 
-                    alt={loc.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    referrerPolicy="no-referrer"
-                  />
-                </div>
-                <div className="p-6 flex flex-col flex-grow">
-                  <h3 className="text-xl font-black uppercase tracking-tighter mb-4 italic leading-none">{loc.name}</h3>
-                  <div className="flex flex-col gap-2 mt-auto">
-                    <div className="flex items-center gap-2 text-[10px] font-black uppercase opacity-60">
-                      <Users size={12} />
-                      <span>Capacidade: 10 a 80 pessoas</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-[10px] font-black uppercase opacity-60">
-                      <MapPin size={12} />
-                      <span>Zona: {loc.name === 'Expo' ? 'Parque das Nações' : (loc.name === 'Tapadinha (Lisboa)' ? 'Alcântara' : 'Lisboa')}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 6.8 PRICING (ANCHORAGE) */}
-      <section className="bg-bbq-black text-white py-20 border-b-4 border-bbq-black">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-black uppercase tracking-widest subtitle mb-8 text-bbq-yellow">{t.pricingTitle}</h2>
-          <div className="inline-block border-4 border-bbq-yellow p-8 md:p-12 transform -rotate-1 shadow-hard-sm bg-[#111]">
-            <p className="text-6xl md:text-8xl font-black uppercase tracking-tighter italic leading-none">
-              {t.pricingAnchor}
-            </p>
-          </div>
-          <p className="mt-8 text-xs font-bold uppercase tracking-widest text-gray-500">
-            {lang === 'pt' ? '*Sujeito a orçamento final decorrente do número de pessoas e addons' : '*Subject to final quote based on head count and add-ons'}
-          </p>
-        </div>
-      </section>
-
-      {/* 6.9 FAQ (CRITICAL FOR GEO) */}
-      <section className="py-20 px-6 bg-white border-b-4 border-bbq-black">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-4xl font-black uppercase tracking-tighter mb-12 italic text-center underline decoration-bbq-red decoration-8 underline-offset-8">
-            {t.faqTitle}
+      {/* HOW IT WORKS */}
+      <section id="como" className="relative py-24">
+        <Dots />
+        <div className="relative max-w-6xl mx-auto px-6">
+          <div className="mb-6"><Badge variant="black">{pt ? 'Como funciona' : 'How it works'}</Badge></div>
+          <h2 className="m-0 text-[clamp(30px,4vw,48px)] font-black uppercase tracking-tighter leading-none">
+            {pt ? 'Simples de propósito.' : 'Simple on purpose.'}
           </h2>
-          <div className="space-y-6">
-            {t.faqs.map((faq, i) => (
-              <div key={i} className="border-4 border-bbq-black p-6 bg-white shadow-hard-sm">
-                <h4 className="font-black uppercase text-sm mb-2 flex items-center gap-2">
-                  <span className="text-bbq-red">Q:</span> {faq.q}
-                </h4>
-                <p className="font-bold text-gray-600 uppercase text-xs pl-6">
-                  <span className="text-bbq-black">A:</span> {faq.a}
-                </p>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-8 mt-12">
+            {steps.map((step, i) => (
+              <div key={i} className="bg-white border-4 border-bbq-black shadow-hard p-8">
+                <div className="font-black text-8xl leading-[0.8] text-bbq-red/10">{i + 1}</div>
+                <h3 className="mt-4 mb-2.5 text-[19px] font-black uppercase tracking-tighter">{step.title}</h3>
+                <p className="m-0 text-[13px] font-bold uppercase tracking-tight leading-[1.7] text-gray-500">{step.text}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* 6.10 CONTACT FORM (DEDICATED) */}
-      <section id="corporate-form" className="py-20 px-6 bg-bbq-cream border-b-4 border-bbq-black">
-        <div className="max-w-2xl mx-auto">
-          <div className="border-4 border-bbq-black bg-white p-8 md:p-12 shadow-hard">
-            <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter italic mb-8 text-center">{lang === 'pt' ? 'Solicitar Orçamento' : 'Request Quote'}</h2>
-            
-            {submitted ? (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="text-center py-10"
-              >
-                <div className="w-20 h-20 bg-bbq-red text-white flex items-center justify-center rounded-full mx-auto mb-6 border-4 border-bbq-black shadow-hard-sm">
-                  <Check size={40} />
+      {/* VENUES */}
+      <section id="espacos" className="bg-bbq-red py-24 border-y-4 border-bbq-black text-white">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="mb-6"><Badge variant="yellow">{pt ? 'Os espaços' : 'The venues'}</Badge></div>
+          <h2 className="m-0 text-[clamp(30px,4vw,48px)] font-black uppercase tracking-tighter leading-none text-white [text-shadow:4px_4px_0_#1A1A1A]">
+            {pt ? 'O backyard que a tua empresa não tem.' : "The backyard your company doesn't have."}
+          </h2>
+          <p className="mt-4 mb-0 font-bold uppercase tracking-wide text-[15px] max-w-[60ch]">
+            {pt
+              ? 'Espaços privados ao ar livre, todos em Lisboa, todos com grelhador pronto a trabalhar.'
+              : 'Private outdoor venues, all in Lisbon, all with a grill ready to work.'}
+          </p>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(380px,100%),1fr))] gap-10 mt-12">
+            {venues.map((venue, i) => (
+              <div key={i} className="group border-4 border-bbq-black bg-bbq-cream text-bbq-black shadow-hard">
+                <div className="relative h-[330px] overflow-hidden cursor-zoom-in" onClick={() => setGallery({ name: venue.name, images: venue.images, index: venue.cover })}>
+                  <img src={venue.images[venue.cover]} alt={`${pt ? 'Espaço' : 'Venue'} ${venue.name}`} referrerPolicy="no-referrer" className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" />
+                  <span className="absolute top-4 left-4 bg-bbq-yellow border-2 border-bbq-black shadow-hard-sm px-3 py-1 font-black uppercase text-xs tracking-wide">{venue.tag}</span>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setGallery({ name: venue.name, images: venue.images, index: venue.cover }); }}
+                    aria-label={pt ? `Ver fotos de ${venue.name}` : `See photos of ${venue.name}`}
+                    className="absolute bottom-4 right-4 bg-bbq-yellow border-2 border-bbq-black shadow-hard-sm px-3 py-2 flex items-center gap-2 font-black uppercase text-xs tracking-wide cursor-pointer hover:bg-white transition-colors"
+                  >
+                    <Images size={16} strokeWidth={2.5} /> {pt ? 'Ver fotos' : 'See photos'}
+                  </button>
                 </div>
-                <h3 className="text-2xl font-black uppercase mb-2">{lang === 'pt' ? 'Proposta Solicitada!' : 'Proposal Requested!'}</h3>
-                <p className="font-bold uppercase text-xs text-gray-500">{lang === 'pt' ? 'Entraremos em contacto em breve.' : 'We will be in touch shortly.'}</p>
-                <button 
-                  onClick={() => setSubmitted(false)}
-                  className="mt-8 text-bbq-red font-black uppercase text-xs tracking-widest underline underline-offset-4"
-                >
-                  {lang === 'pt' ? 'Enviar outra mensagem' : 'Send another message'}
-                </button>
-              </motion.div>
-            ) : (
-              <form onSubmit={internalSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-[10px] font-black uppercase mb-2 ml-1">{lang === 'pt' ? 'Nome Responsável' : 'Contact Person'}</label>
-                    <input 
-                      required
-                      name="name"
-                      value={formData.name}
-                      onChange={handleFormChange}
-                      className="w-full bg-bbq-cream border-4 border-bbq-black p-4 font-bold uppercase text-sm focus:outline-none focus:ring-4 ring-bbq-red/20"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black uppercase mb-2 ml-1">{lang === 'pt' ? 'Email Corporativo' : 'Company Email'}</label>
-                    <input 
-                      required
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleFormChange}
-                      className="w-full bg-bbq-cream border-4 border-bbq-black p-4 font-bold uppercase text-sm focus:outline-none focus:ring-4 ring-bbq-red/20"
-                    />
+                <div className="p-6 border-t-4 border-bbq-black">
+                  <h3 className="m-0 mb-2 text-[26px] font-black uppercase tracking-tighter">{venue.name}</h3>
+                  <p className="m-0 mb-4 text-[13px] font-bold uppercase tracking-tight leading-[1.7] text-gray-500">{venue.text}</p>
+                  <div className="flex gap-7 text-xs font-bold uppercase tracking-widest text-gray-500">
+                    <span>{venue.capacity}</span>
+                    <span>{pt ? 'Ar livre' : 'Outdoor'}</span>
                   </div>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-[10px] font-black uppercase mb-2 ml-1">{lang === 'pt' ? 'Empresa' : 'Company'}</label>
-                    <input 
-                      required
-                      name="company"
-                      value={formData.company}
-                      onChange={handleFormChange}
-                      className="w-full bg-bbq-cream border-4 border-bbq-black p-4 font-bold uppercase text-sm focus:outline-none focus:ring-4 ring-bbq-red/20"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black uppercase mb-2 ml-1">{lang === 'pt' ? 'Número de Pessoas' : 'Estimated Guests'}</label>
-                    <select 
-                      name="guests"
-                      value={formData.guests}
-                      onChange={handleFormChange}
-                      className="w-full bg-bbq-cream border-4 border-bbq-black p-4 font-bold uppercase text-sm focus:outline-none"
+              </div>
+            ))}
+          </div>
+          <div className="mt-14">
+            <h3 className="m-0 mb-6 text-xl font-black uppercase tracking-tight text-white">
+              {pt ? 'E ainda: mais quintais na rede' : 'And also: more backyards in the network'}
+            </h3>
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-6">
+              {miniVenues.map((venue, i) => (
+                <div key={i} className="group border-4 border-bbq-black bg-bbq-cream text-bbq-black shadow-hard">
+                  <div className="relative h-[150px] overflow-hidden border-b-4 border-bbq-black cursor-zoom-in" onClick={() => setGallery({ name: venue.name, images: venue.images, index: venue.cover })}>
+                    <img src={venue.images[venue.cover]} alt={`${pt ? 'Espaço' : 'Venue'} ${venue.name}`} referrerPolicy="no-referrer" className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" />
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setGallery({ name: venue.name, images: venue.images, index: venue.cover }); }}
+                      aria-label={pt ? `Ver fotos de ${venue.name}` : `See photos of ${venue.name}`}
+                      className="absolute bottom-2 right-2 bg-bbq-yellow border-2 border-bbq-black shadow-hard-sm p-1.5 flex items-center justify-center cursor-pointer hover:bg-white transition-colors"
                     >
-                      <option value="10-20">10-20</option>
-                      <option value="20-40">20-40</option>
-                      <option value="40-60">40-60</option>
-                      <option value="60-80">60-80</option>
-                      <option value="80+">80+</option>
-                    </select>
+                      <Images size={16} strokeWidth={2.5} />
+                    </button>
                   </div>
+                  <div className="px-4 py-3.5 font-black uppercase text-sm tracking-wide">{venue.name}</div>
                 </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
 
-                <div>
-                  <label className="block text-[10px] font-black uppercase mb-2 ml-1">{lang === 'pt' ? 'Telemóvel' : 'Phone'}</label>
-                  <input 
-                    required
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleFormChange}
-                    className="w-full bg-bbq-cream border-4 border-bbq-black p-4 font-bold uppercase text-sm focus:outline-none focus:ring-4 ring-bbq-red/20"
-                  />
+      {/* INCLUDED + OCCASIONS */}
+      <section className="relative pt-24">
+        <Dots />
+        <div className="relative max-w-6xl mx-auto px-6 pb-24">
+          <div className="mb-6"><Badge variant="red">{pt ? 'O que está incluído' : "What's included"}</Badge></div>
+          <h2 className="m-0 text-[clamp(30px,4vw,48px)] font-black uppercase tracking-tighter leading-none">
+            {pt ? 'Chave na mão. Literalmente.' : 'Turnkey. Literally.'}
+          </h2>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(380px,100%),1fr))] gap-12 items-center mt-10">
+            <div>
+              <div className="grid gap-4">
+                {included.map((item, i) => (
+                  <div key={i} className="bg-white border-4 border-bbq-black shadow-hard px-5 py-4 flex gap-3.5 items-start text-[15px] leading-normal">
+                    <span className="shrink-0 w-7 h-7 bg-bbq-yellow border-2 border-bbq-black flex items-center justify-center">
+                      <Check size={16} strokeWidth={4} />
+                    </span>
+                    <span><strong className="uppercase font-black">{item.strong}</strong>{item.text}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-5 mb-0 text-[13px] font-bold uppercase tracking-tight text-gray-500">
+                {pt
+                  ? 'Addons disponíveis: fotógrafo, música, jogos de quintal e mais — é só pedir na proposta.'
+                  : 'Add-ons available: photographer, music, backyard games and more — just ask in the proposal.'}
+              </p>
+            </div>
+            <div className="group border-4 border-bbq-black shadow-hard overflow-hidden">
+              <img src="/images/mesa-churrasco.webp" alt={pt ? 'Mesa de churrasco com carne grelhada, batatas fritas e salada' : 'Barbecue table with grilled meat, fries and salad'} className="block w-full h-[470px] object-cover transition-transform duration-700 ease-out group-hover:scale-110" />
+            </div>
+          </div>
+          <div className="mt-20">
+            <div className="mb-6"><Badge variant="black">{pt ? 'Serve para' : 'Perfect for'}</Badge></div>
+            <div className="flex flex-wrap gap-4">
+              {occasions.map((occasion, i) => (
+                <span key={i} className="bg-white border-2 border-bbq-black shadow-hard-sm px-4.5 py-2.5 font-black uppercase text-[13px] tracking-wide">
+                  {occasion}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* PRICE BAND */}
+      <section className="bg-bbq-yellow border-y-4 border-bbq-black py-20">
+        <div className="max-w-6xl mx-auto px-6 flex gap-12 items-center justify-between flex-wrap">
+          <div className="font-black uppercase tracking-tighter text-[clamp(48px,7vw,80px)] leading-none">
+            {pt ? 'Desde 35€' : 'From €35'}
+            <small className="text-[15px] block font-bold tracking-widest mt-3">
+              {pt ? 'por pessoa · tudo incluído' : 'per person · all included'}
+            </small>
+          </div>
+          <p className="m-0 max-w-[42ch] font-bold uppercase text-sm tracking-tight leading-[1.7]">
+            {pt
+              ? 'O valor final depende do número de pessoas e dos addons que escolherem. Sem custos escondidos, sem surpresas na fatura — dizemos-te o preço fechado antes de confirmares.'
+              : 'The final price depends on headcount and the add-ons you choose. No hidden costs, no surprises on the invoice — we give you a closed price before you confirm.'}
+          </p>
+          <button onClick={() => scrollToId('proposta')} className={`${btnBase} bg-bbq-black text-white hover:bg-bbq-red`}>
+            {pt ? 'Pedir orçamento' : 'Request a quote'}
+          </button>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="relative py-24">
+        <Dots />
+        <div className="relative max-w-6xl mx-auto px-6">
+          <div className="mb-6"><Badge variant="red">{pt ? 'Perguntas frequentes' : 'Frequently asked questions'}</Badge></div>
+          {faqs.map((faq, i) => (
+            <details key={i} className="group bg-white border-4 border-bbq-black shadow-hard mb-4">
+              <summary className="cursor-pointer px-6 py-5 font-black uppercase text-[15px] tracking-tight list-none [&::-webkit-details-marker]:hidden flex justify-between items-center gap-4">
+                {faq.q}
+                <span className="text-2xl font-black shrink-0">
+                  <span className="group-open:hidden">+</span>
+                  <span className="hidden group-open:inline">–</span>
+                </span>
+              </summary>
+              <p className="m-0 px-6 pb-5.5 text-[15px] leading-[1.65] font-medium">{faq.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      {/* PROPOSAL FORM */}
+      <section id="proposta" className="bg-bbq-red text-white py-24 border-t-4 border-bbq-black">
+        <div className="max-w-6xl mx-auto px-6 grid grid-cols-[repeat(auto-fit,minmax(min(380px,100%),1fr))] gap-16 items-start">
+          <div>
+            <div className="mb-6"><Badge variant="yellow">{pt ? 'Pedir proposta' : 'Request a proposal'}</Badge></div>
+            <h2 className="m-0 text-[clamp(32px,4.2vw,54px)] font-black uppercase tracking-tighter leading-none text-white [text-shadow:4px_4px_0_#1A1A1A]">
+              {pt ? 'Diz-nos quantos são. Nós tratamos do resto.' : 'Tell us how many you are. We handle the rest.'}
+            </h2>
+            <p className="mt-6 mb-0 font-bold uppercase text-sm tracking-tight max-w-[42ch] leading-[1.7]">
+              {pt
+                ? 'Respondemos em menos de 24h úteis com uma proposta fechada: espaço, menu, bebidas e preço final. Sem reuniões de alinhamento.'
+                : 'We reply in under 24 business hours with a closed proposal: venue, menu, drinks and final price. No alignment meetings.'}
+            </p>
+            <div className="mt-8 font-bold leading-loose text-base">
+              <a href="mailto:pitmasters@lisbonbbq.pt" className="text-bbq-yellow no-underline hover:text-white">pitmasters@lisbonbbq.pt</a><br />
+              <a href="tel:+351961058571" className="text-bbq-yellow no-underline hover:text-white">+351 961 058 571</a>
+            </div>
+          </div>
+          <div className="bg-bbq-cream border-4 border-bbq-black shadow-hard p-8 text-bbq-black">
+            {submitted ? (
+              <div className="text-center py-10">
+                <div className="w-16 h-16 bg-bbq-yellow border-4 border-bbq-black shadow-hard-sm flex items-center justify-center mx-auto mb-6">
+                  <Check size={32} strokeWidth={4} />
                 </div>
-
-                <div>
-                  <label className="block text-[10px] font-black uppercase mb-2 ml-1">{lang === 'pt' ? 'Mensagem (Addons, Data, Restrições)' : 'Message (Addons, Date, Restrictions)'}</label>
-                  <textarea 
-                    name="message"
-                    value={formData.message}
-                    onChange={handleFormChange}
-                    rows={4}
-                    className="w-full bg-bbq-cream border-4 border-bbq-black p-4 font-bold uppercase text-sm focus:outline-none focus:ring-4 ring-bbq-red/20"
-                  />
+                <h3 className="m-0 mb-2 text-2xl font-black uppercase tracking-tighter">{pt ? 'Pedido enviado!' : 'Request sent!'}</h3>
+                <p className="m-0 font-bold uppercase text-xs tracking-widest text-gray-500">
+                  {pt ? 'Respondemos em menos de 24h úteis.' : 'We reply in under 24 business hours.'}
+                </p>
+                <button
+                  onClick={() => setSubmitted(false)}
+                  className="mt-8 text-bbq-red font-black uppercase text-xs tracking-widest underline underline-offset-4 cursor-pointer bg-transparent border-none"
+                >
+                  {pt ? 'Enviar outro pedido' : 'Send another request'}
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={internalSubmit} className="grid gap-[18px]">
+                <label className={labelClass}>{pt ? 'Nome do responsável' : 'Contact name'}
+                  <input required type="text" name="name" value={formData.name} onChange={handleFormChange} placeholder={pt ? 'O teu nome' : 'Your name'} className={inputClass} />
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-[18px]">
+                  <label className={labelClass}>{pt ? 'Email corporativo' : 'Company email'}
+                    <input required type="email" name="email" value={formData.email} onChange={handleFormChange} placeholder={pt ? 'nome@empresa.pt' : 'name@company.com'} className={inputClass} />
+                  </label>
+                  <label className={labelClass}>{pt ? 'Telemóvel' : 'Phone'}
+                    <input type="tel" name="phone" value={formData.phone} onChange={handleFormChange} placeholder="+351" className={inputClass} />
+                  </label>
                 </div>
-
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-[18px]">
+                  <label className={labelClass}>{pt ? 'Empresa' : 'Company'}
+                    <input type="text" name="company" value={formData.company} onChange={handleFormChange} placeholder={pt ? 'Nome da empresa' : 'Company name'} className={inputClass} />
+                  </label>
+                  <label className={labelClass}>{pt ? 'Número de pessoas' : 'Number of people'}
+                    <input required type="text" name="guests" value={formData.guests} onChange={handleFormChange} placeholder={pt ? 'ex: 80' : 'e.g. 80'} className={inputClass} />
+                  </label>
+                </div>
+                <label className={labelClass}>{pt ? 'Mensagem' : 'Message'}
+                  <textarea rows={4} name="message" value={formData.message} onChange={handleFormChange} placeholder={pt ? 'Data pretendida, addons, restrições alimentares…' : 'Intended date, add-ons, dietary restrictions…'} className={`${inputClass} resize-y`} />
+                </label>
                 {error && (
-                  <p className="text-bbq-red font-black uppercase text-[10px] text-center">
-                    {lang === 'pt' ? 'Erro ao enviar. Tente novamente ou WhatsApp.' : 'Error sending. Try again or WhatsApp.'}
+                  <p className="m-0 text-bbq-red font-black uppercase text-[10px] text-center">
+                    {pt ? 'Erro ao enviar. Tenta novamente ou WhatsApp.' : 'Error sending. Try again or WhatsApp.'}
                   </p>
                 )}
-
-                <button 
-                  disabled={isSending}
-                  className="w-full bg-bbq-red text-white py-6 font-black uppercase text-xl border-4 border-bbq-black shadow-hard hover:bg-bbq-yellow hover:text-bbq-black transition-all transform hover:-translate-y-1 disabled:opacity-50"
-                >
-                  {isSending ? (lang === 'pt' ? 'A Enviar...' : 'Sending...') : (lang === 'pt' ? 'Enviar Pedido' : 'Send Request')}
+                <button disabled={isSending} className={`${btnBase} w-full bg-bbq-yellow text-bbq-black hover:bg-white disabled:opacity-50`}>
+                  <Flame size={22} /> {isSending ? (pt ? 'A enviar…' : 'Sending…') : (pt ? 'Enviar pedido' : 'Send request')}
                 </button>
               </form>
             )}
@@ -450,20 +608,51 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onBack, onSu
         </div>
       </section>
 
-      {/* 6.11 CTA FINAL */}
-      <section className="py-24 px-6 bg-bbq-red text-center border-b-4 border-bbq-black">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter italic mb-12 text-bbq-cream leading-tight">
-            Organizar um evento de equipa pode ser simples
-          </h2>
-          <button 
-            onClick={onBack}
-            className="bg-bbq-black text-white px-12 py-6 font-black uppercase text-xl border-4 border-bbq-black shadow-hard hover:bg-white hover:text-bbq-black transition-all transform hover:-translate-y-1"
-          >
-            {t.ctaPrimary}
-          </button>
+      {/* GALLERY LIGHTBOX */}
+      {gallery && (
+        <div className="fixed inset-0 z-[70] bg-black/85 flex items-center justify-center p-4 sm:p-8" onClick={() => setGallery(null)}>
+          <div className="relative w-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <span className="bg-bbq-yellow border-2 border-bbq-black shadow-hard-sm px-3 py-1 font-black uppercase text-xs tracking-wide">
+                {gallery.name} · {gallery.index + 1}/{gallery.images.length}
+              </span>
+              <button
+                onClick={() => setGallery(null)}
+                aria-label={pt ? 'Fechar galeria' : 'Close gallery'}
+                className="bg-bbq-red text-white border-2 border-bbq-black shadow-hard-sm p-1.5 cursor-pointer hover:bg-bbq-yellow hover:text-bbq-black transition-colors"
+              >
+                <X size={18} strokeWidth={3} />
+              </button>
+            </div>
+            <div className="relative border-4 border-bbq-black shadow-hard bg-bbq-black">
+              <img
+                src={gallery.images[gallery.index]}
+                alt={`${gallery.name} — ${pt ? 'foto' : 'photo'} ${gallery.index + 1}`}
+                referrerPolicy="no-referrer"
+                className="block w-full max-h-[75vh] object-contain"
+              />
+              {gallery.images.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setGallery(g => g && { ...g, index: (g.index - 1 + g.images.length) % g.images.length })}
+                    aria-label={pt ? 'Foto anterior' : 'Previous photo'}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 bg-bbq-yellow border-2 border-bbq-black shadow-hard-sm p-2 cursor-pointer hover:bg-white transition-colors"
+                  >
+                    <ChevronLeft size={22} strokeWidth={3} />
+                  </button>
+                  <button
+                    onClick={() => setGallery(g => g && { ...g, index: (g.index + 1) % g.images.length })}
+                    aria-label={pt ? 'Foto seguinte' : 'Next photo'}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-bbq-yellow border-2 border-bbq-black shadow-hard-sm p-2 cursor-pointer hover:bg-white transition-colors"
+                  >
+                    <ChevronRight size={22} strokeWidth={3} />
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
         </div>
-      </section>
+      )}
     </div>
   );
 };
