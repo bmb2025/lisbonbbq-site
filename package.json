@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
+    "@posthog/react": "^1.10.3",
     "@remix-run/router": "^1.21.0",
     "@supabase/supabase-js": "^2.49.0",
     "@tailwindcss/postcss": "^4.3.0",

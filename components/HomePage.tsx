@@ -1,5 +1,6 @@
 import React from 'react';
 import { Flame, ChefHat, Castle, Utensils, ChevronLeft, ChevronRight, Sun, Cloud, Minus, Plus, CircleOff, Loader2, X, Check, Camera, Users, User, Phone, Beer, UtensilsCrossed } from 'lucide-react';
+import { track } from '../services/analytics';
 import { Header } from './Header';
 import { BookingSummary } from './BookingSummary';
 import { LogoBar, PackageCard, BrandStory, VenueGrid, Referrals } from './LandingComponents';
@@ -83,6 +84,7 @@ export const HomePage: React.FC<HomePageProps> = ({
   const canConfirmStep1 = localGuests >= 20 && !!booking.date;
 
   const handleConfirmStep1 = () => {
+    track('guests_confirmed', { guests: localGuests, date: booking.date?.toISOString().split('T')[0] });
     setBooking(prev => ({
       ...prev,
       guests: localGuests,
@@ -155,6 +157,8 @@ export const HomePage: React.FC<HomePageProps> = ({
   };
 
   const handleNoExtras = () => {
+    track('extras_confirmed', { extras_count: 0, has_extras: false });
+    track('quote_popup_opened');
     setCart(prev => prev.map(item => ({ ...item, quantity: 0 })));
     setBooking(prev => ({ ...prev, extrasConfirmed: true }));
     setShowQuote(true);
@@ -323,7 +327,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                   return (
                     <div
                       key={loc.id}
-                      onClick={() => setBooking(prev => ({ ...prev, locationId: loc.id, tradition: null, slot: null }))}
+                      onClick={() => { track('location_selected', { location_id: loc.id, location_name: loc.name, is_own_venue: false }); setBooking(prev => ({ ...prev, locationId: loc.id, tradition: null, slot: null })); }}
                       className={`group relative border-4 p-4 text-left transition-all cursor-pointer ${isSelected ? 'bg-bbq-black border-bbq-black shadow-hard translate-y-[-4px]' : 'bg-white border-gray-100 hover:border-bbq-black'}`}
                     >
                       <div className="aspect-video bg-gray-200 mb-6 overflow-hidden border-2 border-bbq-black relative">
@@ -349,7 +353,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                   const isSelected = booking.locationId === OWN_LOCATION_ID;
                   return (
                     <div
-                      onClick={() => setBooking(prev => ({ ...prev, locationId: OWN_LOCATION_ID, tradition: null, slot: null }))}
+                      onClick={() => { track('location_selected', { location_id: OWN_LOCATION_ID, location_name: OWN_LOCATION_NAME, is_own_venue: true }); setBooking(prev => ({ ...prev, locationId: OWN_LOCATION_ID, tradition: null, slot: null })); }}
                       className={`group relative border-4 p-4 text-left transition-all cursor-pointer ${isSelected ? 'bg-bbq-black border-bbq-black shadow-hard translate-y-[-4px]' : 'bg-white border-gray-100 hover:border-bbq-black'}`}
                     >
                       <div className="aspect-video bg-bbq-cream mb-6 overflow-hidden border-2 border-bbq-black relative">
@@ -376,17 +380,17 @@ export const HomePage: React.FC<HomePageProps> = ({
             </div>
 
             <div className="grid md:grid-cols-3 gap-8 mb-10">
-              <button onClick={() => setBooking(prev => ({ ...prev, tradition: 'portuguese', slot: null }))} className={`relative p-8 border-4 text-left transition-all ${booking.tradition === 'portuguese' ? 'bg-bbq-yellow text-bbq-black border-bbq-black shadow-hard translate-y-[-8px]' : 'bg-white border-gray-100 hover:border-bbq-red'}`}>
+              <button onClick={() => { track('tradition_selected', { tradition: 'portuguese' }); setBooking(prev => ({ ...prev, tradition: 'portuguese', slot: null })); }} className={`relative p-8 border-4 text-left transition-all ${booking.tradition === 'portuguese' ? 'bg-bbq-yellow text-bbq-black border-bbq-black shadow-hard translate-y-[-8px]' : 'bg-white border-gray-100 hover:border-bbq-red'}`}>
                 <Castle size={48} className="text-bbq-red mb-6" />
                 <div className="font-black uppercase text-2xl mb-2">{t.ptTradition}</div>
                 <div className="text-[10px] font-bold uppercase tracking-widest opacity-80">{t.ptTraditionSub}</div>
               </button>
-              <button onClick={() => setBooking(prev => ({ ...prev, tradition: 'brazilian', slot: null }))} className={`relative p-8 border-4 text-left transition-all ${booking.tradition === 'brazilian' ? 'bg-bbq-yellow text-bbq-black border-bbq-black shadow-hard translate-y-[-8px]' : 'bg-white border-gray-100 hover:border-bbq-red'}`}>
+              <button onClick={() => { track('tradition_selected', { tradition: 'brazilian' }); setBooking(prev => ({ ...prev, tradition: 'brazilian', slot: null })); }} className={`relative p-8 border-4 text-left transition-all ${booking.tradition === 'brazilian' ? 'bg-bbq-yellow text-bbq-black border-bbq-black shadow-hard translate-y-[-8px]' : 'bg-white border-gray-100 hover:border-bbq-red'}`}>
                 <ChefHat size={48} className="text-bbq-red mb-6" />
                 <div className="font-black uppercase text-2xl mb-2">{t.brTradition}</div>
                 <div className="text-[10px] font-bold uppercase tracking-widest opacity-80">{t.brTraditionSub}</div>
               </button>
-              <button onClick={() => setBooking(prev => ({ ...prev, tradition: 'argentinian', slot: null }))} className={`relative p-8 border-4 text-left transition-all ${booking.tradition === 'argentinian' ? 'bg-bbq-yellow text-bbq-black border-bbq-black shadow-hard translate-y-[-8px]' : 'bg-white border-gray-100 hover:border-bbq-red'}`}>
+              <button onClick={() => { track('tradition_selected', { tradition: 'argentinian' }); setBooking(prev => ({ ...prev, tradition: 'argentinian', slot: null })); }} className={`relative p-8 border-4 text-left transition-all ${booking.tradition === 'argentinian' ? 'bg-bbq-yellow text-bbq-black border-bbq-black shadow-hard translate-y-[-8px]' : 'bg-white border-gray-100 hover:border-bbq-red'}`}>
                 <Flame size={48} className="text-bbq-red mb-6" />
                 <div className="font-black uppercase text-2xl mb-2">{t.argTradition}</div>
                 <div className="text-[10px] font-bold uppercase tracking-widest opacity-80">{t.argTraditionSub}</div>
@@ -472,7 +476,7 @@ export const HomePage: React.FC<HomePageProps> = ({
               </div>
               <div className="grid md:grid-cols-2 gap-4">
                 {[SlotTime.MORNING, SlotTime.AFTERNOON].map(slot => (
-                  <button key={slot} onClick={() => setBooking(prev => ({ ...prev, slot }))}
+                  <button key={slot} onClick={() => { track('slot_selected', { slot }); setBooking(prev => ({ ...prev, slot })); }}
                     className={`py-6 border-2 font-black uppercase text-sm transition-all ${booking.slot === slot ? 'bg-bbq-yellow text-bbq-black border-bbq-black shadow-hard-sm' : 'bg-white border-bbq-black/10 text-bbq-black hover:border-bbq-black'}`}>
                     {slot}
                   </button>
@@ -590,7 +594,7 @@ export const HomePage: React.FC<HomePageProps> = ({
               </button>
             </div>
 
-            <button onClick={() => { setBooking(prev => ({ ...prev, extrasConfirmed: true })); setShowQuote(true); }} className="w-full py-8 font-black uppercase text-2xl shadow-hard transition-all bg-bbq-red text-white hover:bg-bbq-black">
+            <button onClick={() => { const selectedExtras = cart.filter(c => c.quantity > 0); track('extras_confirmed', { extras_count: selectedExtras.length, has_extras: selectedExtras.length > 0, extras: selectedExtras.map(e => e.id) }); track('quote_popup_opened'); setBooking(prev => ({ ...prev, extrasConfirmed: true })); setShowQuote(true); }} className="w-full py-8 font-black uppercase text-2xl shadow-hard transition-all bg-bbq-red text-white hover:bg-bbq-black">
               {t.confirmSelection}
             </button>
           </div>

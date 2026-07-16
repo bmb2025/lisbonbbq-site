@@ -225,12 +225,14 @@ const App: React.FC = () => {
   };
 
   const scrollToBooking = () => {
+    track('hero_cta_clicked');
     setLeadSource('corporate');
     setView('booking');
     setTimeout(() => traditionSectionRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   };
 
   const handleArticleClick = (slug: string) => {
+    track('blog_article_clicked', { slug });
     navigate(`/blog/${slug}`);
   };
 

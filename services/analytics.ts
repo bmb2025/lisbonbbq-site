@@ -1,8 +1,7 @@
 import posthog from 'posthog-js';
 
-// PostHog project "lisbonbbq.pt" (EU cloud). The key is publishable by design.
-const POSTHOG_KEY = 'phc_mfn7B3EMiV3iEDQjRvWWJAREZhdeQs2wSVpAh5WgxuUn';
-const POSTHOG_HOST = 'https://eu.i.posthog.com';
+const POSTHOG_KEY = import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN as string;
+const POSTHOG_HOST = import.meta.env.VITE_PUBLIC_POSTHOG_HOST as string;
 
 // Only track the real production domain — keeps localhost/dev and preview
 // deployments out of the analytics.
@@ -15,12 +14,17 @@ const ADS_CONVERSION_EVENTS = ['quote_request_submitted', 'corporate_form_submit
 
 let enabled = false;
 
+export function getPostHogInstance() {
+  return posthog;
+}
+
 export function initAnalytics() {
   if (typeof window === 'undefined') return;
   if (!PROD_HOSTS.includes(window.location.hostname)) return;
 
   posthog.init(POSTHOG_KEY, {
     api_host: POSTHOG_HOST,
+    defaults: '2026-01-30',
     // SPA: capture a $pageview on every history change, not just the first load.
     capture_pageview: 'history_change',
     capture_pageleave: true,

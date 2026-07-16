@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Flame } from 'lucide-react';
+import { track } from '../services/analytics';
 
 interface HeaderProps {
   setView: (view: 'booking' | 'proposal' | 'privacy' | 'terms' | 'blog' | 'cms' | 'faqs' | 'about' | 'corporate' | 'verbola') => void;
@@ -24,14 +25,14 @@ export const Header: React.FC<HeaderProps> = ({ setView, lang, setLang }) => {
             {lang === 'pt' ? 'Empresas' : 'Corporate'}
           </button>
           <div className="flex bg-bbq-black/20 p-1 border-2 border-bbq-black ml-4">
-            <button 
-              onClick={() => setLang('pt')} 
+            <button
+              onClick={() => { track('language_switched', { language: 'pt' }); setLang('pt'); }}
               className={`px-2 py-0.5 text-[10px] font-black transition-all ${lang === 'pt' ? 'bg-bbq-yellow text-bbq-black' : 'text-bbq-cream hover:bg-white/10'}`}
             >
               PT
             </button>
-            <button 
-              onClick={() => setLang('en')} 
+            <button
+              onClick={() => { track('language_switched', { language: 'en' }); setLang('en'); }}
               className={`px-2 py-0.5 text-[10px] font-black transition-all ${lang === 'en' ? 'bg-bbq-yellow text-bbq-black' : 'text-bbq-cream hover:bg-white/10'}`}
             >
               EN
