@@ -3,7 +3,8 @@ import './index.css';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
-import { initAnalytics } from './services/analytics';
+import { initAnalytics, getPostHogInstance } from './services/analytics';
+import { PostHogErrorBoundary, PostHogProvider } from '@posthog/react';
 
 initAnalytics();
 
@@ -12,8 +13,12 @@ if (!rootElement) throw new Error("Could not find root element to mount to");
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <PostHogProvider client={getPostHogInstance()}>
+      <PostHogErrorBoundary>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </PostHogErrorBoundary>
+    </PostHogProvider>
   </React.StrictMode>
 );
