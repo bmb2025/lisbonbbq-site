@@ -1,7 +1,14 @@
 import posthog from 'posthog-js';
 
-const POSTHOG_KEY = import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN as string;
-const POSTHOG_HOST = import.meta.env.VITE_PUBLIC_POSTHOG_HOST as string;
+// The env vars are not set in the Vercel project, so the build shipped
+// posthog.init(undefined) and killed all SPA tracking. The key is publishable
+// by design — fall back to the project values so analytics can never be
+// silently disabled by a missing env config again.
+const POSTHOG_KEY =
+  (import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN as string) ||
+  'phc_mfn7B3EMiV3iEDQjRvWWJAREZhdeQs2wSVpAh5WgxuUn';
+const POSTHOG_HOST =
+  (import.meta.env.VITE_PUBLIC_POSTHOG_HOST as string) || 'https://eu.i.posthog.com';
 
 // Only track the real production domain — keeps localhost/dev and preview
 // deployments out of the analytics.
