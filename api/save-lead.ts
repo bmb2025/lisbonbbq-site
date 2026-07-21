@@ -13,9 +13,21 @@ const NOTIFY_EMAIL = "pitmasters@lisbonbbq.pt";
 
 function formatDate(iso: string | undefined, lang: "pt" | "en" = "pt") {
   if (!iso) return "—";
+  // O servidor corre em UTC; sem timeZone explícita, datas guardadas como
+  // meia-noite de Lisboa (23:00Z no verão) apareceriam como o dia anterior.
   return new Date(iso).toLocaleDateString(lang === "en" ? "en-GB" : "pt-PT", {
-    weekday: "long", year: "numeric", month: "long", day: "numeric"
+    weekday: "long", year: "numeric", month: "long", day: "numeric",
+    timeZone: "Europe/Lisbon"
   });
+}
+
+function escapeHtml(text: string | undefined) {
+  if (!text) return "";
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 function traditionLabel(t: string, lang: "pt" | "en" = "pt") {
@@ -27,11 +39,38 @@ function traditionLabel(t: string, lang: "pt" | "en" = "pt") {
 function internalEmail(lead: any, opts: { incomplete?: boolean } = {}) {
   const b = lead.booking || {};
   const c = lead.client || {};
+  const isCorporate = lead.source === "corporate";
   const extras = (lead.extras || []).map((e: any) => e.qty > 1 ? `${e.name} ×${e.qty}` : e.name).join(", ") || "Nenhum";
   const title = opts.incomplete ? "⏳ Lead incompleta — LisbonBBQ" : "🔥 Nova Reserva — LisbonBBQ";
   const banner = opts.incomplete
     ? `<p style="margin:0 0 16px;padding:12px 16px;background:#FFF3CD;border-left:4px solid #FFD600;font-size:14px;color:#664d03;">O cliente começou o pedido mas <strong>não finalizou</strong> nos 5 minutos seguintes. Abaixo estão os dados que o site conseguiu recolher.</p>`
     : "";
+
+  // Leads corporate não passam pelo fluxo de reserva: os campos de booking são
+  // placeholders (Local "TBD", tradição por defeito, data = hora da submissão).
+  // Mostra os dados reais do pedido — incluindo a mensagem, onde vive o detalhe
+  // do evento — em vez dos placeholders.
+  const rows = isCorporate
+    ? `
+    <tr><td>Cliente</td><td>${c.name || "—"}</td></tr>
+    <tr><td>Email</td><td>${c.email ? `<a href="mailto:${c.email}">${c.email}</a>` : "—"}</td></tr>
+    <tr><td>Telefone</td><td>${c.phone || "—"}</td></tr>
+    <tr><td>Empresa</td><td>${lead.corporate?.company || "—"}</td></tr>
+    <tr><td>Data do Evento</td><td>${lead.corporate?.date ? formatDate(lead.corporate.date) : "Por confirmar — ver mensagem"}</td></tr>
+    <tr><td>Convidados</td><td>${lead.corporate?.guests || b.guests || "—"} pax</td></tr>
+    <tr><td>Mensagem</td><td>${escapeHtml(lead.corporate?.message) || "—"}</td></tr>
+    <tr><td>ID</td><td style="font-size:12px;color:#999">${lead.id}</td></tr>`
+    : `
+    <tr><td>Cliente</td><td>${c.name || "—"}</td></tr>
+    <tr><td>Email</td><td>${c.email ? `<a href="mailto:${c.email}">${c.email}</a>` : "—"}</td></tr>
+    <tr><td>Telefone</td><td>${c.phone || "—"}</td></tr>
+    <tr><td>Data do Evento</td><td>${formatDate(b.date)}</td></tr>
+    <tr><td>Local</td><td>${lead.summary?.location || b.locationId || "—"}</td></tr>
+    <tr><td>Tradição</td><td><span class="badge">${traditionLabel(b.tradition)}</span></td></tr>
+    <tr><td>Horário</td><td>${b.slot || "—"}</td></tr>
+    <tr><td>Convidados</td><td>${b.guests || "—"} pax</td></tr>
+    <tr><td>Extras</td><td>${extras}</td></tr>
+    <tr><td>ID</td><td style="font-size:12px;color:#999">${lead.id}</td></tr>`;
 
   return `
 <!DOCTYPE html>
@@ -49,17 +88,7 @@ function internalEmail(lead: any, opts: { incomplete?: boolean } = {}) {
 <div class="card">
   <h1>${title}</h1>
   ${banner}
-  <table>
-    <tr><td>Cliente</td><td>${c.name || "—"}</td></tr>
-    <tr><td>Email</td><td>${c.email ? `<a href="mailto:${c.email}">${c.email}</a>` : "—"}</td></tr>
-    <tr><td>Telefone</td><td>${c.phone || "—"}</td></tr>
-    <tr><td>Data do Evento</td><td>${formatDate(b.date)}</td></tr>
-    <tr><td>Local</td><td>${lead.summary?.location || b.locationId || "—"}</td></tr>
-    <tr><td>Tradição</td><td><span class="badge">${traditionLabel(b.tradition)}</span></td></tr>
-    <tr><td>Horário</td><td>${b.slot || "—"}</td></tr>
-    <tr><td>Convidados</td><td>${b.guests || "—"} pax</td></tr>
-    <tr><td>Extras</td><td>${extras}</td></tr>
-    <tr><td>ID</td><td style="font-size:12px;color:#999">${lead.id}</td></tr>
+  <table>${rows}
   </table>
 </div>
 </body>
@@ -96,6 +125,7 @@ function confirmationEmail(lead: any, lang: "pt" | "en" = "pt") {
   // clean, corporate-specific summary instead of the booking-flow fields.
   const rows = isCorporate
     ? `
+      ${lead.corporate?.date ? `<tr><td>${T.rDate}</td><td>${formatDate(lead.corporate.date, lang)}</td></tr>` : ""}
       <tr><td>${T.rCompany}</td><td>${lead.corporate?.company || lead.company || "—"}</td></tr>
       <tr><td>${T.rGuests}</td><td>${lead.corporate?.guests || b.guests || "—"} ${T.pax}</td></tr>`
     : `

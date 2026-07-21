@@ -51,6 +51,7 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
     phone: '',
     company: '',
     guests: '',
+    date: '',
     message: ''
   });
   const [submitted, setSubmitted] = useState(false);
@@ -98,7 +99,7 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
     const success = await onSubmit(formData);
     if (success) {
       setSubmitted(true);
-      setFormData({ name: '', email: '', phone: '', company: '', guests: '', message: '' });
+      setFormData({ name: '', email: '', phone: '', company: '', guests: '', date: '', message: '' });
     } else {
       setError(true);
     }
@@ -591,8 +592,11 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
                     <input required type="text" name="guests" value={formData.guests} onChange={handleFormChange} placeholder={pt ? 'ex: 80' : 'e.g. 80'} className={inputClass} />
                   </label>
                 </div>
+                <label className={labelClass}>{pt ? 'Data pretendida (podes mudar depois)' : 'Intended date (you can change it later)'}
+                  <input type="date" name="date" value={formData.date} onChange={handleFormChange} className={inputClass} />
+                </label>
                 <label className={labelClass}>{pt ? 'Mensagem' : 'Message'}
-                  <textarea rows={4} name="message" value={formData.message} onChange={handleFormChange} placeholder={pt ? 'Data pretendida, addons, restrições alimentares…' : 'Intended date, add-ons, dietary restrictions…'} className={`${inputClass} resize-y`} />
+                  <textarea rows={4} name="message" value={formData.message} onChange={handleFormChange} placeholder={pt ? 'Addons, restrições alimentares, horário preferido…' : 'Add-ons, dietary restrictions, preferred time…'} className={`${inputClass} resize-y`} />
                 </label>
                 {error && (
                   <p className="m-0 text-bbq-red font-black uppercase text-[10px] text-center">
