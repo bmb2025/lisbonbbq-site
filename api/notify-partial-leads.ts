@@ -13,8 +13,11 @@ const NOTIFY_EMAIL = "pitmasters@lisbonbbq.pt";
 
 function formatDate(iso: string | undefined) {
   if (!iso) return "—";
+  // O servidor corre em UTC; sem timeZone explícita, datas guardadas como
+  // meia-noite de Lisboa (23:00Z no verão) apareceriam como o dia anterior.
   return new Date(iso).toLocaleDateString("pt-PT", {
-    weekday: "long", year: "numeric", month: "long", day: "numeric"
+    weekday: "long", year: "numeric", month: "long", day: "numeric",
+    timeZone: "Europe/Lisbon"
   });
 }
 

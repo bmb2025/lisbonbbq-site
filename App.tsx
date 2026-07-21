@@ -249,12 +249,16 @@ const App: React.FC = () => {
     };
     const parsedGuestsNum = guestCounts[data.guests] || (data.guests ? parseInt(data.guests) : 20);
 
+    // Data pretendida (opcional). Fixada ao meio-dia UTC para o dia não deslizar
+    // em nenhum fuso — o input devolve só "YYYY-MM-DD".
+    const eventDateIso = data.date ? `${data.date}T12:00:00.000Z` : null;
+
     const newLead = {
       // 1. Keep the ID format strictly conforming to standard booking pattern (LB-timestamp)
       id: `LB-${Date.now()}`,
       timestamp: new Date().toISOString(),
       client: { name: data.name, email: data.email, phone: data.phone },
-      corporate: { company: data.company, guests: data.guests, message: data.message },
+      corporate: { company: data.company, guests: data.guests, message: data.message, date: eventDateIso },
       source: 'corporate',
       lang,
       target_email: 'pitmasters@lisbonbbq.pt', // Explicit for corporate
@@ -272,13 +276,13 @@ const App: React.FC = () => {
       // Fallbacks
       package: 'corporate',
       location: 'TBD',
-      event_date: new Date().toISOString(),
+      event_date: eventDateIso || new Date().toISOString(),
       drinks: 'mixed',
 
       // Fully-populated booking structure matching standard nested properties
       booking: {
         tradition: 'portuguese',
-        date: new Date().toISOString(),
+        date: eventDateIso || new Date().toISOString(),
         slot: 'almoço',
         guests: parsedGuestsNum,
         guestsConfirmed: true,
@@ -303,7 +307,7 @@ const App: React.FC = () => {
     
     const success = await cloudService.saveLead(newLead);
     if (success) {
-      track('corporate_form_submitted', { guests_range: data.guests, company: data.company });
+      track('corporate_form_submitted', { guests_range: data.guests, company: data.company, event_date: data.date || null });
       identifyLead({ email: data.email, name: data.name, phone: data.phone });
     }
     setIsSending(false);
