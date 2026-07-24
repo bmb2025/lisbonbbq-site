@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build && node scripts/prerender.mjs",
     "preview": "vite preview",
+    "prerender:corporate": "node scripts/prerender-corporate.mjs",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
@@ -30,6 +31,7 @@
   "devDependencies": {
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "playwright": "^1.61.1",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }
