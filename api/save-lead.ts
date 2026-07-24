@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import { OWN_LOCATION_ID } from "../constants";
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -70,6 +71,10 @@ function internalEmail(lead: any, opts: { incomplete?: boolean } = {}) {
     <tr><td>Horário</td><td>${b.slot || "—"}</td></tr>
     <tr><td>Convidados</td><td>${b.guests || "—"} pax</td></tr>
     <tr><td>Extras</td><td>${extras}</td></tr>
+    ${b.locationId === OWN_LOCATION_ID ? `
+    <tr><td>Código Postal</td><td>${b.ownVenuePostalCode || "—"}</td></tr>
+    <tr><td>Água/Luz no local</td><td>${b.ownVenueHasWaterElectricity ? "✅ Confirmado pelo cliente" : "⚠️ Não confirmado"}</td></tr>
+    <tr><td>Aluguer lugares sentados</td><td>${b.ownVenueIncludeSeating ? "Sim — incluir na proposta" : "Não"}</td></tr>` : ""}
     <tr><td>ID</td><td style="font-size:12px;color:#999">${lead.id}</td></tr>`;
 
   return `
