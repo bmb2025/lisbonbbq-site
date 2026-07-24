@@ -589,14 +589,14 @@ export const HomePage: React.FC<HomePageProps> = ({
                           setPostalP4(v);
                           if (v.length === 4) postalP3Ref.current?.focus();
                         }}
-                        className="w-[88px] border-4 border-bbq-black p-3 text-center text-2xl font-black focus:outline-none focus:ring-4 focus:ring-bbq-yellow"
+                        className="w-[108px] border-4 border-bbq-black p-3 text-center text-2xl font-black focus:outline-none focus:ring-4 focus:ring-bbq-yellow"
                       />
                       <span className="text-2xl font-black">–</span>
                       <input
                         ref={postalP3Ref}
                         type="text" inputMode="numeric" maxLength={3} value={postalP3}
                         onChange={e => setPostalP3(e.target.value.replace(/\D/g, '').slice(0, 3))}
-                        className="w-[72px] border-4 border-bbq-black p-3 text-center text-2xl font-black focus:outline-none focus:ring-4 focus:ring-bbq-yellow"
+                        className="w-[92px] border-4 border-bbq-black p-3 text-center text-2xl font-black focus:outline-none focus:ring-4 focus:ring-bbq-yellow"
                       />
                       <span className={`text-sm font-black uppercase tracking-wide ${postalLocality ? 'text-bbq-black' : 'text-gray-300'}`}>
                         {postalLoading ? '...' : (postalLocality || t.postalCodeLocalityPlaceholder)}
