@@ -127,6 +127,9 @@ const App: React.FC = () => {
     paoAlentejano: false,
     sobremesa: false,
     extrasConfirmed: false,
+    ownVenuePostalCode: null,
+    ownVenueHasWaterElectricity: false,
+    ownVenueIncludeSeating: false,
   });
 
   const [leads, setLeads] = useState<any[]>(() => {

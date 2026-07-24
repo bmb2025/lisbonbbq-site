@@ -33,6 +33,9 @@ export interface BookingState {
   paoAlentejano: boolean;
   sobremesa: boolean;
   extrasConfirmed: boolean;
+  ownVenuePostalCode: string | null;
+  ownVenueHasWaterElectricity: boolean;
+  ownVenueIncludeSeating: boolean;
 }
 
 export interface AddOnItem {

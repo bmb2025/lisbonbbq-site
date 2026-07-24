@@ -8,6 +8,7 @@ import { Footer } from './Footer';
 import { BookingState, CartItem, SlotTime, DailyWeather } from '../types';
 import { LOCATIONS, getAvailableVenues, TRADITION_MEATS, getFixedSides, FIXED_DRINKS, OWN_LOCATION_ID, OWN_LOCATION_NAME } from '../constants';
 import { getWeatherIcon } from '../services/weatherService';
+import { lookupPostalCode } from '../services/postalCodeService';
 
 interface HomePageProps {
   lang: 'pt' | 'en';
@@ -54,6 +55,43 @@ export const HomePage: React.FC<HomePageProps> = ({
   const [viewerLocationId, setViewerLocationId] = React.useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
   const [localGuests, setLocalGuests] = React.useState(booking.guests);
+  const [postalP4, setPostalP4] = React.useState('');
+  const [postalP3, setPostalP3] = React.useState('');
+  const [postalLocality, setPostalLocality] = React.useState<string | null>(null);
+  const [postalLoading, setPostalLoading] = React.useState(false);
+  const postalP3Ref = React.useRef<HTMLInputElement>(null);
+
+  // Os campos do local próprio (código postal, água/luz, lugares sentados) só
+  // fazem sentido enquanto esse local estiver selecionado — limpa-os assim que
+  // o utilizador muda de local (ou volta atrás), para não irem parar a leads
+  // de outro venue.
+  React.useEffect(() => {
+    if (booking.locationId !== OWN_LOCATION_ID) {
+      setPostalP4('');
+      setPostalP3('');
+      setPostalLocality(null);
+      if (booking.ownVenuePostalCode || booking.ownVenueHasWaterElectricity || booking.ownVenueIncludeSeating) {
+        setBooking(prev => ({ ...prev, ownVenuePostalCode: null, ownVenueHasWaterElectricity: false, ownVenueIncludeSeating: false }));
+      }
+    }
+  }, [booking.locationId]);
+
+  // Só dispara o lookup de localidade quando o código postal está completo.
+  React.useEffect(() => {
+    if (postalP4.length === 4 && postalP3.length === 3) {
+      let cancelled = false;
+      setPostalLoading(true);
+      lookupPostalCode(postalP4, postalP3).then(locality => {
+        if (cancelled) return;
+        setPostalLocality(locality);
+        setPostalLoading(false);
+      });
+      setBooking(prev => ({ ...prev, ownVenuePostalCode: `${postalP4}-${postalP3}` }));
+      return () => { cancelled = true; };
+    } else {
+      setPostalLocality(null);
+    }
+  }, [postalP4, postalP3]);
 
   // Filtered venues based on confirmed guests + date
   const filteredVenues = React.useMemo(() => {
@@ -129,7 +167,7 @@ export const HomePage: React.FC<HomePageProps> = ({
     step4: lang === 'pt' ? 'O Horário' : 'The Slot',
     step5: lang === 'pt' ? 'Extras' : 'Extras',
     finalize: lang === 'pt' ? 'Receber orçamento' : 'Get Quote',
-    contactDetails: lang === 'pt' ? 'Orçamento será enviado em apenas alguns minutos' : 'Your custom quote will be ready in minutes',
+    contactDetails: lang === 'pt' ? 'Orçamento será enviado muito em breve' : 'Your custom quote will be sent very soon',
     fullName: lang === 'pt' ? 'Nome e Apelido' : 'Full Name',
     email: lang === 'pt' ? 'E-mail' : 'Email Address',
     phone: lang === 'pt' ? 'Telemóvel' : 'Phone Number',
@@ -150,6 +188,11 @@ export const HomePage: React.FC<HomePageProps> = ({
     editContact: lang === 'pt' ? 'Alterar' : 'Change',
     extraAdd: lang === 'pt' ? 'Adicionar' : 'Add',
     extraSelected: lang === 'pt' ? 'Selecionado' : 'Selected',
+    ownVenueDetailsLabel: lang === 'pt' ? 'Detalhes do teu espaço' : 'Your venue details',
+    postalCode: lang === 'pt' ? 'Código Postal' : 'Postal Code',
+    postalCodeLocalityPlaceholder: lang === 'pt' ? 'Localidade' : 'Locality',
+    waterElectricityConfirm: lang === 'pt' ? 'Confirmo que o local dispõe de ponto de água e luz.' : 'I confirm the venue has a water and electricity point.',
+    seatingRentalQuestion: lang === 'pt' ? 'Incluir aluguer de lugares sentados (mesas e bancos) na proposta.' : 'Include seating rental (tables and benches) in the proposal.',
   };
 
   const handleImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -529,6 +572,61 @@ export const HomePage: React.FC<HomePageProps> = ({
                     className="w-full border-4 border-bbq-black p-5 text-xl font-black focus:outline-none focus:ring-4 focus:ring-bbq-yellow"
                   />
                 </div>
+
+                {booking.locationId === OWN_LOCATION_ID && (
+                  <div className="mb-6 pt-7 border-t-2 border-dashed border-bbq-black/15">
+                    <div className="flex items-center gap-3 mb-5">
+                      <span className="w-2.5 h-2.5 bg-bbq-red shrink-0" />
+                      <span className="text-xs font-black uppercase tracking-widest text-gray-500">{t.ownVenueDetailsLabel}</span>
+                    </div>
+
+                    <div className="text-[11px] font-black uppercase tracking-widest text-gray-500 mb-2.5">{t.postalCode}</div>
+                    <div className="flex items-center gap-2.5 mb-6">
+                      <input
+                        type="text" inputMode="numeric" maxLength={4} value={postalP4}
+                        onChange={e => {
+                          const v = e.target.value.replace(/\D/g, '').slice(0, 4);
+                          setPostalP4(v);
+                          if (v.length === 4) postalP3Ref.current?.focus();
+                        }}
+                        className="w-[88px] border-4 border-bbq-black p-3 text-center text-2xl font-black focus:outline-none focus:ring-4 focus:ring-bbq-yellow"
+                      />
+                      <span className="text-2xl font-black">–</span>
+                      <input
+                        ref={postalP3Ref}
+                        type="text" inputMode="numeric" maxLength={3} value={postalP3}
+                        onChange={e => setPostalP3(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                        className="w-[72px] border-4 border-bbq-black p-3 text-center text-2xl font-black focus:outline-none focus:ring-4 focus:ring-bbq-yellow"
+                      />
+                      <span className={`text-sm font-black uppercase tracking-wide ${postalLocality ? 'text-bbq-black' : 'text-gray-300'}`}>
+                        {postalLoading ? '...' : (postalLocality || t.postalCodeLocalityPlaceholder)}
+                      </span>
+                    </div>
+
+                    <label className="flex items-start gap-3 mb-4 cursor-pointer select-none">
+                      <span className={`w-7 h-7 border-[3px] border-bbq-black shrink-0 flex items-center justify-center mt-0.5 ${booking.ownVenueHasWaterElectricity ? 'bg-bbq-yellow' : 'bg-white'}`}>
+                        {booking.ownVenueHasWaterElectricity && <Check size={16} strokeWidth={4} />}
+                      </span>
+                      <input
+                        type="checkbox" className="sr-only" checked={booking.ownVenueHasWaterElectricity}
+                        onChange={e => setBooking(prev => ({ ...prev, ownVenueHasWaterElectricity: e.target.checked }))}
+                      />
+                      <span className="text-sm font-bold leading-snug">{t.waterElectricityConfirm}</span>
+                    </label>
+
+                    <label className="flex items-start gap-3 cursor-pointer select-none">
+                      <span className={`w-7 h-7 border-[3px] border-bbq-black shrink-0 flex items-center justify-center mt-0.5 ${booking.ownVenueIncludeSeating ? 'bg-bbq-yellow' : 'bg-white'}`}>
+                        {booking.ownVenueIncludeSeating && <Check size={16} strokeWidth={4} />}
+                      </span>
+                      <input
+                        type="checkbox" className="sr-only" checked={booking.ownVenueIncludeSeating}
+                        onChange={e => setBooking(prev => ({ ...prev, ownVenueIncludeSeating: e.target.checked }))}
+                      />
+                      <span className="text-sm font-bold leading-snug">{t.seatingRentalQuestion}</span>
+                    </label>
+                  </div>
+                )}
+
                 <button
                   onClick={handleLeadCapture}
                   disabled={!clientName.trim() || !clientPhone.trim()}
