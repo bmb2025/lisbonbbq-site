@@ -1,6 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
-import { OWN_LOCATION_ID } from "../constants";
+
+// Vercel empacota cada rota em api/ isoladamente e não traça imports fora desta
+// pasta (o import de ../constants partiu a função em produção com
+// ERR_MODULE_NOT_FOUND). Por isso o valor vem hardcoded — tem de ficar igual a
+// OWN_LOCATION_ID em constants.ts.
+const OWN_LOCATION_ID = "own_location";
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
