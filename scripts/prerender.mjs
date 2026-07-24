@@ -17,6 +17,18 @@ const { routes } = JSON.parse(readFileSync(join(root, "seo/seo-data.json"), "utf
 const faqs = JSON.parse(readFileSync(join(root, "seo/faqs.json"), "utf8"));
 const template = readFileSync(join(dist, "index.html"), "utf8");
 
+// /corporate é a única rota com o conteúdo do <body> pré-renderizado (não só o
+// <head>) — importa para o AdsBot/Google Ads verem a página cheia sem depender
+// de JS. O snapshot é gerado à parte (npm run prerender:corporate, que usa um
+// browser real) porque correr um browser no build da Vercel seria frágil; aqui
+// é só string splicing, sem dependências novas no build de produção.
+let corporateBody = null;
+try {
+  corporateBody = readFileSync(join(root, "seo/corporate-body.html"), "utf8");
+} catch {
+  console.warn("prerender: seo/corporate-body.html não encontrado — /corporate fica só com <head> pré-renderizado. Corre `npm run build && npm run prerender:corporate` para gerar.");
+}
+
 const esc = (s) =>
   String(s)
     .replace(/&/g, "&amp;")
@@ -96,7 +108,10 @@ for (const route of routes) {
   if (route.path === "/faqs") blocks.push(ld(faqPage));
   if (route.path === "/corporate") blocks.push(ld(corporateService));
 
-  const html = template.replace("</head>", `    ${blocks.join("\n    ")}\n</head>`);
+  let html = template.replace("</head>", `    ${blocks.join("\n    ")}\n</head>`);
+  if (route.path === "/corporate" && corporateBody) {
+    html = html.replace('<div id="root"></div>', `<div id="root">${corporateBody}</div>`);
+  }
   const outDir = route.path === "/" ? dist : join(dist, route.path.slice(1));
   mkdirSync(outDir, { recursive: true });
   writeFileSync(join(outDir, "index.html"), html);
