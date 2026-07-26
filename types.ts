@@ -94,3 +94,76 @@ export interface Article {
   publishedAt: string;
   isPublished: boolean;
 }
+
+export interface EssentialCard {
+  label: string;
+  big: string;
+  note?: string;
+  variant?: 'default' | 'flame';
+}
+
+export interface GettingThereCard {
+  icon: string;
+  title: string;
+  body: string;
+  highlight?: string;
+}
+
+export interface HouseRule {
+  label: string;
+  text: string;
+}
+
+export interface SidePanelItem {
+  icon: string;
+  text: string;
+}
+
+export interface EventMenuItem {
+  id: string;
+  event_id: string;
+  section: 'grelha' | 'acompanha' | 'bar';
+  name: string;
+  description: string | null;
+  is_vegan: boolean;
+  sort_order: number;
+}
+
+export interface EventRecord {
+  id: string;
+  slug: string;
+  client_name: string | null;
+  title: string;
+  hero_tag: string;
+  hero_image_url: string | null;
+  starts_at: string;
+  ends_at: string | null;
+  timezone: string;
+  venue_name: string | null;
+  venue_address: string | null;
+  lat: number | null;
+  lng: number | null;
+  essential_cards: EssentialCard[];
+  getting_there: GettingThereCard[];
+  menu_intro: string | null;
+  balcao_note: string | null;
+  diet_deadline: string | null;
+  diet_intro: string | null;
+  bring_items: string[];
+  skip_items: string[];
+  house_rules: HouseRule[];
+  side_panel: SidePanelItem[] | null;
+  playlist_url: string | null;
+  playlist_intro: string | null;
+  album_url: string | null;
+  review_url: string | null;
+  show_photographer_card: boolean;
+  photographer_available_at: string | null;
+  allergy_contact_note: string;
+  referral_code: string | null;
+  referral_discount_eur: number;
+  referral_valid_until: string | null;
+  referral_intro: string | null;
+  socials: { key: string; label: string; url: string }[] | null;
+  published: boolean;
+}

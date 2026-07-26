@@ -284,3 +284,12 @@ export function getVenuesByDay(date: Date | null): VenueLocation[] {
     return true;
   });
 }
+
+// Redes sociais fixas, reutilizadas nas páginas de evento (components/EventPageView.tsx).
+// Mesmos links já usados em components/Footer.tsx.
+export const EVENT_SOCIALS: { key: 'instagram' | 'linkedin' | 'x' | 'whatsapp'; label: string; url: string }[] = [
+  { key: 'instagram', label: 'Instagram', url: 'https://www.instagram.com/lisbon.barbecue.churrasco/' },
+  { key: 'linkedin', label: 'LinkedIn', url: 'https://www.linkedin.com/company/lisbon-barbecue-churrasco/' },
+  { key: 'x', label: 'X', url: 'https://x.com/Lisbonbbq' },
+  { key: 'whatsapp', label: 'WhatsApp', url: 'https://wa.me/351961058571' },
+];
