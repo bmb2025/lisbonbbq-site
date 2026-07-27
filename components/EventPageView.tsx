@@ -243,7 +243,7 @@ const EventCountdown: React.FC<{ event: EventRecord }> = ({ event }) => {
           ))}
         </div>
         <div className="flex gap-3 justify-center flex-wrap">
-          <a className={btnDark} href={`/api/events/${event.slug}/ics`} download>
+          <a className={btnDark} href={`/api/events/${event.slug}?action=ics`} download>
             <Calendar size={16} /> Adicionar ao calendário
           </a>
           <a className={btnLight} href="#chegar">Como chegar</a>
@@ -371,7 +371,7 @@ const EventDiet: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) =>
     setError(false);
     setSending(true);
     try {
-      const res = await fetch(`/api/events/${event.slug}/dieta`, {
+      const res = await fetch(`/api/events/${event.slug}?action=dieta`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, diet, detail, marketingOptin: optin }),
@@ -608,7 +608,7 @@ const EventReferral: React.FC<{ event: EventRecord }> = ({ event }) => {
     setError(false);
     setSending(true);
     try {
-      const res = await fetch(`/api/events/${event.slug}/codigo`, {
+      const res = await fetch(`/api/events/${event.slug}?action=codigo`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),

@@ -356,16 +356,13 @@ async function handleCodigo(req: any, res: any, slug: string) {
 }
 
 export default async function handler(req: any, res: any) {
-  // Confirmado em produção via logs: para um catch-all fora do Next.js, a
-  // Vercel usa a chave "...params" (com os três pontos incluídos), com valor
-  // em string única separada por barras ("ey-30-jul/dieta"), não um array.
-  const raw = req.query["...params"] ?? req.query.params;
-  const params: string[] = Array.isArray(raw)
-    ? raw
-    : typeof raw === "string" && raw.length > 0
-    ? raw.split("/")
-    : [];
-  const [slug, action] = params;
+  // Confirmado em produção: fora do Next.js, o builder de Functions da Vercel
+  // só encaminha um segmento dinâmico por ficheiro — um catch-all
+  // ([...params].ts) não recebia pedidos com mais de um nível de path
+  // (/api/events/:slug/ics nunca chegava à função, 404 da própria plataforma).
+  // Por isso a ação vem por query string (?action=) sobre uma rota de
+  // segmento único [slug].ts, em vez de mais um nível no path.
+  const { slug, action } = req.query as { slug?: string; action?: string };
 
   if (!slug) {
     console.error("[Events] Sem slug — req.query:", JSON.stringify(req.query), "url:", req.url);
