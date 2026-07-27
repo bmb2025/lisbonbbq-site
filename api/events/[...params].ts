@@ -356,11 +356,10 @@ async function handleCodigo(req: any, res: any, slug: string) {
 }
 
 export default async function handler(req: any, res: any) {
-  // O runtime da Vercel para catch-all (fora do Next.js) devolve req.query.params
-  // como string única com barras ("ey-30-jul/dieta"), não como array — ao
-  // contrário do Next.js. Aceita as duas formas para não depender de qual
-  // convenção está mesmo em vigor nesta versão do builder.
-  const raw = req.query.params;
+  // Confirmado em produção via logs: para um catch-all fora do Next.js, a
+  // Vercel usa a chave "...params" (com os três pontos incluídos), com valor
+  // em string única separada por barras ("ey-30-jul/dieta"), não um array.
+  const raw = req.query["...params"] ?? req.query.params;
   const params: string[] = Array.isArray(raw)
     ? raw
     : typeof raw === "string" && raw.length > 0
