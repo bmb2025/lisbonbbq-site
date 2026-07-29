@@ -72,6 +72,9 @@ const ROUTES = [
   // /corporate é gerado aqui também para deixar de haver dois scripts a fazer
   // a mesma coisa — substitui o antigo scripts/prerender-corporate.mjs.
   { path: "/corporate", file: "corporate.html", waitForSelector: "#proposta" },
+  // Rota inexistente de propósito — cai na Route path="*" (NotFoundView).
+  // Usado para gerar dist/404.html, ver scripts/prerender.mjs.
+  { path: "/__prerender-404-check__", file: "not-found.html", waitForSelector: "footer" },
 ];
 
 async function snapshot(browser, port, route) {

@@ -35,6 +35,7 @@ const BODY_SNAPSHOT_FILE = {
   "/terms": "terms.html",
   "/verbola": "verbola.html",
   "/corporate": "corporate.html",
+  "/__prerender-404-check__": "not-found.html",
 };
 
 function readBodySnapshot(routePath) {
@@ -143,4 +144,23 @@ for (const route of routes) {
   mkdirSync(outDir, { recursive: true });
   writeFileSync(join(outDir, "index.html"), html);
   console.log(`prerender: ${route.path} → ${outDir.replace(root + "/", "")}/index.html`);
+}
+
+// dist/404.html (não dist/404/index.html): a Vercel serve este ficheiro com
+// status 404 real para qualquer pedido que não corresponda a nenhum rewrite
+// nem ficheiro estático (ver vercel.json — já não há um catch-all a devolver
+// sempre /index.html). O corpo vem do mesmo mecanismo de snapshot das outras
+// rotas (Route path="*" → NotFoundView), só que marcado noindex.
+{
+  const notFoundBlocks = [
+    `<title data-ssg>Página não encontrada | LisbonBBQ</title>`,
+    `<meta data-ssg name="robots" content="noindex" />`,
+  ];
+  let html = template.replace("</head>", `    ${notFoundBlocks.join("\n    ")}\n</head>`);
+  const bodySnapshot = readBodySnapshot("/__prerender-404-check__");
+  if (bodySnapshot) {
+    html = html.replace('<div id="root"></div>', `<div id="root">${bodySnapshot}</div>`);
+  }
+  writeFileSync(join(dist, "404.html"), html);
+  console.log(`prerender: 404 → dist/404.html`);
 }
