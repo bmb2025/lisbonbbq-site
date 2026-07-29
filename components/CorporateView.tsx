@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Flame, Check, MessageCircle, Images, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { LOCATIONS } from '../constants';
+import { responsiveImage } from '../services/responsiveImage';
 
 interface CorporateViewProps {
   lang: 'pt' | 'en';
@@ -425,7 +426,15 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
             {venues.map((venue, i) => (
               <div key={i} className="group border-4 border-bbq-black bg-bbq-cream text-bbq-black shadow-hard">
                 <div className="relative h-[330px] overflow-hidden cursor-zoom-in" onClick={() => setGallery({ name: venue.name, images: venue.images, index: venue.cover })}>
-                  <img src={venue.images[venue.cover]} alt={`${pt ? 'Espaço' : 'Venue'} ${venue.name}`} referrerPolicy="no-referrer" className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" />
+                  <img
+                    {...responsiveImage(venue.images[venue.cover])}
+                    sizes="(min-width: 1024px) 380px, (min-width: 640px) 50vw, 100vw"
+                    alt={`${pt ? 'Espaço' : 'Venue'} ${venue.name}`}
+                    referrerPolicy="no-referrer"
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                  />
                   <span className="absolute top-4 left-4 bg-bbq-yellow border-2 border-bbq-black shadow-hard-sm px-3 py-1 font-black uppercase text-xs tracking-wide">{venue.tag}</span>
                   <button
                     onClick={(e) => { e.stopPropagation(); setGallery({ name: venue.name, images: venue.images, index: venue.cover }); }}
@@ -454,7 +463,15 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
               {miniVenues.map((venue, i) => (
                 <div key={i} className="group border-4 border-bbq-black bg-bbq-cream text-bbq-black shadow-hard">
                   <div className="relative h-[150px] overflow-hidden border-b-4 border-bbq-black cursor-zoom-in" onClick={() => setGallery({ name: venue.name, images: venue.images, index: venue.cover })}>
-                    <img src={venue.images[venue.cover]} alt={`${pt ? 'Espaço' : 'Venue'} ${venue.name}`} referrerPolicy="no-referrer" className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" />
+                    <img
+                      {...responsiveImage(venue.images[venue.cover])}
+                      sizes="(min-width: 640px) 300px, 100vw"
+                      alt={`${pt ? 'Espaço' : 'Venue'} ${venue.name}`}
+                      referrerPolicy="no-referrer"
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                    />
                     <button
                       onClick={(e) => { e.stopPropagation(); setGallery({ name: venue.name, images: venue.images, index: venue.cover }); }}
                       aria-label={pt ? `Ver fotos de ${venue.name}` : `See photos of ${venue.name}`}
@@ -498,7 +515,14 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
               </p>
             </div>
             <div className="group border-4 border-bbq-black shadow-hard overflow-hidden">
-              <img src="/images/mesa-churrasco.webp" alt={pt ? 'Mesa de churrasco com carne grelhada, batatas fritas e salada' : 'Barbecue table with grilled meat, fries and salad'} className="block w-full h-[470px] object-cover transition-transform duration-700 ease-out group-hover:scale-110" />
+              <img
+                {...responsiveImage('/images/mesa-churrasco.webp')}
+                sizes="(min-width: 768px) 500px, 100vw"
+                alt={pt ? 'Mesa de churrasco com carne grelhada, batatas fritas e salada' : 'Barbecue table with grilled meat, fries and salad'}
+                loading="lazy"
+                decoding="async"
+                className="block w-full h-[470px] object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+              />
             </div>
           </div>
           <div className="mt-20">

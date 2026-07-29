@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { MapPin, Quote, Globe, ChefHat, Flame, Check, Camera, ImageOff, HelpCircle } from 'lucide-react';
+import { responsiveImage } from '../services/responsiveImage';
 
 interface LangProp {
   lang: 'pt' | 'en';
@@ -45,10 +46,13 @@ export const PackageCard: React.FC<{ onBook: () => void, lang: 'pt' | 'en', cust
           <div className="absolute top-0 left-0 w-full h-full bg-bbq-black translate-x-4 translate-y-4 -z-10 transition-transform group-hover:translate-x-6 group-hover:translate-y-6"></div>
           <div className="bg-white border-4 border-bbq-black overflow-hidden flex flex-col md:flex-row items-stretch">
             <div className="w-full md:w-1/2 h-80 md:h-auto overflow-hidden relative border-b-4 md:border-b-0 md:border-r-4 border-bbq-black bg-gray-50">
-              <img 
-                src={customImage || "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1200"} 
-                className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" 
-                alt={lang === 'pt' ? "Evento de churrasco premium ao ar livre em Lisboa com mestre churrasqueiro e carnes no fogo" : "Premium outdoor BBQ event in Lisbon with pitmaster and meats on the fire"} 
+              <img
+                {...responsiveImage(customImage || "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1200")}
+                sizes="(min-width: 768px) 50vw, 100vw"
+                className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                alt={lang === 'pt' ? "Evento de churrasco premium ao ar livre em Lisboa com mestre churrasqueiro e carnes no fogo" : "Premium outdoor BBQ event in Lisbon with pitmaster and meats on the fire"}
+                loading="lazy"
+                decoding="async"
                 onError={handleImgError}
               />
               <div className="absolute inset-0 flex items-center justify-center -z-10">
@@ -139,10 +143,13 @@ export const VenueGrid: React.FC<LangProp & { customImages?: string[] }> = ({ la
               key={i} 
               className="group relative aspect-[4/5] border-4 border-bbq-black shadow-hard overflow-hidden bg-bbq-black"
             >
-              <img 
-                src={img} 
-                className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-all duration-1000" 
-                alt={`${steps[i]?.[lang] || ''} - Lisbon Barbecue Service Visual Step ${i + 1}`} 
+              <img
+                {...responsiveImage(img)}
+                sizes="(min-width: 768px) 33vw, 100vw"
+                className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-all duration-1000"
+                alt={`${steps[i]?.[lang] || ''} - Lisbon Barbecue Service Visual Step ${i + 1}`}
+                loading="lazy"
+                decoding="async"
               />
               <div className="absolute top-4 left-4 bg-bbq-black text-bbq-yellow w-12 h-12 flex items-center justify-center font-black text-2xl border-2 border-bbq-yellow shadow-hard-sm">
                 0{i + 1}

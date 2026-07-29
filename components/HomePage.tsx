@@ -9,6 +9,7 @@ import { BookingState, CartItem, SlotTime, DailyWeather } from '../types';
 import { LOCATIONS, getAvailableVenues, TRADITION_MEATS, getFixedSides, FIXED_DRINKS, OWN_LOCATION_ID, OWN_LOCATION_NAME } from '../constants';
 import { getWeatherIcon } from '../services/weatherService';
 import { lookupPostalCode } from '../services/postalCodeService';
+import { responsiveImage } from '../services/responsiveImage';
 
 interface HomePageProps {
   lang: 'pt' | 'en';
@@ -658,7 +659,15 @@ export const HomePage: React.FC<HomePageProps> = ({
                     className={`text-left bg-white border-4 p-6 shadow-hard-sm flex flex-col group transition-all ${selected ? 'border-bbq-black ring-4 ring-bbq-yellow ring-inset' : 'border-bbq-black hover:border-bbq-red'}`}
                   >
                     <div className="aspect-square bg-gray-100 mb-4 border-2 border-bbq-black overflow-hidden relative">
-                      <img src={customAssets[`addon_${item.id}`] || item.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform" alt={item.name} onError={handleImgError} />
+                      <img
+                        {...responsiveImage(customAssets[`addon_${item.id}`] || item.image)}
+                        sizes="(min-width: 768px) 200px, 45vw"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                        alt={item.name}
+                        loading="lazy"
+                        decoding="async"
+                        onError={handleImgError}
+                      />
                       {selected && (
                         <div className="absolute top-2 right-2 bg-bbq-yellow border-2 border-bbq-black w-9 h-9 flex items-center justify-center shadow-hard-sm">
                           <Check size={20} strokeWidth={4} />
