@@ -10,7 +10,7 @@
 //   node scripts/generate-image-variants.mjs
 //
 // Depois faz commit dos ficheiros gerados em public/images/.
-import { writeFileSync, mkdirSync } from "node:fs";
+import { writeFileSync, mkdirSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
@@ -38,6 +38,20 @@ const SOURCES = [
   // maior ficheiro já gerado (o antigo public/images/mesa-churrasco.webp,
   // sem variantes, foi removido por estar duplicado).
   { source: join(outDir, "mesa-churrasco-1200.webp"), base: "mesa-churrasco" },
+  // Hero.webp é o único caso onde o original (824x448) é MENOR do que o
+  // que a homepage mostra (full-bleed, até 750px de altura) — daí o
+  // upscaling visível reportado na auditoria. Não existe um original maior
+  // disponível; em vez de deixar o browser esticar a imagem por CSS
+  // (bilinear, mais desfocado), gera-se aqui uma vez com Lanczos3 (melhor
+  // filtro de reamostragem do sharp) + leve sharpen, e o resultado fica
+  // fixo nestas larguras — não corre em cada build.
+  {
+    source: `${IMG}/Fotos/Hero.webp`,
+    base: "hero",
+    widths: [640, 1024, 1600, 1920, 2560],
+    allowEnlargement: true,
+    sharpen: true,
+  },
 ];
 
 async function loadSource(source) {
@@ -46,21 +60,26 @@ async function loadSource(source) {
     if (!res.ok) throw new Error(`${source} → ${res.status}`);
     return Buffer.from(await res.arrayBuffer());
   }
-  return source; // caminho local — sharp lê o ficheiro diretamente
+  // Lido para memória (não passado como caminho) — evita o erro do sharp
+  // quando a mesma variante já gerada serve de fonte para si própria.
+  return readFileSync(source);
 }
 
 async function main() {
   mkdirSync(outDir, { recursive: true });
-  for (const { source, base } of SOURCES) {
+  for (const { source, base, widths = WIDTHS, allowEnlargement = false, sharpen = false } of SOURCES) {
     const input = await loadSource(source);
-    for (const width of WIDTHS) {
+    for (const width of widths) {
       const outPath = join(outDir, `${base}-${width}.webp`);
-      await sharp(input)
-        .resize({ width, withoutEnlargement: true })
-        .webp({ quality: 78 })
-        .toFile(outPath);
+      let pipeline = sharp(input).resize({
+        width,
+        withoutEnlargement: !allowEnlargement,
+        kernel: sharp.kernel.lanczos3,
+      });
+      if (sharpen) pipeline = pipeline.sharpen();
+      await pipeline.webp({ quality: 78 }).toFile(outPath);
     }
-    console.log(`generate-image-variants: ${base} → ${WIDTHS.map((w) => `${base}-${w}.webp`).join(", ")}`);
+    console.log(`generate-image-variants: ${base} → ${widths.map((w) => `${base}-${w}.webp`).join(", ")}`);
   }
 }
 

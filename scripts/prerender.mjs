@@ -126,6 +126,13 @@ for (const route of routes) {
   else blocks.push(ld(breadcrumbs(route)));
   if (route.path === "/faqs") blocks.push(ld(faqPage));
   if (route.path === "/corporate") blocks.push(ld(corporateService));
+  // Preload do elemento LCP da homepage — só aqui, para não desperdiçar
+  // largura de banda nas outras rotas.
+  if (route.path === "/") {
+    blocks.push(
+      `<link data-ssg rel="preload" as="image" href="/images/hero-1920.webp" imagesrcset="/images/hero-640.webp 640w, /images/hero-1024.webp 1024w, /images/hero-1600.webp 1600w, /images/hero-1920.webp 1920w, /images/hero-2560.webp 2560w" imagesizes="100vw" />`
+    );
+  }
 
   let html = template.replace("</head>", `    ${blocks.join("\n    ")}\n</head>`);
   const bodySnapshot = readBodySnapshot(route.path);

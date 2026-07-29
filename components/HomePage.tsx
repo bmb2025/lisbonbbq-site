@@ -216,7 +216,15 @@ export const HomePage: React.FC<HomePageProps> = ({
 
       {/* HERO */}
       <div className="relative h-[750px] border-b-4 border-bbq-black overflow-hidden bg-bbq-black group">
-        <img src={customAssets.hero} className="w-full h-full object-cover opacity-70" alt="Hero BBQ" onError={handleImgError} />
+        <img
+          {...responsiveImage(customAssets.hero)}
+          sizes="100vw"
+          className="w-full h-full object-cover opacity-70"
+          alt="Hero BBQ"
+          loading="eager"
+          fetchPriority="high"
+          onError={handleImgError}
+        />
         <div className="absolute inset-0 z-20 bg-gradient-to-t from-black/95 via-black/30 to-black/50"></div>
         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center text-center p-4">
           <h1 className="text-5xl md:text-[8rem] font-black uppercase leading-none mb-6 text-white drop-shadow-[10px_10px_0px_#1A1A1A] tracking-tighter">
