@@ -375,7 +375,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                       className={`group relative border-4 p-4 text-left transition-all cursor-pointer ${isSelected ? 'bg-bbq-black border-bbq-black shadow-hard translate-y-[-4px]' : 'bg-white border-gray-100 hover:border-bbq-black'}`}
                     >
                       <div className="aspect-video bg-gray-200 mb-6 overflow-hidden border-2 border-bbq-black relative">
-                        <img src={customAssets[`loc_${loc.id}_0`] || loc.images[0]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={loc.name} onError={handleImgError} />
+                        <img src={customAssets[`loc_${loc.id}_0`] || loc.images[0]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={loc.name} loading="lazy" decoding="async" onError={handleImgError} />
                         <button
                           onClick={(e) => { e.stopPropagation(); setViewerLocationId(loc.id); setCurrentImageIndex(0); }}
                           className={`absolute bottom-4 right-4 flex items-center gap-2 text-[10px] font-black uppercase px-3 py-2 border-2 transition-all z-10 ${isSelected ? 'bg-white text-bbq-black border-white hover:bg-bbq-yellow' : 'bg-bbq-black text-white border-bbq-black hover:bg-bbq-red shadow-hard-sm'}`}
@@ -401,7 +401,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                       className={`group relative border-4 p-4 text-left transition-all cursor-pointer ${isSelected ? 'bg-bbq-black border-bbq-black shadow-hard translate-y-[-4px]' : 'bg-white border-gray-100 hover:border-bbq-black'}`}
                     >
                       <div className="aspect-video bg-bbq-cream mb-6 overflow-hidden border-2 border-bbq-black relative">
-                        <img src={customAssets.ownLocation} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={t.ownLocation} onError={handleImgError} />
+                        <img src={customAssets.ownLocation} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={t.ownLocation} loading="lazy" decoding="async" onError={handleImgError} />
                         <div className="absolute top-4 left-4 border-2 border-bbq-black px-3 py-1 text-[10px] font-black uppercase shadow-hard-sm bg-bbq-yellow">
                           {lang === 'pt' ? 'O teu espaço' : 'Your space'}
                         </div>

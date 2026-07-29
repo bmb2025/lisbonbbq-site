@@ -368,7 +368,7 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
             {conceptCards.map((card, i) => (
               <div key={i} className="group bg-white border-4 border-bbq-black shadow-hard transition-transform duration-150 hover:-translate-y-1">
                 <div className="h-[220px] overflow-hidden border-b-4 border-bbq-black">
-                  <img src={card.img} alt={card.alt} referrerPolicy="no-referrer" className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" />
+                  <img src={card.img} alt={card.alt} referrerPolicy="no-referrer" loading="lazy" decoding="async" className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" />
                 </div>
                 <div className="p-6">
                   <h3 className="m-0 mb-3 text-xl font-black uppercase tracking-tighter">{card.title}</h3>
