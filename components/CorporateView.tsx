@@ -71,23 +71,38 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
     return () => window.removeEventListener('keydown', onKey);
   }, [gallery]);
 
-  // Acessibilidade: quem pede menos movimento vê só o poster estático.
-  // Nos restantes casos, retoma o loop quando a tab volta a estar visível
-  // (o browser pausa vídeos em tabs em segundo plano).
+  // O vídeo do hero só é montado (e portanto só é transferido) em ecrãs a
+  // partir de tablet e quando o visitante não pediu menos movimento — em
+  // mobile e com prefers-reduced-motion mostra-se só o poster estático, que
+  // já está sempre presente por baixo. Evita puxar ~450KB de vídeo onde a
+  // maioria do tráfego de Search entra (mobile).
+  const [showVideo, setShowVideo] = useState(false);
   useEffect(() => {
+    const mqDesktop = window.matchMedia('(min-width: 768px)');
+    const mqMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setShowVideo(mqDesktop.matches && !mqMotion.matches);
+    update();
+    mqDesktop.addEventListener('change', update);
+    mqMotion.addEventListener('change', update);
+    return () => {
+      mqDesktop.removeEventListener('change', update);
+      mqMotion.removeEventListener('change', update);
+    };
+  }, []);
+
+  // Retoma o loop quando a tab volta a estar visível (o browser pausa
+  // vídeos em tabs em segundo plano).
+  useEffect(() => {
+    if (!showVideo) return;
     const vid = heroVideoRef.current;
     if (!vid) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      vid.pause();
-      return;
-    }
     const resume = () => {
       if (document.visibilityState === 'visible') vid.play().catch(() => {});
     };
     document.addEventListener('visibilitychange', resume);
     resume();
     return () => document.removeEventListener('visibilitychange', resume);
-  }, []);
+  }, [showVideo]);
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -294,17 +309,20 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
       {/* HERO */}
       <section className="relative min-h-[86vh] flex items-center overflow-hidden">
         <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/videos/hero-corporate-poster.webp')" }} />
-        <video
-          ref={heroVideoRef}
-          autoPlay
-          muted
-          loop
-          playsInline
-          poster="/videos/hero-corporate-poster.webp"
-          className="absolute inset-0 w-full h-full object-cover"
-        >
-          <source src="/videos/hero-corporate.mp4" type="video/mp4" />
-        </video>
+        {showVideo && (
+          <video
+            ref={heroVideoRef}
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster="/videos/hero-corporate-poster.webp"
+            className="absolute inset-0 w-full h-full object-cover"
+          >
+            <source src="/videos/hero-corporate.webm" type="video/webm" />
+            <source src="/videos/hero-corporate.mp4" type="video/mp4" />
+          </video>
+        )}
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.3) 55%, rgba(0,0,0,0.5))' }} />
         <div className="relative w-full max-w-6xl mx-auto text-center px-6 pt-28 pb-24">
           <h1 className="mx-auto max-w-[14ch] text-[clamp(48px,8.5vw,120px)] font-black uppercase tracking-tighter leading-[0.95] text-white [text-shadow:10px_10px_0_#1A1A1A]">
