@@ -370,7 +370,13 @@ export const HomePage: React.FC<HomePageProps> = ({
                   return (
                     <div
                       key={loc.id}
-                      onClick={() => { track('location_selected', { location_id: loc.id, location_name: loc.name, is_own_venue: false }); setBooking(prev => ({ ...prev, locationId: loc.id, tradition: null, slot: null })); }}
+                      onClick={() => {
+                        // If the card is already selected, re-clicking it is a visual no-op,
+                        // so open the photo/details viewer instead — that's what users expect.
+                        if (isSelected) { setViewerLocationId(loc.id); setCurrentImageIndex(0); return; }
+                        track('location_selected', { location_id: loc.id, location_name: loc.name, is_own_venue: false });
+                        setBooking(prev => ({ ...prev, locationId: loc.id, tradition: null, slot: null }));
+                      }}
                       className={`group relative border-4 p-4 text-left transition-all cursor-pointer ${isSelected ? 'bg-bbq-black border-bbq-black shadow-hard translate-y-[-4px]' : 'bg-white border-gray-100 hover:border-bbq-black'}`}
                     >
                       <div className="aspect-video bg-gray-200 mb-6 overflow-hidden border-2 border-bbq-black relative">
