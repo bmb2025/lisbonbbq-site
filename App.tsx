@@ -15,13 +15,14 @@ import { BlogList, ArticleDetail } from './components/BlogComponents';
 import { BlogAdmin } from './components/CMSComponents';
 import { EventPageView } from './components/EventPageView';
 import { SpotifyPlayer } from './components/SpotifyPlayer';
+import { NotFoundView } from './components/NotFoundView';
 import { ADD_ONS, LOCATIONS, DEFAULT_ASSETS, BRAZILIAN_MENUS, PORTUGUESE_MENUS, ARGENTINIAN_MENUS, OWN_LOCATION_ID, OWN_LOCATION_NAME } from './constants';
 import { BookingState, CartItem, DailyWeather, Article } from './types';
 import { getLisbonWeather } from './services/weatherService';
 import { cloudService } from './services/cloudService';
 import { track, identifyLead } from './services/analytics';
 import { fetchArticles, fetchArticleBySlug } from './services/gitCms';
-import { Routes, Route, Navigate, useNavigate, useParams, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
 
 const BOOKINGS_STORAGE_KEY = 'bbq_leads_db_v1';
 
@@ -478,7 +479,15 @@ const App: React.FC = () => {
         <Route path="/verbola" element={<><Header setView={setView} lang={lang} setLang={setLang} /><VerBolaView lang={lang} onBack={() => setView('booking')} /><Footer setView={setView} lang={lang} /></>} />
         <Route path="/admin" element={<BlogAdmin articles={articles} onSave={saveArticle} onDelete={deleteArticle} onBack={() => navigate('/blog')} />} />
         <Route path="/e/:slug" element={<EventPageView />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={
+          <>
+            <title>{lang === 'pt' ? 'Página não encontrada' : 'Page not found'} | LisbonBBQ</title>
+            <meta name="robots" content="noindex" />
+            <Header setView={setView} lang={lang} setLang={setLang} />
+            <NotFoundView lang={lang} onBack={() => setView('booking')} />
+            <Footer setView={setView} lang={lang} />
+          </>
+        } />
       </Routes>
       <SpotifyPlayer showQuote={showQuote} />
     </>

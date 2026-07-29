@@ -211,7 +211,7 @@ const EventHero: React.FC<{ event: EventRecord }> = ({ event }) => {
   return (
     <header className="relative border-b-4 border-bbq-black bg-bbq-black overflow-hidden">
       {event.hero_image_url && (
-        <img src={event.hero_image_url} alt={event.title} className="w-full h-[clamp(300px,48vh,480px)] object-cover opacity-50" style={{ filter: 'saturate(.9) contrast(1.05)' }} />
+        <img src={event.hero_image_url} alt={event.title} className="w-full h-[clamp(300px,48vh,480px)] object-cover opacity-50" style={{ filter: 'saturate(.9) contrast(1.05)' }} loading="eager" fetchPriority="high" />
       )}
       <div className="absolute inset-0 flex flex-col justify-end px-5 pb-9 pt-8">
         <div className="max-w-[960px] mx-auto w-full">

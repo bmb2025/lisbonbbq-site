@@ -40,7 +40,10 @@
     { "source": "/corporate", "destination": "/corporate/index.html" },
     { "source": "/privacy", "destination": "/privacy/index.html" },
     { "source": "/terms", "destination": "/terms/index.html" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/verbola", "destination": "/verbola/index.html" },
+    { "source": "/proposal", "destination": "/index.html" },
+    { "source": "/admin", "destination": "/index.html" },
+    { "source": "/e/:slug", "destination": "/index.html" }
   ],
   "headers": [
     {

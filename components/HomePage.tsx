@@ -9,6 +9,7 @@ import { BookingState, CartItem, SlotTime, DailyWeather } from '../types';
 import { LOCATIONS, getAvailableVenues, TRADITION_MEATS, getFixedSides, FIXED_DRINKS, OWN_LOCATION_ID, OWN_LOCATION_NAME } from '../constants';
 import { getWeatherIcon } from '../services/weatherService';
 import { lookupPostalCode } from '../services/postalCodeService';
+import { responsiveImage } from '../services/responsiveImage';
 
 interface HomePageProps {
   lang: 'pt' | 'en';
@@ -215,7 +216,15 @@ export const HomePage: React.FC<HomePageProps> = ({
 
       {/* HERO */}
       <div className="relative h-[750px] border-b-4 border-bbq-black overflow-hidden bg-bbq-black group">
-        <img src={customAssets.hero} className="w-full h-full object-cover opacity-70" alt="Hero BBQ" onError={handleImgError} />
+        <img
+          {...responsiveImage(customAssets.hero)}
+          sizes="100vw"
+          className="w-full h-full object-cover opacity-70"
+          alt="Hero BBQ"
+          loading="eager"
+          fetchPriority="high"
+          onError={handleImgError}
+        />
         <div className="absolute inset-0 z-20 bg-gradient-to-t from-black/95 via-black/30 to-black/50"></div>
         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center text-center p-4">
           <h1 className="text-5xl md:text-[8rem] font-black uppercase leading-none mb-6 text-white drop-shadow-[10px_10px_0px_#1A1A1A] tracking-tighter">
@@ -374,7 +383,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                       className={`group relative border-4 p-4 text-left transition-all cursor-pointer ${isSelected ? 'bg-bbq-black border-bbq-black shadow-hard translate-y-[-4px]' : 'bg-white border-gray-100 hover:border-bbq-black'}`}
                     >
                       <div className="aspect-video bg-gray-200 mb-6 overflow-hidden border-2 border-bbq-black relative">
-                        <img src={customAssets[`loc_${loc.id}_0`] || loc.images[0]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={loc.name} onError={handleImgError} />
+                        <img src={customAssets[`loc_${loc.id}_0`] || loc.images[0]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={loc.name} loading="lazy" decoding="async" onError={handleImgError} />
                         <button
                           onClick={(e) => { e.stopPropagation(); setViewerLocationId(loc.id); setCurrentImageIndex(0); }}
                           className={`absolute bottom-4 right-4 flex items-center gap-2 text-[10px] font-black uppercase px-3 py-2 border-2 transition-all z-10 ${isSelected ? 'bg-white text-bbq-black border-white hover:bg-bbq-yellow' : 'bg-bbq-black text-white border-bbq-black hover:bg-bbq-red shadow-hard-sm'}`}
@@ -400,7 +409,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                       className={`group relative border-4 p-4 text-left transition-all cursor-pointer ${isSelected ? 'bg-bbq-black border-bbq-black shadow-hard translate-y-[-4px]' : 'bg-white border-gray-100 hover:border-bbq-black'}`}
                     >
                       <div className="aspect-video bg-bbq-cream mb-6 overflow-hidden border-2 border-bbq-black relative">
-                        <img src={customAssets.ownLocation} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={t.ownLocation} onError={handleImgError} />
+                        <img src={customAssets.ownLocation} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={t.ownLocation} loading="lazy" decoding="async" onError={handleImgError} />
                         <div className="absolute top-4 left-4 border-2 border-bbq-black px-3 py-1 text-[10px] font-black uppercase shadow-hard-sm bg-bbq-yellow">
                           {lang === 'pt' ? 'O teu espaço' : 'Your space'}
                         </div>
@@ -658,7 +667,15 @@ export const HomePage: React.FC<HomePageProps> = ({
                     className={`text-left bg-white border-4 p-6 shadow-hard-sm flex flex-col group transition-all ${selected ? 'border-bbq-black ring-4 ring-bbq-yellow ring-inset' : 'border-bbq-black hover:border-bbq-red'}`}
                   >
                     <div className="aspect-square bg-gray-100 mb-4 border-2 border-bbq-black overflow-hidden relative">
-                      <img src={customAssets[`addon_${item.id}`] || item.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform" alt={item.name} onError={handleImgError} />
+                      <img
+                        {...responsiveImage(customAssets[`addon_${item.id}`] || item.image)}
+                        sizes="(min-width: 768px) 200px, 45vw"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                        alt={item.name}
+                        loading="lazy"
+                        decoding="async"
+                        onError={handleImgError}
+                      />
                       {selected && (
                         <div className="absolute top-2 right-2 bg-bbq-yellow border-2 border-bbq-black w-9 h-9 flex items-center justify-center shadow-hard-sm">
                           <Check size={20} strokeWidth={4} />

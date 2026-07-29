@@ -10,7 +10,7 @@ export const BlogCard: React.FC<{ article: Article; onClick: (slug: string) => v
       className="group cursor-pointer bg-white border-4 border-bbq-black shadow-hard hover:translate-y-[-4px] transition-all overflow-hidden"
     >
       <div className="aspect-video border-b-4 border-bbq-black overflow-hidden bg-gray-100">
-        <img src={article.coverImage} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" alt={article.title} />
+        <img src={article.coverImage} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" alt={article.title} loading="lazy" decoding="async" />
       </div>
       <div className="p-6">
         <div className="flex items-center gap-2 mb-3">
@@ -169,6 +169,8 @@ export const ArticleDetail: React.FC<{ article: Article; onBack: () => void; lan
               src={article.coverImage}
               className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000"
               alt={article.title}
+              loading="eager"
+              fetchPriority="high"
             />
           </div>
         </header>

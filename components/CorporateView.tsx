@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Flame, Check, MessageCircle, Images, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { LOCATIONS } from '../constants';
+import { responsiveImage } from '../services/responsiveImage';
 
 interface CorporateViewProps {
   lang: 'pt' | 'en';
@@ -71,23 +72,38 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
     return () => window.removeEventListener('keydown', onKey);
   }, [gallery]);
 
-  // Acessibilidade: quem pede menos movimento vê só o poster estático.
-  // Nos restantes casos, retoma o loop quando a tab volta a estar visível
-  // (o browser pausa vídeos em tabs em segundo plano).
+  // O vídeo do hero só é montado (e portanto só é transferido) em ecrãs a
+  // partir de tablet e quando o visitante não pediu menos movimento — em
+  // mobile e com prefers-reduced-motion mostra-se só o poster estático, que
+  // já está sempre presente por baixo. Evita puxar ~450KB de vídeo onde a
+  // maioria do tráfego de Search entra (mobile).
+  const [showVideo, setShowVideo] = useState(false);
   useEffect(() => {
+    const mqDesktop = window.matchMedia('(min-width: 768px)');
+    const mqMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setShowVideo(mqDesktop.matches && !mqMotion.matches);
+    update();
+    mqDesktop.addEventListener('change', update);
+    mqMotion.addEventListener('change', update);
+    return () => {
+      mqDesktop.removeEventListener('change', update);
+      mqMotion.removeEventListener('change', update);
+    };
+  }, []);
+
+  // Retoma o loop quando a tab volta a estar visível (o browser pausa
+  // vídeos em tabs em segundo plano).
+  useEffect(() => {
+    if (!showVideo) return;
     const vid = heroVideoRef.current;
     if (!vid) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      vid.pause();
-      return;
-    }
     const resume = () => {
       if (document.visibilityState === 'visible') vid.play().catch(() => {});
     };
     document.addEventListener('visibilitychange', resume);
     resume();
     return () => document.removeEventListener('visibilitychange', resume);
-  }, []);
+  }, [showVideo]);
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -294,17 +310,20 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
       {/* HERO */}
       <section className="relative min-h-[86vh] flex items-center overflow-hidden">
         <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/videos/hero-corporate-poster.webp')" }} />
-        <video
-          ref={heroVideoRef}
-          autoPlay
-          muted
-          loop
-          playsInline
-          poster="/videos/hero-corporate-poster.webp"
-          className="absolute inset-0 w-full h-full object-cover"
-        >
-          <source src="/videos/hero-corporate.mp4" type="video/mp4" />
-        </video>
+        {showVideo && (
+          <video
+            ref={heroVideoRef}
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster="/videos/hero-corporate-poster.webp"
+            className="absolute inset-0 w-full h-full object-cover"
+          >
+            <source src="/videos/hero-corporate.webm" type="video/webm" />
+            <source src="/videos/hero-corporate.mp4" type="video/mp4" />
+          </video>
+        )}
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.3) 55%, rgba(0,0,0,0.5))' }} />
         <div className="relative w-full max-w-6xl mx-auto text-center px-6 pt-28 pb-24">
           <h1 className="mx-auto max-w-[14ch] text-[clamp(48px,8.5vw,120px)] font-black uppercase tracking-tighter leading-[0.95] text-white [text-shadow:10px_10px_0_#1A1A1A]">
@@ -349,7 +368,7 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
             {conceptCards.map((card, i) => (
               <div key={i} className="group bg-white border-4 border-bbq-black shadow-hard transition-transform duration-150 hover:-translate-y-1">
                 <div className="h-[220px] overflow-hidden border-b-4 border-bbq-black">
-                  <img src={card.img} alt={card.alt} referrerPolicy="no-referrer" className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" />
+                  <img src={card.img} alt={card.alt} referrerPolicy="no-referrer" loading="lazy" decoding="async" className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" />
                 </div>
                 <div className="p-6">
                   <h3 className="m-0 mb-3 text-xl font-black uppercase tracking-tighter">{card.title}</h3>
@@ -407,7 +426,15 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
             {venues.map((venue, i) => (
               <div key={i} className="group border-4 border-bbq-black bg-bbq-cream text-bbq-black shadow-hard">
                 <div className="relative h-[330px] overflow-hidden cursor-zoom-in" onClick={() => setGallery({ name: venue.name, images: venue.images, index: venue.cover })}>
-                  <img src={venue.images[venue.cover]} alt={`${pt ? 'Espaço' : 'Venue'} ${venue.name}`} referrerPolicy="no-referrer" className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" />
+                  <img
+                    {...responsiveImage(venue.images[venue.cover])}
+                    sizes="(min-width: 1024px) 380px, (min-width: 640px) 50vw, 100vw"
+                    alt={`${pt ? 'Espaço' : 'Venue'} ${venue.name}`}
+                    referrerPolicy="no-referrer"
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                  />
                   <span className="absolute top-4 left-4 bg-bbq-yellow border-2 border-bbq-black shadow-hard-sm px-3 py-1 font-black uppercase text-xs tracking-wide">{venue.tag}</span>
                   <button
                     onClick={(e) => { e.stopPropagation(); setGallery({ name: venue.name, images: venue.images, index: venue.cover }); }}
@@ -436,7 +463,15 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
               {miniVenues.map((venue, i) => (
                 <div key={i} className="group border-4 border-bbq-black bg-bbq-cream text-bbq-black shadow-hard">
                   <div className="relative h-[150px] overflow-hidden border-b-4 border-bbq-black cursor-zoom-in" onClick={() => setGallery({ name: venue.name, images: venue.images, index: venue.cover })}>
-                    <img src={venue.images[venue.cover]} alt={`${pt ? 'Espaço' : 'Venue'} ${venue.name}`} referrerPolicy="no-referrer" className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" />
+                    <img
+                      {...responsiveImage(venue.images[venue.cover])}
+                      sizes="(min-width: 640px) 300px, 100vw"
+                      alt={`${pt ? 'Espaço' : 'Venue'} ${venue.name}`}
+                      referrerPolicy="no-referrer"
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                    />
                     <button
                       onClick={(e) => { e.stopPropagation(); setGallery({ name: venue.name, images: venue.images, index: venue.cover }); }}
                       aria-label={pt ? `Ver fotos de ${venue.name}` : `See photos of ${venue.name}`}
@@ -480,7 +515,14 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
               </p>
             </div>
             <div className="group border-4 border-bbq-black shadow-hard overflow-hidden">
-              <img src="/images/mesa-churrasco.webp" alt={pt ? 'Mesa de churrasco com carne grelhada, batatas fritas e salada' : 'Barbecue table with grilled meat, fries and salad'} className="block w-full h-[470px] object-cover transition-transform duration-700 ease-out group-hover:scale-110" />
+              <img
+                {...responsiveImage('/images/mesa-churrasco.webp')}
+                sizes="(min-width: 768px) 500px, 100vw"
+                alt={pt ? 'Mesa de churrasco com carne grelhada, batatas fritas e salada' : 'Barbecue table with grilled meat, fries and salad'}
+                loading="lazy"
+                decoding="async"
+                className="block w-full h-[470px] object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+              />
             </div>
           </div>
           <div className="mt-20">

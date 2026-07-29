@@ -47,6 +47,12 @@
       "title": "Termos e Condições | LisbonBBQ",
       "description": "Termos e condições do serviço LisbonBBQ.",
       "breadcrumb": "Termos e Condições"
+    },
+    {
+      "path": "/verbola",
+      "title": "Mundial 2026 em Lisboa | LisbonBBQ",
+      "description": "Vê os jogos do Mundial 2026 num churrasco em Lisboa. Consulta o calendário dos jogos e junta o convívio ao futebol.",
+      "breadcrumb": "Mundial 2026"
     }
   ]
 }
