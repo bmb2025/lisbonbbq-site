@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build && node scripts/prerender.mjs",
     "preview": "vite preview",
-    "prerender:corporate": "node scripts/prerender-corporate.mjs",
+    "prerender:snapshots": "node scripts/prerender-snapshots.mjs",
     "lint": "tsc --noEmit"
   },
   "dependencies": {

@@ -5,28 +5,47 @@
 // no HTML inicial sem depender de JavaScript. As tags injetadas levam
 // data-ssg e são removidas no arranque da SPA (App.tsx), quando o componente
 // Seo assume via React 19.
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = join(root, "dist");
+const bodyDir = join(root, "seo/body");
 const SITE = "https://lisbonbbq.pt";
 
 const { routes } = JSON.parse(readFileSync(join(root, "seo/seo-data.json"), "utf8"));
 const faqs = JSON.parse(readFileSync(join(root, "seo/faqs.json"), "utf8"));
 const template = readFileSync(join(dist, "index.html"), "utf8");
 
-// /corporate é a única rota com o conteúdo do <body> pré-renderizado (não só o
-// <head>) — importa para o AdsBot/Google Ads verem a página cheia sem depender
-// de JS. O snapshot é gerado à parte (npm run prerender:corporate, que usa um
-// browser real) porque correr um browser no build da Vercel seria frágil; aqui
-// é só string splicing, sem dependências novas no build de produção.
-let corporateBody = null;
-try {
-  corporateBody = readFileSync(join(root, "seo/corporate-body.html"), "utf8");
-} catch {
-  console.warn("prerender: seo/corporate-body.html não encontrado — /corporate fica só com <head> pré-renderizado. Corre `npm run build && npm run prerender:corporate` para gerar.");
+// Algumas rotas têm o conteúdo do <body> pré-renderizado (não só o <head>) —
+// importa para o AdsBot/Google verem a página cheia sem depender de JS. Os
+// snapshots são gerados à parte (npm run build && npm run prerender:snapshots,
+// que usa um browser real) porque correr um browser no build da Vercel seria
+// frágil; aqui é só string splicing, sem dependências novas no build de
+// produção. Ficheiros em seo/body/<nome>.html, um por rota — ver
+// scripts/prerender-snapshots.mjs para o mapeamento rota → ficheiro.
+const BODY_SNAPSHOT_FILE = {
+  "/": "home.html",
+  "/blog": "blog.html",
+  "/quem-somos": "quem-somos.html",
+  "/faqs": "faqs.html",
+  "/espaco-para-eventos-pequenos": "espaco-para-eventos-pequenos.html",
+  "/privacy": "privacy.html",
+  "/terms": "terms.html",
+  "/verbola": "verbola.html",
+  "/corporate": "corporate.html",
+};
+
+function readBodySnapshot(routePath) {
+  const file = BODY_SNAPSHOT_FILE[routePath];
+  if (!file) return null;
+  const filePath = join(bodyDir, file);
+  if (!existsSync(filePath)) {
+    console.warn(`prerender: seo/body/${file} não encontrado — ${routePath} fica só com <head> pré-renderizado. Corre \`npm run build && npm run prerender:snapshots\` para gerar.`);
+    return null;
+  }
+  return readFileSync(filePath, "utf8");
 }
 
 const esc = (s) =>
@@ -109,8 +128,9 @@ for (const route of routes) {
   if (route.path === "/corporate") blocks.push(ld(corporateService));
 
   let html = template.replace("</head>", `    ${blocks.join("\n    ")}\n</head>`);
-  if (route.path === "/corporate" && corporateBody) {
-    html = html.replace('<div id="root"></div>', `<div id="root">${corporateBody}</div>`);
+  const bodySnapshot = readBodySnapshot(route.path);
+  if (bodySnapshot) {
+    html = html.replace('<div id="root"></div>', `<div id="root">${bodySnapshot}</div>`);
   }
   const outDir = route.path === "/" ? dist : join(dist, route.path.slice(1));
   mkdirSync(outDir, { recursive: true });
