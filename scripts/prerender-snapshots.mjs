@@ -20,6 +20,7 @@ import { chromium } from "playwright";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = join(root, "dist");
 const bodyDir = join(root, "seo/body");
+const SITE = "https://lisbonbbq.pt";
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -84,7 +85,15 @@ async function snapshot(browser, port, route) {
     await page.waitForSelector(route.waitForSelector, { timeout: 30000 });
     await page.waitForTimeout(500);
 
-    const bodyHtml = await page.$eval("#root", (el) => el.innerHTML);
+    // Alguns componentes (ex.: VerBolaView) constroem links absolutos a
+    // partir de window.location.origin — aqui isso é sempre o servidor
+    // estático local (http://localhost:<porta efémera>), nunca o domínio de
+    // produção. Substitui pelo domínio real para não ficar uma porta local
+    // congelada no HTML servido a utilizadores/crawlers.
+    const bodyHtml = (await page.$eval("#root", (el) => el.innerHTML)).replaceAll(
+      `http://localhost:${port}`,
+      SITE
+    );
     mkdirSync(bodyDir, { recursive: true });
     writeFileSync(
       join(bodyDir, route.file),
