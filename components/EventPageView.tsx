@@ -254,10 +254,27 @@ const EventCountdown: React.FC<{ event: EventRecord }> = ({ event }) => {
 };
 
 const EventEssential: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) => {
-  const bboxDelta = 0.007;
-  const bbox = event.lat && event.lng
-    ? `${event.lng - bboxDelta}%2C${event.lat - bboxDelta}%2C${event.lng + bboxDelta}%2C${event.lat + bboxDelta}`
+  // `!= null` on purpose: a real 0 coordinate must not be treated as missing.
+  const hasCoords = event.lat != null && event.lng != null;
+  const [mapLoaded, setMapLoaded] = useState(false);
+
+  // Where the map region points: prefer the human address, fall back to coords.
+  const mapsUrl = event.venue_address
+    ? `https://maps.google.com/?q=${encodeURIComponent(event.venue_address)}`
+    : hasCoords
+      ? `https://maps.google.com/?q=${event.lat}%2C${event.lng}`
+      : null;
+
+  // Widen the longitude span by 1/cos(lat) so the box covers roughly equal
+  // ground east-west and north-south — a single shared delta squashes the view
+  // at Lisbon's latitude, where a degree of longitude is much shorter than a
+  // degree of latitude.
+  const latDelta = 0.006;
+  const lngDelta = hasCoords ? latDelta / Math.cos((event.lat! * Math.PI) / 180) : latDelta;
+  const bbox = hasCoords
+    ? `${event.lng! - lngDelta}%2C${event.lat! - latDelta}%2C${event.lng! + lngDelta}%2C${event.lat! + latDelta}`
     : null;
+
   return (
     <section className="py-16 border-b-4 border-bbq-black">
       <div className="max-w-[960px] mx-auto px-5">
@@ -273,10 +290,33 @@ const EventEssential: React.FC<{ event: EventRecord; n: string }> = ({ event, n 
             ))}
           </div>
         )}
-        {bbox && (
-          <div className="border-4 border-bbq-black shadow-hard-sm overflow-hidden h-[260px] bg-[#dcd8cd]">
-            <iframe title="Mapa do local" loading="lazy" className="w-full h-full border-0" src={`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${event.lat}%2C${event.lng}`} />
-          </div>
+        {bbox && mapsUrl && (
+          // The whole region is a link to Maps, so even if the third-party OSM
+          // embed is slow, rate-limited, or blocked it degrades to a clickable
+          // "open in Maps" tile instead of a dead grey box. The interactive
+          // embed is layered on top and only revealed once it actually loads.
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener"
+            aria-label="Ver o local no mapa"
+            className="group relative block border-4 border-bbq-black shadow-hard-sm overflow-hidden h-[260px] bg-[#dcd8cd] text-bbq-black no-underline"
+          >
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-6 pointer-events-none">
+              <MapPin size={34} strokeWidth={2.5} />
+              {event.venue_name && <div className="font-black uppercase text-sm tracking-wide">{event.venue_name}</div>}
+              {event.venue_address && <div className="text-xs opacity-70 max-w-[300px] leading-snug">{event.venue_address}</div>}
+              <div className="text-[11px] font-black uppercase tracking-widest underline mt-1">Abrir mapa</div>
+            </div>
+            <iframe
+              title="Mapa do local"
+              loading="lazy"
+              onLoad={() => setMapLoaded(true)}
+              onError={() => setMapLoaded(false)}
+              className={`absolute inset-0 w-full h-full border-0 transition-opacity duration-300 ${mapLoaded ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+              src={`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${event.lat}%2C${event.lng}`}
+            />
+          </a>
         )}
         {event.venue_address && (
           <div className="flex gap-3 flex-wrap mt-5">
