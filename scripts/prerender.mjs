@@ -33,7 +33,6 @@ const BODY_SNAPSHOT_FILE = {
   "/espaco-para-eventos-pequenos": "espaco-para-eventos-pequenos.html",
   "/privacy": "privacy.html",
   "/terms": "terms.html",
-  "/verbola": "verbola.html",
   "/corporate": "corporate.html",
   "/__prerender-404-check__": "not-found.html",
 };

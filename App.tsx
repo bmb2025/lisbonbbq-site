@@ -9,7 +9,6 @@ import { LegalView } from './components/LegalView';
 import { FAQView } from './components/FAQView';
 import { QuemSomosView } from './components/QuemSomosView';
 import { CorporateView } from './components/CorporateView';
-import { VerBolaView } from './components/VerBolaView';
 import { SmallEventsView } from './components/SmallEventsView';
 import { BlogList, ArticleDetail } from './components/BlogComponents';
 import { BlogAdmin } from './components/CMSComponents';
@@ -40,7 +39,7 @@ const ScrollToTop: React.FC = () => {
 interface ViewProps {
   lang: 'pt' | 'en';
   setLang: (l: 'pt' | 'en') => void;
-  setView: (v: 'booking' | 'proposal' | 'privacy' | 'terms' | 'blog' | 'cms' | 'faqs' | 'about' | 'corporate' | 'verbola') => void;
+  setView: (v: 'booking' | 'proposal' | 'privacy' | 'terms' | 'blog' | 'cms' | 'faqs' | 'about' | 'corporate') => void;
 }
 
 const BlogListPage: React.FC<ViewProps & { articles: Article[], onArticleClick: (s: string) => void }> = ({
@@ -186,7 +185,7 @@ const App: React.FC = () => {
     getLisbonWeather().then(setWeatherData);
   }, []);
 
-  const setView = (view: 'booking' | 'proposal' | 'privacy' | 'terms' | 'blog' | 'cms' | 'faqs' | 'about' | 'corporate' | 'verbola') => {
+  const setView = (view: 'booking' | 'proposal' | 'privacy' | 'terms' | 'blog' | 'cms' | 'faqs' | 'about' | 'corporate') => {
     if (view === 'booking') setLeadSource('direct');
     switch (view) {
       case 'booking': navigate('/'); break;
@@ -198,7 +197,6 @@ const App: React.FC = () => {
       case 'faqs': navigate('/faqs'); break;
       case 'about': navigate('/quem-somos'); break;
       case 'corporate': navigate('/corporate'); break;
-      case 'verbola': navigate('/verbola'); break;
       default: navigate('/'); break;
     }
   };
@@ -476,7 +474,6 @@ const App: React.FC = () => {
           if (el) el.scrollIntoView({ behavior: 'smooth' });
           else scrollToBooking();
         }} onSubmit={handleCorporateSubmit} isSending={isSending} /><Footer setView={setView} lang={lang} /></>} />
-        <Route path="/verbola" element={<><Header setView={setView} lang={lang} setLang={setLang} /><VerBolaView lang={lang} onBack={() => setView('booking')} /><Footer setView={setView} lang={lang} /></>} />
         <Route path="/admin" element={<BlogAdmin articles={articles} onSave={saveArticle} onDelete={deleteArticle} onBack={() => navigate('/blog')} />} />
         <Route path="/e/:slug" element={<EventPageView />} />
         <Route path="*" element={

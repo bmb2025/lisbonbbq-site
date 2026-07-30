@@ -3,7 +3,7 @@ import React from 'react';
 import { Flame, Instagram, Linkedin, Twitter } from 'lucide-react';
 
 interface FooterProps {
-  setView: (view: 'booking' | 'proposal' | 'privacy' | 'terms' | 'blog' | 'cms' | 'faqs' | 'about' | 'corporate' | 'verbola') => void;
+  setView: (view: 'booking' | 'proposal' | 'privacy' | 'terms' | 'blog' | 'cms' | 'faqs' | 'about' | 'corporate') => void;
   lang: 'pt' | 'en';
 }
 
@@ -35,7 +35,6 @@ export const Footer: React.FC<FooterProps> = ({ setView, lang }) => {
               <li><button onClick={() => setView('about')} className="hover:text-bbq-red transition-colors text-left w-full uppercase">{lang === 'pt' ? 'Quem Somos' : 'About Us'}</button></li>
               <li><button onClick={() => setView('blog')} className="hover:text-bbq-red transition-colors text-left w-full uppercase">Blog</button></li>
               <li><button onClick={() => setView('faqs')} className="hover:text-bbq-red transition-colors text-left w-full uppercase">FAQs</button></li>
-              <li><button onClick={() => setView('verbola')} className="hover:text-bbq-yellow text-bbq-red transition-colors text-left w-full uppercase">{lang === 'pt' ? 'Mundial 2026 ⚽' : 'World Cup 2026 ⚽'}</button></li>
            </ul>
         </div>
 

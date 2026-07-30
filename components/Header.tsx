@@ -4,7 +4,7 @@ import { Flame } from 'lucide-react';
 import { track } from '../services/analytics';
 
 interface HeaderProps {
-  setView: (view: 'booking' | 'proposal' | 'privacy' | 'terms' | 'blog' | 'cms' | 'faqs' | 'about' | 'corporate' | 'verbola') => void;
+  setView: (view: 'booking' | 'proposal' | 'privacy' | 'terms' | 'blog' | 'cms' | 'faqs' | 'about' | 'corporate') => void;
   lang: 'pt' | 'en';
   setLang: (lang: 'pt' | 'en') => void;
 }
