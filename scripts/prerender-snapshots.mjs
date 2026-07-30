@@ -5,7 +5,7 @@
 //
 // Corre isto manualmente sempre que o conteúdo destas rotas mudar
 // (Header, Footer, HomePage, BlogList, QuemSomosView, FAQView,
-// SmallEventsView, LegalView, VerBolaView, CorporateView):
+// SmallEventsView, LegalView, CorporateView):
 //
 //   npm run build && npm run prerender:snapshots
 //
@@ -68,7 +68,6 @@ const ROUTES = [
   { path: "/espaco-para-eventos-pequenos", file: "espaco-para-eventos-pequenos.html", waitForSelector: "footer" },
   { path: "/privacy", file: "privacy.html", waitForSelector: "footer" },
   { path: "/terms", file: "terms.html", waitForSelector: "footer" },
-  { path: "/verbola", file: "verbola.html", waitForSelector: "footer" },
   // /corporate é gerado aqui também para deixar de haver dois scripts a fazer
   // a mesma coisa — substitui o antigo scripts/prerender-corporate.mjs.
   { path: "/corporate", file: "corporate.html", waitForSelector: "#proposta" },
@@ -88,7 +87,7 @@ async function snapshot(browser, port, route) {
     await page.waitForSelector(route.waitForSelector, { timeout: 30000 });
     await page.waitForTimeout(500);
 
-    // Alguns componentes (ex.: VerBolaView) constroem links absolutos a
+    // Alguns componentes (ex.: CorporateView) constroem links absolutos a
     // partir de window.location.origin — aqui isso é sempre o servidor
     // estático local (http://localhost:<porta efémera>), nunca o domínio de
     // produção. Substitui pelo domínio real para não ficar uma porta local

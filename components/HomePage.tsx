@@ -14,7 +14,7 @@ import { responsiveImage } from '../services/responsiveImage';
 interface HomePageProps {
   lang: 'pt' | 'en';
   setLang: (l: 'pt' | 'en') => void;
-  setView: (v: 'booking' | 'proposal' | 'privacy' | 'terms' | 'blog' | 'cms' | 'faqs' | 'about' | 'corporate' | 'verbola') => void;
+  setView: (v: 'booking' | 'proposal' | 'privacy' | 'terms' | 'blog' | 'cms' | 'faqs' | 'about' | 'corporate') => void;
   booking: BookingState;
   setBooking: React.Dispatch<React.SetStateAction<BookingState>>;
   cart: CartItem[];
