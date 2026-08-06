@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { EVENT_SOCIALS } from '../constants';
 import { EventRecord, EventMenuItem, DailyWeather } from '../types';
+import { WelcomeDrinkPopup } from './WelcomeDrinkPopup';
 
 const DIET_OPTIONS: { value: string; icon: string; label: string }[] = [
   { value: 'nenhuma', icon: '🥩', label: 'Como de tudo' },
@@ -170,6 +171,7 @@ export const EventPageView: React.FC = () => {
     <div className="bg-bbq-cream text-bbq-black font-sans">
       <meta name="robots" content="noindex, nofollow" />
       <title>{event.title} · LisbonBBQ</title>
+      <WelcomeDrinkPopup event={event} />
       <EventTopBar event={event} />
       <EventHero event={event} />
       <EventCountdown event={event} />
