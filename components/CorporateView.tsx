@@ -213,7 +213,7 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
       text: pt
         ? 'Rooftop com Lisboa e o rio aos pés. O cenário certo para summer parties em grande.'
         : 'A rooftop with Lisbon and the river at your feet. The right stage for summer parties at scale.',
-      capacity: pt ? '100–300 pessoas' : '100–300 people'
+      capacity: pt ? '80–300 pessoas' : '80–300 people'
     },
     {
       images: venueImages('musa_marvila'),
