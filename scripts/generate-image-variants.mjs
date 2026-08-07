@@ -23,7 +23,7 @@ const IMG = "https://mlqdpjiolbyewcumvajn.supabase.co/storage/v1/object/public/l
 // source: URL remota ou caminho local (já em public/images/) da imagem
 // original. base: prefixo dos ficheiros gerados (public/images/<base>-<w>.webp).
 const SOURCES = [
-  { source: `${IMG}/Fotos/Locais/Alcantara/Alcantara1.webp`, base: "alcantara1" },
+  { source: `${IMG}/Fotos/Locais/Alcantara/AlcantaraN6.webp`, base: "alcantara1" },
   { source: `${IMG}/Fotos/Locais/Expo/Expo1_A.webp`, base: "expo1-a" },
   { source: `${IMG}/Fotos/Locais/Marvila/Marvila2.webp`, base: "marvila2" },
   { source: `${IMG}/Fotos/Locais/Tapadinha/Tapa1.webp`, base: "tapa1" },

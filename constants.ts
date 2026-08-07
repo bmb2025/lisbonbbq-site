@@ -223,18 +223,17 @@ export const LOCATIONS: VenueLocation[] = [
     name: 'Alcântara',
     description: 'Um churrasco num rooftop com uma vista incrível sobre Lisboa, onde cada momento pede para ser vivido.',
     images: [
+      `${IMG}/Fotos/Locais/Alcantara/AlcantaraN6.webp`,
       `${IMG}/Fotos/Locais/Alcantara/Alcantara1.webp`,
       `${IMG}/Fotos/Locais/Alcantara/Alcantara2.webp`,
       `${IMG}/Fotos/Locais/Alcantara/AlcantaraN1.webp`,
       `${IMG}/Fotos/Locais/Alcantara/AlcantaraN2.webp`,
       `${IMG}/Fotos/Locais/Alcantara/AlcantaraN3.webp`,
-      `${IMG}/Fotos/Locais/Alcantara/AlcantaraN4.webp`,
       `${IMG}/Fotos/Locais/Alcantara/AlcantaraN5.webp`,
-      `${IMG}/Fotos/Locais/Alcantara/AlcantaraN6.webp`,
       `${IMG}/Fotos/Locais/Alcantara/AlcantaraNX.webp`,
       `${IMG}/Fotos/Locais/Alcantara/AlcantaraNY.webp`
     ],
-    minGuests: 100,
+    minGuests: 80,
     maxGuests: 300,
     availableDays: [0, 1, 2, 3, 4, 6] // every day except Friday
   }

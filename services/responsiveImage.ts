@@ -6,7 +6,7 @@ const IMG = "https://mlqdpjiolbyewcumvajn.supabase.co/storage/v1/object/public/l
 const DEFAULT_WIDTHS = [400, 800, 1200];
 
 const LOCAL_VARIANTS: Record<string, { base: string; widths?: number[] }> = {
-  [`${IMG}/Fotos/Locais/Alcantara/Alcantara1.webp`]: { base: "alcantara1" },
+  [`${IMG}/Fotos/Locais/Alcantara/AlcantaraN6.webp`]: { base: "alcantara1" },
   [`${IMG}/Fotos/Locais/Expo/Expo1_A.webp`]: { base: "expo1-a" },
   [`${IMG}/Fotos/Locais/Marvila/Marvila2.webp`]: { base: "marvila2" },
   [`${IMG}/Fotos/Locais/Tapadinha/Tapa1.webp`]: { base: "tapa1" },
