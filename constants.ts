@@ -124,7 +124,11 @@ export const LOCATIONS: VenueLocation[] = [
     images: [
       `${IMG}/Fotos/Locais/Tapadinha/Tapa1.webp`,
       `${IMG}/Fotos/Locais/Tapadinha/Tapa2.webp`,
-      `${IMG}/Fotos/Locais/Tapadinha/Tapa3.webp`
+      `${IMG}/Fotos/Locais/Tapadinha/Tapa3.webp`,
+      `${IMG}/Fotos/Locais/Tapadinha/Tapa_1.webp`,
+      `${IMG}/Fotos/Locais/Tapadinha/Tapa_2.webp`,
+      `${IMG}/Fotos/Locais/Tapadinha/Tapa_3.webp`,
+      `${IMG}/Fotos/Locais/Tapadinha/Tapa_4.webp`
     ],
     minGuests: 80,
     maxGuests: 1000
@@ -162,7 +166,10 @@ export const LOCATIONS: VenueLocation[] = [
       `${IMG}/Fotos/Locais/Expo/Expo1_A.webp`,
       `${IMG}/Fotos/Locais/Expo/Expo1_E.webp`,
       `${IMG}/Fotos/Locais/Expo/Expo1_D.webp`,
-      `${IMG}/Fotos/Locais/Expo/Expo1_C.webp`
+      `${IMG}/Fotos/Locais/Expo/Expo1_C.webp`,
+      `${IMG}/Fotos/Locais/Expo/ExpoN1.webp`,
+      `${IMG}/Fotos/Locais/Expo/ExpoN2.webp`,
+      `${IMG}/Fotos/Locais/Expo/ExpoN3.webp`
     ],
     minGuests: 30,
     maxGuests: 500,
@@ -217,7 +224,15 @@ export const LOCATIONS: VenueLocation[] = [
     description: 'Um churrasco num rooftop com uma vista incrível sobre Lisboa, onde cada momento pede para ser vivido.',
     images: [
       `${IMG}/Fotos/Locais/Alcantara/Alcantara1.webp`,
-      `${IMG}/Fotos/Locais/Alcantara/Alcantara2.webp`
+      `${IMG}/Fotos/Locais/Alcantara/Alcantara2.webp`,
+      `${IMG}/Fotos/Locais/Alcantara/AlcantaraN1.webp`,
+      `${IMG}/Fotos/Locais/Alcantara/AlcantaraN2.webp`,
+      `${IMG}/Fotos/Locais/Alcantara/AlcantaraN3.webp`,
+      `${IMG}/Fotos/Locais/Alcantara/AlcantaraN4.webp`,
+      `${IMG}/Fotos/Locais/Alcantara/AlcantaraN5.webp`,
+      `${IMG}/Fotos/Locais/Alcantara/AlcantaraN6.webp`,
+      `${IMG}/Fotos/Locais/Alcantara/AlcantaraNX.webp`,
+      `${IMG}/Fotos/Locais/Alcantara/AlcantaraNY.webp`
     ],
     minGuests: 100,
     maxGuests: 300,
