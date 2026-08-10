@@ -47,6 +47,14 @@ export const ARGENTINIAN_SIDES: SideDish[] = [
 
 export const ADD_ONS: AddOnItem[] = [
   {
+    id: 'open_bar',
+    name: 'Bar aberto',
+    description: 'Serviço de bar aberto com bebidas à descrição durante todo o evento. Opcional.',
+    unit: 'evento',
+    category: 'service',
+    image: `${IMG}/Fotos/Bar.webp`
+  },
+  {
     id: 'birthday_pack',
     name: 'Pack Aniversário',
     description: 'Inclui balões númericos cheios com hélio, velas e bolo de aniversário.',
@@ -101,14 +109,6 @@ export const ADD_ONS: AddOnItem[] = [
     unit: 'unidade',
     category: 'service',
     image: `${IMG}/Fotos/escorrega-palmeiras1.jpeg`
-  },
-  {
-    id: 'open_bar',
-    name: 'Bar aberto',
-    description: 'Serviço de bar aberto com bebidas à descrição durante todo o evento. Opcional.',
-    unit: 'evento',
-    category: 'service',
-    image: `${IMG}/Fotos/Bar.webp`
   }
 ];
 

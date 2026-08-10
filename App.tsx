@@ -13,7 +13,6 @@ import { SmallEventsView } from './components/SmallEventsView';
 import { BlogList, ArticleDetail } from './components/BlogComponents';
 import { BlogAdmin } from './components/CMSComponents';
 import { EventPageView } from './components/EventPageView';
-import { SpotifyPlayer } from './components/SpotifyPlayer';
 import { NotFoundView } from './components/NotFoundView';
 import { ADD_ONS, LOCATIONS, DEFAULT_ASSETS, BRAZILIAN_MENUS, PORTUGUESE_MENUS, ARGENTINIAN_MENUS, OWN_LOCATION_ID, OWN_LOCATION_NAME } from './constants';
 import { BookingState, CartItem, DailyWeather, Article } from './types';
@@ -486,7 +485,6 @@ const App: React.FC = () => {
           </>
         } />
       </Routes>
-      <SpotifyPlayer showQuote={showQuote} />
     </>
   );
 };
