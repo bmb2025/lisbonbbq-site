@@ -202,7 +202,6 @@ const EventTopBar: React.FC<{ event: EventRecord }> = ({ event }) => {
       <div className="hidden sm:block text-xs font-black uppercase tracking-widest">
         Faltam <b className="text-bbq-yellow">{cd.label}</b>
       </div>
-      <a href="#dieta" className="bg-bbq-yellow text-bbq-black border-2 border-bbq-cream px-3.5 py-2 text-xs font-black uppercase tracking-wide no-underline">🌱 Restrições</a>
     </div>
   );
 };
