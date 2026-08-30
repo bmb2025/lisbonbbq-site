@@ -161,8 +161,8 @@ export const EventPageView: React.FC = () => {
   const nMenu = hasMenu ? num() : null;
   const nSocials = num();
   const nDiet = num();
-  const nChegar = hasChegar ? num() : null;
   const nBring = hasBring ? num() : null;
+  const nChegar = hasChegar ? num() : null;
   const nRules = hasRules ? num() : null;
   const nPlaylist = hasPlaylist ? num() : null;
   const nAfter = hasAfter ? num() : null;
@@ -180,8 +180,8 @@ export const EventPageView: React.FC = () => {
       {weather && <EventWeather weather={weather} />}
       <EventSocials event={event} n={nSocials} />
       <EventDiet event={event} n={nDiet} />
-      {hasChegar && <EventGettingThere event={event} n={nChegar!} />}
       {hasBring && <EventBring event={event} n={nBring!} />}
+      {hasChegar && <EventGettingThere event={event} n={nChegar!} />}
       {hasRules && <EventRules event={event} n={nRules!} />}
       {hasPlaylist && <EventPlaylist event={event} n={nPlaylist!} />}
       {hasAfter && <EventAfter event={event} n={nAfter!} />}
