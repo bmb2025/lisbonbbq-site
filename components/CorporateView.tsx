@@ -332,17 +332,9 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
           </h1>
           <p className="text-white font-bold uppercase tracking-tight text-[clamp(15px,1.6vw,19px)] max-w-[60ch] mx-auto mt-8 mb-6 leading-relaxed [text-shadow:2px_2px_0_rgba(26,26,26,0.85)]">
             {pt
-              ? 'Churrascos privados para empresas em Lisboa. Conceito arrive, party and leave. Pensado para conexões reais.'
+              ? 'Churrascos privados para empresas em Lisboa. Pensado para conexões reais de team bonding.'
               : 'Private barbecues for companies in Lisbon. Arrive, party and leave. Built for real connections.'}
           </p>
-          <div className="flex flex-wrap justify-center gap-3 mb-8">
-            <span className="bg-bbq-yellow text-bbq-black text-xs md:text-sm font-black uppercase tracking-widest px-5 py-2.5 border-4 border-bbq-black">
-              {pt ? 'Desde 35€/pessoa' : 'From €35/person'}
-            </span>
-            <span className="bg-bbq-yellow text-bbq-black text-xs md:text-sm font-black uppercase tracking-widest px-5 py-2.5 border-4 border-bbq-black">
-              {pt ? 'Equipas de 20 a 300 pessoas' : 'Teams of 20 to 300 people'}
-            </span>
-          </div>
           <div className="flex gap-5 justify-center flex-wrap">
             <button onClick={() => scrollToId('proposta')} className={`${btnBase} bg-bbq-red text-white hover:bg-bbq-yellow hover:text-bbq-black`}>
               {pt ? 'Pedir proposta' : 'Request a proposal'}
