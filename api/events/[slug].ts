@@ -62,7 +62,7 @@ function generateCode(slug: string) {
   return `${prefix}-${suffix}`;
 }
 
-function internalDietEmail(event: any, diet: string, detail: string, email: string) {
+function internalDietEmail(event: any, diet: string, detail: string, email: string, name: string) {
   return `
 <!DOCTYPE html>
 <html>
@@ -78,6 +78,7 @@ function internalDietEmail(event: any, diet: string, detail: string, email: stri
 <div class="card">
   <h1>🌱 Resposta de dieta — ${escapeHtml(event.title)}</h1>
   <table>
+    <tr><td>Nome</td><td>${escapeHtml(name)}</td></tr>
     <tr><td>Email</td><td><a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></td></tr>
     <tr><td>Restrição</td><td>${escapeHtml(DIET_LABELS[diet] || diet)}</td></tr>
     <tr><td>Detalhes</td><td>${escapeHtml(detail) || "—"}</td></tr>
@@ -217,11 +218,12 @@ async function handleIcs(req: any, res: any, slug: string) {
 }
 
 async function handleDieta(req: any, res: any, slug: string) {
-  const { email, diet, detail, marketingOptin } = req.body || {};
+  const { name, email, diet, detail, marketingOptin } = req.body || {};
 
-  if (!email || !isValidEmail(email) || !diet) {
+  if (!name || !String(name).trim() || !email || !isValidEmail(email) || !diet) {
     return res.status(400).json({ error: "Dados inválidos" });
   }
+  const normalizedName = String(name).trim();
   const normalizedEmail = String(email).trim().toLowerCase();
 
   const { data: event, error: eventError } = await supabase
@@ -258,6 +260,7 @@ async function handleDieta(req: any, res: any, slug: string) {
       {
         event_id: event.id,
         email: normalizedEmail,
+        name: normalizedName,
         diet,
         detail: detail || null,
         marketing_optin: optin,
@@ -279,7 +282,7 @@ async function handleDieta(req: any, res: any, slug: string) {
         from: FROM,
         to: NOTIFY_EMAIL,
         subject: `🌱 Dieta — ${event.title} — ${normalizedEmail}`,
-        html: internalDietEmail(event, diet, detail, normalizedEmail),
+        html: internalDietEmail(event, diet, detail, normalizedEmail, normalizedName),
       }),
       resend.emails.send({
         from: FROM,
