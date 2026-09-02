@@ -360,6 +360,7 @@ const EventWeather: React.FC<{ weather: DailyWeather }> = ({ weather }) => (
 const EventDiet: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) => {
   const [diet, setDiet] = useState('nenhuma');
   const [detail, setDetail] = useState('');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [optin, setOptin] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -368,14 +369,14 @@ const EventDiet: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) =>
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isValidEmail(email)) { setError(true); return; }
+    if (!name.trim() || !isValidEmail(email)) { setError(true); return; }
     setError(false);
     setSending(true);
     try {
       const res = await fetch(`/api/events/${event.slug}?action=dieta`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, diet, detail, marketingOptin: optin }),
+        body: JSON.stringify({ name, email, diet, detail, marketingOptin: optin }),
       });
       if (!res.ok) throw new Error();
       setSubmitted(true);
@@ -419,8 +420,12 @@ const EventDiet: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) =>
                   <textarea value={detail} onChange={e => setDetail(e.target.value)} placeholder="Ex: alergia a frutos secos, não como porco..." className="w-full border-4 border-bbq-black p-3 text-[15px] min-h-[70px]" />
                 </div>
                 <div className="mb-4">
+                  <label className="block text-xs font-black uppercase tracking-wide mb-1.5">Nome e apelido</label>
+                  <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Nome Apelido" className={`w-full border-4 p-3 text-[15px] ${error && !name.trim() ? 'border-bbq-red' : 'border-bbq-black'}`} />
+                </div>
+                <div className="mb-4">
                   <label className="block text-xs font-black uppercase tracking-wide mb-1.5">O teu email</label>
-                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="nome@exemplo.pt" className={`w-full border-4 p-3 text-[15px] ${error ? 'border-bbq-red' : 'border-bbq-black'}`} />
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="nome@exemplo.pt" className={`w-full border-4 p-3 text-[15px] ${error && !isValidEmail(email) ? 'border-bbq-red' : 'border-bbq-black'}`} />
                 </div>
                 <div className="flex gap-3 items-start bg-white border-3 border-bbq-black p-3.5 mb-4">
                   <input type="checkbox" checked={optin} onChange={e => setOptin(e.target.checked)} className="w-5 h-5 mt-0.5 accent-bbq-black" />
