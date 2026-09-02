@@ -181,6 +181,8 @@ export const HomePage: React.FC<HomePageProps> = ({
     noExtrasSub: lang === 'pt' ? 'Prosseguir apenas com o menu base' : 'Proceed with base menu only',
     seeMore: lang === 'pt' ? 'Ver Mais' : 'See More',
     heroBtn: lang === 'pt' ? 'Personaliza o Teu Banquete' : 'Design Your Feast',
+    heroPrice: lang === 'pt' ? 'Desde 35€/pessoa' : 'From €35/person',
+    heroCapacity: lang === 'pt' ? 'Grupos de 20 a 300 pessoas' : 'Groups of 20 to 300 people',
     ownLocation: lang === 'pt' ? 'Já tenho o meu próprio local' : 'I already have my own venue',
     ownLocationSub: lang === 'pt' ? 'O evento acontece num espaço teu. Tratamos de tudo o resto.' : 'The event takes place at your own space. We handle everything else.',
     contactStep: lang === 'pt' ? 'Os Teus Dados' : 'Your Details',
@@ -230,9 +232,17 @@ export const HomePage: React.FC<HomePageProps> = ({
           <h1 className="text-5xl md:text-[8rem] font-black uppercase leading-none mb-6 text-white drop-shadow-[10px_10px_0px_#1A1A1A] tracking-tighter">
             Lisbon Barbecue<br /><span className="text-bbq-yellow">& Churrasco</span>
           </h1>
-          <p className="relative text-white text-lg md:text-2xl font-black uppercase tracking-widest bg-bbq-red px-10 py-5 border-4 border-bbq-black mb-12">
+          <p className="relative text-white text-lg md:text-2xl font-black uppercase tracking-widest bg-bbq-red px-10 py-5 border-4 border-bbq-black mb-6">
             {lang === 'pt' ? 'O teu backyard' : 'Your backyard'}
           </p>
+          <div className="flex flex-wrap justify-center gap-3 mb-10">
+            <span className="bg-bbq-yellow text-bbq-black text-xs md:text-sm font-black uppercase tracking-widest px-5 py-2.5 border-4 border-bbq-black">
+              {t.heroPrice}
+            </span>
+            <span className="bg-bbq-yellow text-bbq-black text-xs md:text-sm font-black uppercase tracking-widest px-5 py-2.5 border-4 border-bbq-black">
+              {t.heroCapacity}
+            </span>
+          </div>
           <button onClick={scrollToBooking} className="group bg-bbq-yellow text-bbq-black text-2xl font-black uppercase px-14 py-7 border-4 border-bbq-black shadow-hard hover:translate-y-[2px] transition-all flex items-center gap-4">
             {t.heroBtn} <Flame className="w-8 h-8 group-hover:animate-bounce" />
           </button>

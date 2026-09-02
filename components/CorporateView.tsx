@@ -139,7 +139,7 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
         "@type": "City",
         "name": "Lisbon"
       },
-      "description": "Churrascos privados chave-na-mão para empresas em Lisboa, para equipas de 20 a 200 pessoas, desde 35€/pessoa."
+      "description": "Churrascos privados chave-na-mão para empresas em Lisboa, para equipas de 20 a 300 pessoas, desde 35€/pessoa."
     };
     script.innerHTML = JSON.stringify(schema);
     document.head.appendChild(script);
@@ -151,8 +151,8 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
   const pt = lang === 'pt';
 
   const facts = pt
-    ? ['Desde 35€/pessoa', 'Equipas de 20 a 200', '4+ espaços em Lisboa', 'Logística 100% incluída']
-    : ['From €35/person', 'Teams of 20 to 200', '4+ venues in Lisbon', 'Logistics 100% included'];
+    ? ['Desde 35€/pessoa', 'Equipas de 20 a 300', '4+ espaços em Lisboa', 'Logística 100% incluída']
+    : ['From €35/person', 'Teams of 20 to 300', '4+ venues in Lisbon', 'Logistics 100% included'];
 
   const conceptCards = [
     {
@@ -330,11 +330,19 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
             {pt ? 'A tua equipa ' : 'Your team '}
             <span className="text-bbq-yellow">{pt ? 'à volta do fogo' : 'around the fire'}</span>
           </h1>
-          <p className="text-white font-bold uppercase tracking-tight text-[clamp(15px,1.6vw,19px)] max-w-[60ch] mx-auto mt-8 mb-10 leading-relaxed [text-shadow:2px_2px_0_rgba(26,26,26,0.85)]">
+          <p className="text-white font-bold uppercase tracking-tight text-[clamp(15px,1.6vw,19px)] max-w-[60ch] mx-auto mt-8 mb-6 leading-relaxed [text-shadow:2px_2px_0_rgba(26,26,26,0.85)]">
             {pt
               ? 'Churrascos privados para empresas em Lisboa. Conceito arrive, party and leave. Pensado para conexões reais.'
               : 'Private barbecues for companies in Lisbon. Arrive, party and leave. Built for real connections.'}
           </p>
+          <div className="flex flex-wrap justify-center gap-3 mb-8">
+            <span className="bg-bbq-yellow text-bbq-black text-xs md:text-sm font-black uppercase tracking-widest px-5 py-2.5 border-4 border-bbq-black">
+              {pt ? 'Desde 35€/pessoa' : 'From €35/person'}
+            </span>
+            <span className="bg-bbq-yellow text-bbq-black text-xs md:text-sm font-black uppercase tracking-widest px-5 py-2.5 border-4 border-bbq-black">
+              {pt ? 'Equipas de 20 a 300 pessoas' : 'Teams of 20 to 300 people'}
+            </span>
+          </div>
           <div className="flex gap-5 justify-center flex-wrap">
             <button onClick={() => scrollToId('proposta')} className={`${btnBase} bg-bbq-red text-white hover:bg-bbq-yellow hover:text-bbq-black`}>
               {pt ? 'Pedir proposta' : 'Request a proposal'}
