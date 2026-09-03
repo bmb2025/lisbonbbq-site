@@ -62,7 +62,16 @@ function generateCode(slug: string) {
   return `${prefix}-${suffix}`;
 }
 
-function internalDietEmail(event: any, diet: string, detail: string, email: string, name: string) {
+function internalDietEmail(
+  event: any,
+  diet: string,
+  detail: string,
+  email: string,
+  name: string,
+  hasChildren: boolean,
+  childrenCount: number | null,
+  childrenDietDetail: string | null
+) {
   return `
 <!DOCTYPE html>
 <html>
@@ -82,6 +91,8 @@ function internalDietEmail(event: any, diet: string, detail: string, email: stri
     <tr><td>Email</td><td><a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></td></tr>
     <tr><td>Restrição</td><td>${escapeHtml(DIET_LABELS[diet] || diet)}</td></tr>
     <tr><td>Detalhes</td><td>${escapeHtml(detail) || "—"}</td></tr>
+    <tr><td>Crianças</td><td>${hasChildren ? `Sim${childrenCount ? ` (${childrenCount})` : ""}` : "Não"}</td></tr>
+    ${hasChildren ? `<tr><td>Dieta das crianças</td><td>${escapeHtml(childrenDietDetail) || "—"}</td></tr>` : ""}
     <tr><td>Evento</td><td>${escapeHtml(event.slug)}</td></tr>
   </table>
 </div>
@@ -89,7 +100,14 @@ function internalDietEmail(event: any, diet: string, detail: string, email: stri
 </html>`;
 }
 
-function confirmationDietEmail(event: any, diet: string, detail: string) {
+function confirmationDietEmail(
+  event: any,
+  diet: string,
+  detail: string,
+  hasChildren: boolean,
+  childrenCount: number | null,
+  childrenDietDetail: string | null
+) {
   return `
 <!DOCTYPE html>
 <html>
@@ -108,6 +126,7 @@ function confirmationDietEmail(event: any, diet: string, detail: string) {
   <div class="highlight">
     <strong>${escapeHtml(DIET_LABELS[diet] || diet)}</strong>
     ${detail ? `<br>${escapeHtml(detail)}` : ""}
+    ${hasChildren ? `<br><br><strong>Crianças${childrenCount ? ` (${childrenCount})` : ""}</strong>${childrenDietDetail ? `<br>${escapeHtml(childrenDietDetail)}` : ""}` : ""}
   </div>
   <p>Podes alterar a tua resposta a qualquer momento, basta submeteres o formulário de novo com o mesmo email.</p>
   <p>Alergia grave? Fala directamente com os pitmasters: <a href="mailto:pitmasters@lisbonbbq.pt">pitmasters@lisbonbbq.pt</a> ou +351 961 058 571.</p>
@@ -218,13 +237,18 @@ async function handleIcs(req: any, res: any, slug: string) {
 }
 
 async function handleDieta(req: any, res: any, slug: string) {
-  const { name, email, diet, detail, marketingOptin } = req.body || {};
+  const { name, email, diet, detail, marketingOptin, hasChildren, childrenCount, childrenDietDetail } = req.body || {};
 
   if (!name || !String(name).trim() || !email || !isValidEmail(email) || !diet) {
     return res.status(400).json({ error: "Dados inválidos" });
   }
   const normalizedName = String(name).trim();
   const normalizedEmail = String(email).trim().toLowerCase();
+  const normalizedHasChildren = !!hasChildren;
+  const normalizedChildrenCount =
+    normalizedHasChildren && Number.isInteger(childrenCount) && childrenCount > 0 ? childrenCount : null;
+  const normalizedChildrenDietDetail =
+    normalizedHasChildren && childrenDietDetail ? String(childrenDietDetail).trim() || null : null;
 
   const { data: event, error: eventError } = await supabase
     .from("events")
@@ -263,6 +287,9 @@ async function handleDieta(req: any, res: any, slug: string) {
         name: normalizedName,
         diet,
         detail: detail || null,
+        has_children: normalizedHasChildren,
+        children_count: normalizedChildrenCount,
+        children_diet_detail: normalizedChildrenDietDetail,
         marketing_optin: optin,
         optin_at: optin ? existing?.optin_at || now : null,
         optin_source: optin ? "event_page" : null,
@@ -282,13 +309,19 @@ async function handleDieta(req: any, res: any, slug: string) {
         from: FROM,
         to: NOTIFY_EMAIL,
         subject: `🌱 Dieta — ${event.title} — ${normalizedEmail}`,
-        html: internalDietEmail(event, diet, detail, normalizedEmail, normalizedName),
+        html: internalDietEmail(
+          event, diet, detail, normalizedEmail, normalizedName,
+          normalizedHasChildren, normalizedChildrenCount, normalizedChildrenDietDetail
+        ),
       }),
       resend.emails.send({
         from: FROM,
         to: normalizedEmail,
         subject: `Anotado 🔥 — ${event.title}`,
-        html: confirmationDietEmail(event, diet, detail),
+        html: confirmationDietEmail(
+          event, diet, detail,
+          normalizedHasChildren, normalizedChildrenCount, normalizedChildrenDietDetail
+        ),
       }),
     ]);
   } catch (err) {
