@@ -363,6 +363,9 @@ const EventDiet: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) =>
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [optin, setOptin] = useState(false);
+  const [hasChildren, setHasChildren] = useState(false);
+  const [childrenCount, setChildrenCount] = useState('');
+  const [childrenDietDetail, setChildrenDietDetail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState(false);
   const [sending, setSending] = useState(false);
@@ -376,7 +379,12 @@ const EventDiet: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) =>
       const res = await fetch(`/api/events/${event.slug}?action=dieta`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, diet, detail, marketingOptin: optin }),
+        body: JSON.stringify({
+          name, email, diet, detail, marketingOptin: optin,
+          hasChildren,
+          childrenCount: hasChildren && childrenCount ? Number(childrenCount) : null,
+          childrenDietDetail: hasChildren ? childrenDietDetail.trim() || null : null,
+        }),
       });
       if (!res.ok) throw new Error();
       setSubmitted(true);
@@ -418,6 +426,26 @@ const EventDiet: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) =>
                 <div className="mb-4">
                   <label className="block text-xs font-black uppercase tracking-wide mb-1.5">Detalhes <span className="font-normal opacity-50 normal-case">(opcional)</span></label>
                   <textarea value={detail} onChange={e => setDetail(e.target.value)} placeholder="Ex: alergia a frutos secos, não como porco..." className="w-full border-4 border-bbq-black p-3 text-[15px] min-h-[70px]" />
+                </div>
+                <div className="mb-4">
+                  <div className="flex gap-3 items-start bg-white border-3 border-bbq-black p-3.5">
+                    <input type="checkbox" checked={hasChildren} onChange={e => setHasChildren(e.target.checked)} className="w-5 h-5 mt-0.5 accent-bbq-black" />
+                    <label className="text-[13px] leading-snug" onClick={() => setHasChildren(c => !c)}>
+                      <b>Vou acompanhado de crianças</b>
+                    </label>
+                  </div>
+                  {hasChildren && (
+                    <div className="mt-3 border-l-4 border-bbq-yellow pl-3.5 space-y-3">
+                      <div>
+                        <label className="block text-xs font-black uppercase tracking-wide mb-1.5">Quantas crianças <span className="font-normal opacity-50 normal-case">(opcional)</span></label>
+                        <input type="number" min={1} value={childrenCount} onChange={e => setChildrenCount(e.target.value)} placeholder="Ex: 2" className="w-full border-4 border-bbq-black p-3 text-[15px]" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-black uppercase tracking-wide mb-1.5">Preferências ou restrições alimentares das crianças <span className="font-normal opacity-50 normal-case">(opcional)</span></label>
+                        <textarea value={childrenDietDetail} onChange={e => setChildrenDietDetail(e.target.value)} placeholder="Ex: só comem massa, alergia a ovo..." className="w-full border-4 border-bbq-black p-3 text-[15px] min-h-[70px]" />
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="mb-4">
                   <label className="block text-xs font-black uppercase tracking-wide mb-1.5">Nome e apelido</label>
