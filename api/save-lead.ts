@@ -188,16 +188,18 @@ export default async function handler(req: any, res: any) {
   console.log(`[Lead] New submission — email: ${email}, source: ${source}`);
 
   // 1. Save to Supabase
+  let leadId: string | undefined;
   try {
-    const { error } = await supabase.from("leads").insert({
-      data: leadData,
-      source,
-      email,
-    });
+    const { data: inserted, error } = await supabase
+      .from("leads")
+      .insert({ data: leadData, source, email })
+      .select("id")
+      .single();
     if (error) {
       console.error("[Lead] Supabase error:", error);
       throw error;
     }
+    leadId = inserted?.id;
     console.log("[Lead] Saved to Supabase");
   } catch (err) {
     console.error("[Lead] Supabase failed:", err);
@@ -212,35 +214,47 @@ export default async function handler(req: any, res: any) {
   }
 
   // 2. Send emails via Resend
-  try {
-    const notifyTo = leadData?.target_email || NOTIFY_EMAIL;
-    // Client confirmation follows the language of the site the lead came from.
-    const lang: "pt" | "en" = leadData?.lang === "en" ? "en" : "pt";
-    const clientSubject = lang === "en"
-      ? "LisbonBBQ — Request received 🔥"
-      : "LisbonBBQ — Pedido recebido 🔥";
+  const notifyTo = leadData?.target_email || NOTIFY_EMAIL;
+  // Client confirmation follows the language of the site the lead came from.
+  const lang: "pt" | "en" = leadData?.lang === "en" ? "en" : "pt";
+  const clientSubject = lang === "en"
+    ? "LisbonBBQ — Request received 🔥"
+    : "LisbonBBQ — Pedido recebido 🔥";
 
-    await Promise.all([
-      // Internal notification (kept in PT — read by the LisbonBBQ team)
-      resend.emails.send({
-        from: FROM,
-        to: notifyTo,
-        subject: `🔥 Nova reserva — ${leadData?.client?.name || email}`,
-        html: internalEmail(leadData),
-      }),
-      // Client confirmation (only if we have their email)
-      ...(email ? [resend.emails.send({
-        from: FROM,
-        to: email,
-        subject: clientSubject,
-        html: confirmationEmail(leadData, lang),
-      })] : []),
-    ]);
+  // Tracked independently from the client confirmation below: a Resend outage
+  // or a bad client email must not hide the fact that the team was never
+  // notified. Failures here leave `internal_notified_at` unset so the
+  // retry-failed-notifications cron (every 5 min) picks the lead back up —
+  // this is what should have caught the Ricardo Lopes miss on 2026-08-25.
+  const [internalResult] = await Promise.allSettled([
+    resend.emails.send({
+      from: FROM,
+      to: notifyTo,
+      subject: `🔥 Nova reserva — ${leadData?.client?.name || email}`,
+      html: internalEmail(leadData),
+    }),
+    // Client confirmation (only if we have their email) — best effort, not tracked.
+    ...(email ? [resend.emails.send({
+      from: FROM,
+      to: email,
+      subject: clientSubject,
+      html: confirmationEmail(leadData, lang),
+    })] : []),
+  ]);
 
-    console.log("[Lead] Emails sent via Resend");
-  } catch (err) {
-    // Email failure doesn't block the response — lead is already saved
-    console.error("[Lead] Resend error:", err);
+  if (internalResult.status === "fulfilled") {
+    console.log("[Lead] Internal notification sent via Resend");
+    if (leadId) {
+      await supabase.from("leads").update({
+        internal_notified_at: new Date().toISOString(),
+        internal_notify_attempts: 1,
+      }).eq("id", leadId);
+    }
+  } else {
+    console.error("[Lead] Resend error (internal notification):", internalResult.reason);
+    if (leadId) {
+      await supabase.from("leads").update({ internal_notify_attempts: 1 }).eq("id", leadId);
+    }
   }
 
   return res.json({ success: true, message: "Lead recebida e processada." });
