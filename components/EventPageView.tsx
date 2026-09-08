@@ -576,6 +576,7 @@ const EventPlaylist: React.FC<{ event: EventRecord; n: string }> = ({ event, n }
 );
 
 const EventAfter: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) => {
+  const instagram = (event.socials || EVENT_SOCIALS).find(s => s.key === 'instagram');
   return (
     <section className="py-16 border-b-4 border-bbq-black bg-bbq-black text-bbq-cream">
       <div className="max-w-[960px] mx-auto px-5">
@@ -597,6 +598,13 @@ const EventAfter: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) =
               <div className="text-2xl text-bbq-yellow tracking-[6px] my-3"><Star className="inline" fill="currentColor" size={22} /><Star className="inline" fill="currentColor" size={22} /><Star className="inline" fill="currentColor" size={22} /><Star className="inline" fill="currentColor" size={22} /><Star className="inline" fill="currentColor" size={22} /></div>
               <p className="opacity-85 text-[15px] mb-4">30 segundos do vosso tempo ajudam-nos mais do que imaginam.</p>
               <a href={event.review_url} target="_blank" rel="noopener" className={btnLight}>Deixar review no Google</a>
+            </div>
+          )}
+          {instagram && (
+            <div className="bg-[#242424] border-4 border-bbq-cream p-6 text-center" style={{ boxShadow: '4px 4px 0 #F4B41A' }}>
+              <h3 className="text-bbq-yellow font-black uppercase text-sm mb-2.5"><Instagram size={16} className="inline mr-1.5" />Segue-nos no Instagram</h3>
+              <p className="opacity-85 text-[15px] mb-4">Fica a par das próximas datas e vê os bastidores dos nossos churrascos.</p>
+              <a href={instagram.url} target="_blank" rel="noopener" className={btnLight}>Seguir no Instagram</a>
             </div>
           )}
           {event.show_photographer_card && (
