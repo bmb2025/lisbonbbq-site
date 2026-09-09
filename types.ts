@@ -166,4 +166,27 @@ export interface EventRecord {
   referral_intro: string | null;
   socials: { key: string; label: string; url: string }[] | null;
   published: boolean;
+  translations: EventTranslations | null;
+}
+
+export interface EventTranslationContent {
+  title?: string;
+  hero_tag?: string;
+  essential_cards?: EssentialCard[];
+  getting_there?: GettingThereCard[];
+  menu_intro?: string;
+  balcao_note?: string;
+  diet_intro?: string;
+  bring_items?: string[];
+  skip_items?: string[];
+  house_rules?: HouseRule[];
+  side_panel?: SidePanelItem[];
+  playlist_intro?: string;
+  referral_intro?: string;
+  allergy_contact_note?: string;
+  menu_items?: Record<string, { name?: string; description?: string }>;
+}
+
+export interface EventTranslations {
+  en?: EventTranslationContent;
 }

@@ -7,15 +7,7 @@ import {
 import { EVENT_SOCIALS } from '../constants';
 import { EventRecord, EventMenuItem, DailyWeather } from '../types';
 import { WelcomeDrinkPopup } from './WelcomeDrinkPopup';
-
-const DIET_OPTIONS: { value: string; icon: string; label: string }[] = [
-  { value: 'nenhuma', icon: '🥩', label: 'Como de tudo' },
-  { value: 'vegetariano', icon: '🥗', label: 'Vegetariano' },
-  { value: 'vegano', icon: '🌱', label: 'Vegano' },
-  { value: 'gluten', icon: '🌾', label: 'Sem glúten' },
-  { value: 'lactose', icon: '🥛', label: 'Sem lactose' },
-  { value: 'alergia', icon: '⚠️', label: 'Tenho alergia' },
-];
+import { Lang, LangContext, useLang, useT, formatDate, formatTime, referralFallback, localizeEvent, localizeMenuItems } from '../i18n';
 
 const SOCIAL_ICONS: Record<string, React.ReactNode> = {
   instagram: <Instagram size={20} />,
@@ -40,13 +32,15 @@ const SectionHead: React.FC<{ n: string; children: React.ReactNode }> = ({ n, ch
   </div>
 );
 
-function formatDatePt(iso: string | null, tz: string, opts: Intl.DateTimeFormatOptions = {}) {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('pt-PT', { timeZone: tz, ...opts });
-}
-
-function formatTimePt(iso: string, tz: string) {
-  return new Date(iso).toLocaleTimeString('pt-PT', { timeZone: tz, hour: '2-digit', minute: '2-digit' });
+function dietOptions(t: ReturnType<typeof useT>): { value: string; icon: string; label: string }[] {
+  return [
+    { value: 'nenhuma', icon: '🥩', label: t('diet_opt_nenhuma') },
+    { value: 'vegetariano', icon: '🥗', label: t('diet_opt_vegetariano') },
+    { value: 'vegano', icon: '🌱', label: t('diet_opt_vegano') },
+    { value: 'gluten', icon: '🌾', label: t('diet_opt_gluten') },
+    { value: 'lactose', icon: '🥛', label: t('diet_opt_lactose') },
+    { value: 'alergia', icon: '⚠️', label: t('diet_opt_alergia') },
+  ];
 }
 
 function isValidEmail(email: string) {
@@ -78,12 +72,31 @@ const WeatherIcon: React.FC<{ code: number; size?: number }> = ({ code, size = 2
   return <Sun size={size} />;
 };
 
+const LangChip: React.FC = () => {
+  const { lang, setLang } = useLang();
+  return (
+    <div className="flex-none inline-flex border-3 border-bbq-cream text-[11px] font-black uppercase tracking-wide overflow-hidden">
+      {(['pt', 'en'] as Lang[]).map(l => (
+        <button
+          key={l}
+          onClick={() => setLang(l)}
+          aria-pressed={lang === l}
+          className={`px-2.5 py-1 transition-colors ${lang === l ? 'bg-bbq-yellow text-bbq-black' : 'bg-transparent text-bbq-cream hover:bg-white/10'}`}
+        >
+          {l.toUpperCase()}
+        </button>
+      ))}
+    </div>
+  );
+};
+
 export const EventPageView: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [event, setEvent] = useState<EventRecord | null>(null);
   const [menuItems, setMenuItems] = useState<EventMenuItem[]>([]);
   const [status, setStatus] = useState<'loading' | 'ok' | 'notfound'>('loading');
   const [weather, setWeather] = useState<DailyWeather | null>(null);
+  const [lang, setLang] = useState<Lang>('pt');
 
   useEffect(() => {
     let cancelled = false;
@@ -135,7 +148,7 @@ export const EventPageView: React.FC = () => {
     return (
       <div className="min-h-screen bg-bbq-cream flex items-center justify-center text-center px-6">
         <meta name="robots" content="noindex, nofollow" />
-        <title>Evento não encontrado · LisbonBBQ</title>
+        <title>Página não encontrada · LisbonBBQ</title>
         <div>
           <h1 className="text-3xl font-black uppercase mb-2">Página não encontrada</h1>
           <p>Este link de evento não existe ou já não está disponível.</p>
@@ -144,16 +157,19 @@ export const EventPageView: React.FC = () => {
     );
   }
 
+  const displayEvent = localizeEvent(event, lang);
+  const displayMenuItems = localizeMenuItems(menuItems, event, lang);
+
   // Secções opcionais só aparecem quando há dados reais (nunca botões/links
   // fictícios para placeholders por preencher) — por isso a numeração é
   // calculada dinamicamente em vez de fixa, para não haver saltos (ex.: "06"
   // seguido de "09") quando um evento não tem playlist ou álbum.
-  const hasMenu = menuItems.length > 0;
-  const hasChegar = event.getting_there.length > 0;
-  const hasBring = event.bring_items.length > 0 || event.skip_items.length > 0;
-  const hasRules = event.house_rules.length > 0;
-  const hasPlaylist = !!event.playlist_url;
-  const hasAfter = !!(event.album_url || event.review_url || event.show_photographer_card);
+  const hasMenu = displayMenuItems.length > 0;
+  const hasChegar = displayEvent.getting_there.length > 0;
+  const hasBring = displayEvent.bring_items.length > 0 || displayEvent.skip_items.length > 0;
+  const hasRules = displayEvent.house_rules.length > 0;
+  const hasPlaylist = !!displayEvent.playlist_url;
+  const hasAfter = !!(displayEvent.album_url || displayEvent.review_url || displayEvent.show_photographer_card);
 
   let n = 0;
   const num = () => String(++n).padStart(2, '0');
@@ -168,47 +184,54 @@ export const EventPageView: React.FC = () => {
   const nAfter = hasAfter ? num() : null;
 
   return (
-    <div className="bg-bbq-cream text-bbq-black font-sans">
-      <meta name="robots" content="noindex, nofollow" />
-      <title>{event.title} · LisbonBBQ</title>
-      <WelcomeDrinkPopup event={event} />
-      <EventTopBar event={event} />
-      <EventHero event={event} />
-      <EventCountdown event={event} />
-      <EventEssential event={event} n={nEssential} />
-      {hasMenu && <EventMenu event={event} menuItems={menuItems} n={nMenu!} />}
-      {weather && <EventWeather weather={weather} />}
-      <EventSocials event={event} n={nSocials} />
-      <EventDiet event={event} n={nDiet} />
-      {hasBring && <EventBring event={event} n={nBring!} />}
-      {hasChegar && <EventGettingThere event={event} n={nChegar!} />}
-      {hasRules && <EventRules event={event} n={nRules!} />}
-      {hasPlaylist && <EventPlaylist event={event} n={nPlaylist!} />}
-      {hasAfter && <EventAfter event={event} n={nAfter!} />}
-      <EventReferral event={event} />
-      <EventFooter />
-    </div>
+    <LangContext.Provider value={{ lang, setLang }}>
+      <div className="bg-bbq-cream text-bbq-black font-sans">
+        <meta name="robots" content="noindex, nofollow" />
+        <title>{displayEvent.title} · LisbonBBQ</title>
+        <WelcomeDrinkPopup event={displayEvent} />
+        <EventTopBar event={displayEvent} showLangChip={!!event.translations?.en} />
+        <EventHero event={displayEvent} />
+        <EventCountdown event={displayEvent} />
+        <EventEssential event={displayEvent} n={nEssential} />
+        {hasMenu && <EventMenu event={displayEvent} menuItems={displayMenuItems} n={nMenu!} />}
+        {weather && <EventWeather weather={weather} />}
+        <EventSocials event={displayEvent} n={nSocials} />
+        <EventDiet event={displayEvent} n={nDiet} />
+        {hasBring && <EventBring event={displayEvent} n={nBring!} />}
+        {hasChegar && <EventGettingThere event={displayEvent} n={nChegar!} />}
+        {hasRules && <EventRules event={displayEvent} n={nRules!} />}
+        {hasPlaylist && <EventPlaylist event={displayEvent} n={nPlaylist!} />}
+        {hasAfter && <EventAfter event={displayEvent} n={nAfter!} />}
+        <EventReferral event={displayEvent} />
+        <EventFooter />
+      </div>
+    </LangContext.Provider>
   );
 };
 
-const EventTopBar: React.FC<{ event: EventRecord }> = ({ event }) => {
+const EventTopBar: React.FC<{ event: EventRecord; showLangChip: boolean }> = ({ event, showLangChip }) => {
   const cd = useCountdown(event.starts_at);
+  const t = useT();
   return (
     <div className="sticky top-0 z-50 bg-bbq-black text-bbq-cream flex items-center justify-between gap-3 px-5 py-3 border-b-4 border-bbq-black">
       <div className="font-black uppercase text-xs sm:text-sm tracking-wide flex items-center gap-2 min-w-0">
         <Flame size={16} className="text-bbq-yellow flex-none" />
         <span className="truncate">LISBON <span className="text-bbq-yellow">Barbecue &amp; Churrasco</span></span>
       </div>
-      <div className="hidden sm:block text-xs font-black uppercase tracking-widest">
-        Faltam <b className="text-bbq-yellow">{cd.label}</b>
+      <div className="flex items-center gap-3 flex-none">
+        <div className="hidden sm:block text-xs font-black uppercase tracking-widest">
+          {t('countdown_prefix')} <b className="text-bbq-yellow">{cd.label}</b>
+        </div>
+        {showLangChip && <LangChip />}
       </div>
     </div>
   );
 };
 
 const EventHero: React.FC<{ event: EventRecord }> = ({ event }) => {
-  const dateLabel = formatDatePt(event.starts_at, event.timezone, { weekday: 'short', day: 'numeric', month: 'short' });
-  const timeLabel = formatTimePt(event.starts_at, event.timezone);
+  const { lang } = useLang();
+  const dateLabel = formatDate(event.starts_at, event.timezone, lang, { weekday: 'short', day: 'numeric', month: 'short' });
+  const timeLabel = formatTime(event.starts_at, event.timezone, lang);
   return (
     <header className="relative border-b-4 border-bbq-black bg-bbq-black overflow-hidden">
       {event.hero_image_url && (
@@ -231,7 +254,8 @@ const EventHero: React.FC<{ event: EventRecord }> = ({ event }) => {
 
 const EventCountdown: React.FC<{ event: EventRecord }> = ({ event }) => {
   const cd = useCountdown(event.starts_at);
-  const boxes: [string, string][] = [[cd.d, 'dias'], [cd.h, 'horas'], [cd.m, 'min'], [cd.s, 'seg']];
+  const t = useT();
+  const boxes: [string, string][] = [[cd.d, t('countdown_days')], [cd.h, t('countdown_hours')], [cd.m, t('countdown_min')], [cd.s, t('countdown_sec')]];
   return (
     <div className="bg-bbq-yellow border-b-4 border-bbq-black py-7">
       <div className="max-w-[960px] mx-auto px-5">
@@ -245,9 +269,9 @@ const EventCountdown: React.FC<{ event: EventRecord }> = ({ event }) => {
         </div>
         <div className="flex gap-3 justify-center flex-wrap">
           <a className={btnDark} href={`/api/events/${event.slug}?action=ics`} download>
-            <Calendar size={16} /> Adicionar ao calendário
+            <Calendar size={16} /> {t('add_to_calendar')}
           </a>
-          <a className={btnLight} href="#chegar">Como chegar</a>
+          <a className={btnLight} href="#chegar">{t('getting_there_cta')}</a>
         </div>
       </div>
     </div>
@@ -255,6 +279,7 @@ const EventCountdown: React.FC<{ event: EventRecord }> = ({ event }) => {
 };
 
 const EventEssential: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) => {
+  const t = useT();
   const bboxDelta = 0.007;
   const bbox = event.lat && event.lng
     ? `${event.lng - bboxDelta}%2C${event.lat - bboxDelta}%2C${event.lng + bboxDelta}%2C${event.lat + bboxDelta}`
@@ -262,7 +287,7 @@ const EventEssential: React.FC<{ event: EventRecord; n: string }> = ({ event, n 
   return (
     <section className="py-16 border-b-4 border-bbq-black">
       <div className="max-w-[960px] mx-auto px-5">
-        <SectionHead n={n}>O essencial</SectionHead>
+        <SectionHead n={n}>{t('essential_heading')}</SectionHead>
         {event.essential_cards.length > 0 && (
           <div className={`grid gap-5 mb-5 ${event.essential_cards.length >= 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
             {event.essential_cards.map((c, i) => (
@@ -276,13 +301,13 @@ const EventEssential: React.FC<{ event: EventRecord; n: string }> = ({ event, n 
         )}
         {bbox && (
           <div className="border-4 border-bbq-black shadow-hard-sm overflow-hidden h-[260px] bg-[#dcd8cd]">
-            <iframe title="Mapa do local" loading="lazy" className="w-full h-full border-0" src={`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${event.lat}%2C${event.lng}`} />
+            <iframe title={t('map_title')} loading="lazy" className="w-full h-full border-0" src={`https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${event.lat}%2C${event.lng}`} />
           </div>
         )}
         {event.venue_address && (
           <div className="flex gap-3 flex-wrap mt-5">
-            <a className={btnFlame} target="_blank" rel="noopener" href={`https://maps.google.com/?q=${encodeURIComponent(event.venue_address)}`}>Abrir no Google Maps</a>
-            <a className={btnLight} target="_blank" rel="noopener" href={`https://maps.apple.com/?q=${encodeURIComponent(event.venue_address)}`}>Abrir no Apple Maps</a>
+            <a className={btnFlame} target="_blank" rel="noopener" href={`https://maps.google.com/?q=${encodeURIComponent(event.venue_address)}`}>{t('open_google_maps')}</a>
+            <a className={btnLight} target="_blank" rel="noopener" href={`https://maps.apple.com/?q=${encodeURIComponent(event.venue_address)}`}>{t('open_apple_maps')}</a>
           </div>
         )}
       </div>
@@ -290,26 +315,26 @@ const EventEssential: React.FC<{ event: EventRecord; n: string }> = ({ event, n 
   );
 };
 
-const SECTION_LABELS: Record<string, string> = { grelha: 'Da grelha', acompanha: 'Acompanha', bar: 'No bar' };
-
 const EventMenu: React.FC<{ event: EventRecord; menuItems: EventMenuItem[]; n: string }> = ({ event, menuItems, n }) => {
+  const t = useT();
+  const sectionLabels: Record<string, string> = { grelha: t('section_grelha'), acompanha: t('section_acompanha'), bar: t('section_bar') };
   const bySection = (s: string) => menuItems.filter(m => m.section === s);
   return (
     <section className="py-16 border-b-4 border-bbq-black">
       <div className="max-w-[960px] mx-auto px-5">
-        <SectionHead n={n}>O Churrasco</SectionHead>
+        <SectionHead n={n}>{t('menu_heading')}</SectionHead>
         {event.menu_intro && <p className="max-w-[640px] mb-7 text-base leading-relaxed">{event.menu_intro}</p>}
         <div className="grid sm:grid-cols-2 gap-5">
           <Card>
             {(['grelha', 'acompanha'] as const).map(section => bySection(section).length > 0 && (
               <div key={section} className="mb-2">
-                <h3 className="text-red-600 font-black uppercase text-sm tracking-wide mb-1">{SECTION_LABELS[section]}</h3>
+                <h3 className="text-red-600 font-black uppercase text-sm tracking-wide mb-1">{sectionLabels[section]}</h3>
                 <ul>
                   {bySection(section).map(item => (
                     <li key={item.id} className="flex justify-between gap-4 items-baseline py-3 border-b-2 border-dashed border-black/20 last:border-0">
                       <span className="text-[17px] font-black uppercase">
                         {item.name}
-                        {item.is_vegan && <span className="inline-block text-[9px] font-black uppercase tracking-widest border-2 border-bbq-black bg-green-600 text-white px-1.5 py-0.5 ml-1.5 align-middle">veg</span>}
+                        {item.is_vegan && <span className="inline-block text-[9px] font-black uppercase tracking-widest border-2 border-bbq-black bg-green-600 text-white px-1.5 py-0.5 ml-1.5 align-middle">{t('veg_tag')}</span>}
                       </span>
                       <span className="text-[13px] opacity-70 text-right max-w-[52%]">{item.description}</span>
                     </li>
@@ -321,7 +346,7 @@ const EventMenu: React.FC<{ event: EventRecord; menuItems: EventMenuItem[]; n: s
           <Card>
             {bySection('bar').length > 0 && (
               <div>
-                <h3 className="text-red-600 font-black uppercase text-sm tracking-wide mb-1">{SECTION_LABELS.bar}</h3>
+                <h3 className="text-red-600 font-black uppercase text-sm tracking-wide mb-1">{sectionLabels.bar}</h3>
                 <ul>
                   {bySection('bar').map(item => (
                     <li key={item.id} className="flex justify-between gap-4 items-baseline py-3 border-b-2 border-dashed border-black/20 last:border-0">
@@ -334,7 +359,7 @@ const EventMenu: React.FC<{ event: EventRecord; menuItems: EventMenuItem[]; n: s
             )}
             {event.balcao_note && (
               <div className="mt-5 border-4 border-bbq-black bg-bbq-cream p-4">
-                <h3 className="font-black uppercase text-sm mb-2">Pago ao balcão</h3>
+                <h3 className="font-black uppercase text-sm mb-2">{t('balcao_heading')}</h3>
                 <p className="text-sm leading-relaxed">{event.balcao_note}</p>
               </div>
             )}
@@ -345,19 +370,24 @@ const EventMenu: React.FC<{ event: EventRecord; menuItems: EventMenuItem[]; n: s
   );
 };
 
-const EventWeather: React.FC<{ weather: DailyWeather }> = ({ weather }) => (
-  <section className="py-16 border-b-4 border-bbq-black">
-    <div className="max-w-[960px] mx-auto px-5">
-      <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight leading-none mb-6">Vai estar bom tempo!</h2>
-      <Card className="inline-flex items-center gap-4">
-        <WeatherIcon code={weather.code} size={32} />
-        <div className="font-black text-xl">{weather.maxTemp}° / {weather.minTemp}°</div>
-      </Card>
-    </div>
-  </section>
-);
+const EventWeather: React.FC<{ weather: DailyWeather }> = ({ weather }) => {
+  const t = useT();
+  return (
+    <section className="py-16 border-b-4 border-bbq-black">
+      <div className="max-w-[960px] mx-auto px-5">
+        <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight leading-none mb-6">{t('weather_heading')}</h2>
+        <Card className="inline-flex items-center gap-4">
+          <WeatherIcon code={weather.code} size={32} />
+          <div className="font-black text-xl">{weather.maxTemp}° / {weather.minTemp}°</div>
+        </Card>
+      </div>
+    </section>
+  );
+};
 
 const EventDiet: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) => {
+  const { lang } = useLang();
+  const t = useT();
   const [diet, setDiet] = useState('nenhuma');
   const [detail, setDetail] = useState('');
   const [name, setName] = useState('');
@@ -400,21 +430,21 @@ const EventDiet: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) =>
       <div className="max-w-[960px] mx-auto px-5">
         <div className="flex items-end gap-4 mb-8 flex-wrap">
           <span className="text-xs font-black bg-bbq-yellow text-bbq-black px-2.5 py-1.5 tracking-wider">{n}</span>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight leading-none text-bbq-yellow">Comes de tudo?</h2>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight leading-none text-bbq-yellow">{t('diet_heading')}</h2>
         </div>
         {event.diet_deadline && (
           <div className="inline-flex items-center gap-2 bg-bbq-red text-white px-3.5 py-2 text-xs font-black uppercase tracking-wide mb-7">
-            ⏳ Precisamos de saber até {formatDatePt(event.diet_deadline, event.timezone, { day: 'numeric', month: 'long' })}
+            ⏳ {t('diet_deadline_prefix')} {formatDate(event.diet_deadline, event.timezone, lang, { day: 'numeric', month: 'long' })}
           </div>
         )}
         <div className={`grid gap-6 items-start ${event.side_panel ? 'md:grid-cols-2' : ''}`}>
           <div>
             {!submitted ? (
               <form onSubmit={submit} className="bg-bbq-cream text-bbq-black border-4 border-bbq-cream p-6" style={{ boxShadow: '8px 8px 0 #F4B41A' }}>
-                <h3 className="text-red-600 font-black uppercase text-sm mb-1.5">Ajusta o teu prato</h3>
+                <h3 className="text-red-600 font-black uppercase text-sm mb-1.5">{t('diet_form_heading')}</h3>
                 {event.diet_intro && <p className="text-sm mb-4">{event.diet_intro}</p>}
                 <div className="grid grid-cols-3 gap-2 mb-4">
-                  {DIET_OPTIONS.map(o => (
+                  {dietOptions(t).map(o => (
                     <label key={o.value} className="cursor-pointer">
                       <input type="radio" name="diet" value={o.value} checked={diet === o.value} onChange={() => setDiet(o.value)} className="sr-only peer" />
                       <span className={`block text-center px-1.5 py-3.5 border-4 border-bbq-black text-[11px] font-black uppercase leading-tight break-words transition-all ${diet === o.value ? 'bg-bbq-yellow shadow-hard-sm -translate-x-0.5 -translate-y-0.5' : 'bg-white'}`}>
@@ -424,59 +454,59 @@ const EventDiet: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) =>
                   ))}
                 </div>
                 <div className="mb-4">
-                  <label className="block text-xs font-black uppercase tracking-wide mb-1.5">Detalhes <span className="font-normal opacity-50 normal-case">(opcional)</span></label>
-                  <textarea value={detail} onChange={e => setDetail(e.target.value)} placeholder="Ex: alergia a frutos secos, não como porco..." className="w-full border-4 border-bbq-black p-3 text-[15px] min-h-[70px]" />
+                  <label className="block text-xs font-black uppercase tracking-wide mb-1.5">{t('details_label')} <span className="font-normal opacity-50 normal-case">{t('optional')}</span></label>
+                  <textarea value={detail} onChange={e => setDetail(e.target.value)} placeholder={t('detail_placeholder')} className="w-full border-4 border-bbq-black p-3 text-[15px] min-h-[70px]" />
                 </div>
                 <div className="mb-4">
                   <div className="flex gap-3 items-start bg-white border-3 border-bbq-black p-3.5">
                     <input type="checkbox" checked={hasChildren} onChange={e => setHasChildren(e.target.checked)} className="w-5 h-5 mt-0.5 accent-bbq-black" />
                     <label className="text-[13px] leading-snug" onClick={() => setHasChildren(c => !c)}>
-                      <b>Vou acompanhado de crianças</b>
+                      <b>{t('children_checkbox')}</b>
                     </label>
                   </div>
                   {hasChildren && (
                     <div className="mt-3 border-l-4 border-bbq-yellow pl-3.5 space-y-3">
                       <div>
-                        <label className="block text-xs font-black uppercase tracking-wide mb-1.5">Quantas crianças <span className="font-normal opacity-50 normal-case">(opcional)</span></label>
-                        <input type="number" min={1} value={childrenCount} onChange={e => setChildrenCount(e.target.value)} placeholder="Ex: 2" className="w-full border-4 border-bbq-black p-3 text-[15px]" />
+                        <label className="block text-xs font-black uppercase tracking-wide mb-1.5">{t('children_count_label')} <span className="font-normal opacity-50 normal-case">{t('optional')}</span></label>
+                        <input type="number" min={1} value={childrenCount} onChange={e => setChildrenCount(e.target.value)} placeholder={t('children_count_placeholder')} className="w-full border-4 border-bbq-black p-3 text-[15px]" />
                       </div>
                       <div>
-                        <label className="block text-xs font-black uppercase tracking-wide mb-1.5">Preferências ou restrições alimentares das crianças <span className="font-normal opacity-50 normal-case">(opcional)</span></label>
-                        <textarea value={childrenDietDetail} onChange={e => setChildrenDietDetail(e.target.value)} placeholder="Ex: só comem massa, alergia a ovo..." className="w-full border-4 border-bbq-black p-3 text-[15px] min-h-[70px]" />
+                        <label className="block text-xs font-black uppercase tracking-wide mb-1.5">{t('children_diet_label')} <span className="font-normal opacity-50 normal-case">{t('optional')}</span></label>
+                        <textarea value={childrenDietDetail} onChange={e => setChildrenDietDetail(e.target.value)} placeholder={t('children_diet_placeholder')} className="w-full border-4 border-bbq-black p-3 text-[15px] min-h-[70px]" />
                       </div>
                     </div>
                   )}
                 </div>
                 <div className="mb-4">
-                  <label className="block text-xs font-black uppercase tracking-wide mb-1.5">Nome e apelido</label>
-                  <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Nome Apelido" className={`w-full border-4 p-3 text-[15px] ${error && !name.trim() ? 'border-bbq-red' : 'border-bbq-black'}`} />
+                  <label className="block text-xs font-black uppercase tracking-wide mb-1.5">{t('name_label')}</label>
+                  <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder={t('name_placeholder')} className={`w-full border-4 p-3 text-[15px] ${error && !name.trim() ? 'border-bbq-red' : 'border-bbq-black'}`} />
                 </div>
                 <div className="mb-4">
-                  <label className="block text-xs font-black uppercase tracking-wide mb-1.5">O teu email</label>
-                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="nome@exemplo.pt" className={`w-full border-4 p-3 text-[15px] ${error && !isValidEmail(email) ? 'border-bbq-red' : 'border-bbq-black'}`} />
+                  <label className="block text-xs font-black uppercase tracking-wide mb-1.5">{t('email_label')}</label>
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={t('email_placeholder')} className={`w-full border-4 p-3 text-[15px] ${error && !isValidEmail(email) ? 'border-bbq-red' : 'border-bbq-black'}`} />
                 </div>
                 <div className="flex gap-3 items-start bg-white border-3 border-bbq-black p-3.5 mb-4">
                   <input type="checkbox" checked={optin} onChange={e => setOptin(e.target.checked)} className="w-5 h-5 mt-0.5 accent-bbq-black" />
                   <label className="text-[13px] leading-snug" onClick={() => setOptin(o => !o)}>
-                    <b>Sim, quero receber as fotos do evento</b> e, de vez em quando, novidades do Lisbon BBQ. Nada de spam, e sais com um clique.
+                    {t('diet_optin')}
                   </label>
                 </div>
-                <button type="submit" disabled={sending} className={`${btnFlame} w-full`}>{sending ? 'A enviar…' : 'Enviar'}</button>
-                <p className="text-xs opacity-60 mt-3 leading-relaxed">Podes alterar a tua resposta submetendo de novo com o mesmo email. <a href="/privacy" className="underline">Política de privacidade</a>.</p>
-                <p className="text-xs opacity-60 mt-2 leading-relaxed"><strong>Alergia grave?</strong> Fala directamente com os pitmasters: {event.allergy_contact_note}</p>
+                <button type="submit" disabled={sending} className={`${btnFlame} w-full`}>{sending ? t('sending') : t('send')}</button>
+                <p className="text-xs opacity-60 mt-3 leading-relaxed">{t('diet_footnote1')} <a href="/privacy" className="underline">{t('privacy_policy')}</a>.</p>
+                <p className="text-xs opacity-60 mt-2 leading-relaxed"><strong>{t('allergy_footnote')}</strong> {event.allergy_contact_note}</p>
               </form>
             ) : (
               <div className="bg-bbq-yellow text-bbq-black border-4 border-bbq-black p-6" style={{ boxShadow: '8px 8px 0 #1A1A1A' }}>
                 <div className="text-4xl">🔥</div>
-                <h3 className="text-xl font-black uppercase mt-2.5 mb-2">Anotado.</h3>
-                <p className="font-semibold">Os pitmasters já sabem. Se precisarmos de detalhes, escrevemos para <span className="underline">{email}</span>.</p>
-                <button onClick={() => setSubmitted(false)} className={`${btnLight} mt-5`}>Alterar resposta</button>
+                <h3 className="text-xl font-black uppercase mt-2.5 mb-2">{t('diet_done_heading')}</h3>
+                <p className="font-semibold">{t('diet_done_body_prefix')} <span className="underline">{email}</span>.</p>
+                <button onClick={() => setSubmitted(false)} className={`${btnLight} mt-5`}>{t('change_answer')}</button>
               </div>
             )}
           </div>
           {event.side_panel && (
             <aside className="bg-[#242424] border-4 border-bbq-cream p-6" style={{ boxShadow: '8px 8px 0 #D91A2A' }}>
-              <h3 className="text-bbq-yellow font-black uppercase text-sm mb-3.5">O que já está garantido</h3>
+              <h3 className="text-bbq-yellow font-black uppercase text-sm mb-3.5">{t('side_panel_heading')}</h3>
               <ul>
                 {event.side_panel.map((item, i) => (
                   <li key={i} className="flex gap-3 py-2.5 text-sm leading-relaxed border-b-2 border-white/10 last:border-0">
@@ -493,10 +523,11 @@ const EventDiet: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) =>
 };
 
 const EventGettingThere: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) => {
+  const t = useT();
   return (
     <section id="chegar" className="py-16 border-b-4 border-bbq-black">
       <div className="max-w-[960px] mx-auto px-5">
-        <SectionHead n={n}>Como chegar</SectionHead>
+        <SectionHead n={n}>{t('chegar_heading')}</SectionHead>
         <div className="grid sm:grid-cols-3 gap-5">
           {event.getting_there.map((c, i) => (
             <Card key={i} bg={i === 0 ? 'bg-bbq-black' : 'bg-white'} className={i === 0 ? 'text-bbq-cream' : ''}>
@@ -512,19 +543,20 @@ const EventGettingThere: React.FC<{ event: EventRecord; n: string }> = ({ event,
 };
 
 const EventBring: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) => {
+  const t = useT();
   return (
     <section className="py-16 border-b-4 border-bbq-black">
       <div className="max-w-[960px] mx-auto px-5">
-        <SectionHead n={n}>Bom saber</SectionHead>
+        <SectionHead n={n}>{t('bring_heading')}</SectionHead>
         <div className={`grid gap-5 ${event.skip_items.length > 0 ? 'sm:grid-cols-2' : ''}`}>
           {event.bring_items.length > 0 && (
             <Card>
-              <h3 className="font-black uppercase text-sm mb-2.5">Traz</h3>
+              <h3 className="font-black uppercase text-sm mb-2.5">{t('bring_label')}</h3>
               <ul>
-                {event.bring_items.map((t, i) => (
+                {event.bring_items.map((t2, i) => (
                   <li key={i} className="flex gap-3 items-start py-2.5 text-base leading-snug">
                     <span className="flex-none w-6 h-6 border-3 border-bbq-black grid place-items-center text-[13px] font-black bg-bbq-yellow">✓</span>
-                    <span>{t}</span>
+                    <span>{t2}</span>
                   </li>
                 ))}
               </ul>
@@ -532,12 +564,12 @@ const EventBring: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) =
           )}
           {event.skip_items.length > 0 && (
             <Card>
-              <h3 className="font-black uppercase text-sm mb-2.5">Não precisas de trazer</h3>
+              <h3 className="font-black uppercase text-sm mb-2.5">{t('skip_label')}</h3>
               <ul>
-                {event.skip_items.map((t, i) => (
+                {event.skip_items.map((t2, i) => (
                   <li key={i} className="flex gap-3 items-start py-2.5 text-base leading-snug">
                     <span className="flex-none w-6 h-6 border-3 border-bbq-black grid place-items-center text-[13px] font-black bg-white text-bbq-red">✕</span>
-                    <span>{t}</span>
+                    <span>{t2}</span>
                   </li>
                 ))}
               </ul>
@@ -549,68 +581,76 @@ const EventBring: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) =
   );
 };
 
-const EventRules: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) => (
-  <section className="py-16 border-b-4 border-bbq-black">
-    <div className="max-w-[960px] mx-auto px-5">
-      <SectionHead n={n}>Regras da casa</SectionHead>
-      <ul>
-        {event.house_rules.map((r, i) => (
-          <li key={i} className="flex gap-3 py-2.5 border-b-2 border-black/10 last:border-0 text-[15px]">
-            <b className="flex-none text-red-600 font-black uppercase text-xs tracking-wide pt-0.5 min-w-[92px]">{r.label}</b>
-            <span>{r.text}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  </section>
-);
+const EventRules: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) => {
+  const t = useT();
+  return (
+    <section className="py-16 border-b-4 border-bbq-black">
+      <div className="max-w-[960px] mx-auto px-5">
+        <SectionHead n={n}>{t('rules_heading')}</SectionHead>
+        <ul>
+          {event.house_rules.map((r, i) => (
+            <li key={i} className="flex gap-3 py-2.5 border-b-2 border-black/10 last:border-0 text-[15px]">
+              <b className="flex-none text-red-600 font-black uppercase text-xs tracking-wide pt-0.5 min-w-[92px]">{r.label}</b>
+              <span>{r.text}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+};
 
-const EventPlaylist: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) => (
-  <section className="py-16 border-b-4 border-bbq-black">
-    <div className="max-w-[960px] mx-auto px-5">
-      <SectionHead n={n}>A playlist é vossa</SectionHead>
-      {event.playlist_intro && <p className="max-w-[620px] mb-5 text-base leading-relaxed">{event.playlist_intro}</p>}
-      <a className={btnFlame} href={event.playlist_url!} target="_blank" rel="noopener"><Music size={16} /> Abrir no Spotify</a>
-    </div>
-  </section>
-);
+const EventPlaylist: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) => {
+  const t = useT();
+  return (
+    <section className="py-16 border-b-4 border-bbq-black">
+      <div className="max-w-[960px] mx-auto px-5">
+        <SectionHead n={n}>{t('playlist_heading')}</SectionHead>
+        {event.playlist_intro && <p className="max-w-[620px] mb-5 text-base leading-relaxed">{event.playlist_intro}</p>}
+        <a className={btnFlame} href={event.playlist_url!} target="_blank" rel="noopener"><Music size={16} /> {t('open_spotify')}</a>
+      </div>
+    </section>
+  );
+};
 
 const EventAfter: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) => {
+  const { lang } = useLang();
+  const t = useT();
   const instagram = (event.socials || EVENT_SOCIALS).find(s => s.key === 'instagram');
   return (
     <section className="py-16 border-b-4 border-bbq-black bg-bbq-black text-bbq-cream">
       <div className="max-w-[960px] mx-auto px-5">
         <div className="flex items-end gap-4 mb-8 flex-wrap">
           <span className="text-xs font-black bg-bbq-yellow text-bbq-black px-2.5 py-1.5 tracking-wider">{n}</span>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight leading-none text-bbq-yellow">Depois</h2>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight leading-none text-bbq-yellow">{t('after_heading')}</h2>
         </div>
         <div className="grid sm:grid-cols-2 gap-5">
           {event.album_url && (
             <div className="bg-[#242424] border-4 border-bbq-cream p-6" style={{ boxShadow: '4px 4px 0 #F4B41A' }}>
-              <h3 className="text-bbq-yellow font-black uppercase text-sm mb-2.5"><Camera size={16} className="inline mr-1.5" />Álbum partilhado</h3>
-              <p className="opacity-85 text-[15px]">Carreguem as fotos todas para o álbum do evento.</p>
-              <a href={event.album_url} target="_blank" rel="noopener" className={`${btnFlame} w-full mt-4`}>Carregar para o álbum</a>
+              <h3 className="text-bbq-yellow font-black uppercase text-sm mb-2.5"><Camera size={16} className="inline mr-1.5" />{t('album_heading')}</h3>
+              <p className="opacity-85 text-[15px]">{t('album_body')}</p>
+              <a href={event.album_url} target="_blank" rel="noopener" className={`${btnFlame} w-full mt-4`}>{t('album_cta')}</a>
             </div>
           )}
           {event.review_url && (
             <div className="bg-[#242424] border-4 border-bbq-cream p-6 text-center" style={{ boxShadow: '4px 4px 0 #F4B41A' }}>
-              <h3 className="text-bbq-yellow font-black uppercase text-sm mb-2.5">Como correu?</h3>
+              <h3 className="text-bbq-yellow font-black uppercase text-sm mb-2.5">{t('review_heading')}</h3>
               <div className="text-2xl text-bbq-yellow tracking-[6px] my-3"><Star className="inline" fill="currentColor" size={22} /><Star className="inline" fill="currentColor" size={22} /><Star className="inline" fill="currentColor" size={22} /><Star className="inline" fill="currentColor" size={22} /><Star className="inline" fill="currentColor" size={22} /></div>
-              <p className="opacity-85 text-[15px] mb-4">30 segundos do vosso tempo ajudam-nos mais do que imaginam.</p>
-              <a href={event.review_url} target="_blank" rel="noopener" className={btnLight}>Deixar review no Google</a>
+              <p className="opacity-85 text-[15px] mb-4">{t('review_body')}</p>
+              <a href={event.review_url} target="_blank" rel="noopener" className={btnLight}>{t('review_cta')}</a>
             </div>
           )}
           {instagram && (
             <div className="bg-[#242424] border-4 border-bbq-cream p-6 text-center" style={{ boxShadow: '4px 4px 0 #F4B41A' }}>
-              <h3 className="text-bbq-yellow font-black uppercase text-sm mb-2.5"><Instagram size={16} className="inline mr-1.5" />Segue-nos no Instagram</h3>
-              <p className="opacity-85 text-[15px] mb-4">Fica a par das próximas datas e vê os bastidores dos nossos churrascos.</p>
-              <a href={instagram.url} target="_blank" rel="noopener" className={btnLight}>Seguir no Instagram</a>
+              <h3 className="text-bbq-yellow font-black uppercase text-sm mb-2.5"><Instagram size={16} className="inline mr-1.5" />{t('instagram_heading')}</h3>
+              <p className="opacity-85 text-[15px] mb-4">{t('instagram_body')}</p>
+              <a href={instagram.url} target="_blank" rel="noopener" className={btnLight}>{t('follow_instagram')}</a>
             </div>
           )}
           {event.show_photographer_card && (
             <div className="bg-[#242424] border-4 border-bbq-cream p-6">
-              <h3 className="text-bbq-yellow font-black uppercase text-sm mb-2.5">🔥 As nossas fotos</h3>
-              <p className="opacity-85 text-[15px]">O nosso fotógrafo esteve lá. Ficam disponíveis em alta resolução{event.photographer_available_at ? ` a partir de ${formatDatePt(event.photographer_available_at, event.timezone, { day: 'numeric', month: 'long' })}` : ''}.</p>
+              <h3 className="text-bbq-yellow font-black uppercase text-sm mb-2.5">{t('photographer_heading')}</h3>
+              <p className="opacity-85 text-[15px]">{t('photographer_body_prefix')}{event.photographer_available_at ? ` ${t('photographer_body_from')} ${formatDate(event.photographer_available_at, event.timezone, lang, { day: 'numeric', month: 'long' })}` : ''}.</p>
             </div>
           )}
         </div>
@@ -620,11 +660,12 @@ const EventAfter: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) =
 };
 
 const EventSocials: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) => {
+  const t = useT();
   const socials = event.socials || EVENT_SOCIALS;
   return (
     <section className="py-16 border-b-4 border-bbq-black">
       <div className="max-w-[960px] mx-auto px-5">
-        <SectionHead n={n}>Segue o fogo</SectionHead>
+        <SectionHead n={n}>{t('socials_heading')}</SectionHead>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {socials.map(s => (
             <a key={s.key} href={s.url} target="_blank" rel="noopener noreferrer" className="bg-bbq-cream border-4 border-bbq-black shadow-hard-sm px-3 py-4.5 text-center no-underline text-bbq-black hover:-translate-x-0.5 hover:-translate-y-0.5 transition-transform">
@@ -639,6 +680,8 @@ const EventSocials: React.FC<{ event: EventRecord; n: string }> = ({ event, n })
 };
 
 const EventReferral: React.FC<{ event: EventRecord }> = ({ event }) => {
+  const { lang } = useLang();
+  const t = useT();
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState(false);
@@ -667,24 +710,24 @@ const EventReferral: React.FC<{ event: EventRecord }> = ({ event }) => {
   return (
     <section className="py-16 bg-bbq-yellow text-center border-b-4 border-bbq-black">
       <div className="max-w-[960px] mx-auto px-5">
-        <span className="text-xs font-black uppercase tracking-widest">E o vosso?</span>
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight leading-none mt-2.5">Gostaste? Organiza o próximo.</h2>
+        <span className="text-xs font-black uppercase tracking-widest">{t('referral_kicker')}</span>
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight leading-none mt-2.5">{t('referral_heading')}</h2>
         {event.referral_code ? (
           <>
             <div className="inline-block bg-bbq-black text-bbq-yellow text-[clamp(22px,5vw,34px)] font-black tracking-[.12em] px-6 py-3.5 border-4 border-bbq-black shadow-hard my-4.5">{event.referral_code}</div>
-            <p className="max-w-[520px] mx-auto mb-5">{event.referral_intro || `${event.referral_discount_eur}€ de desconto no vosso churrasco com este código.`}</p>
+            <p className="max-w-[520px] mx-auto mb-5">{event.referral_intro || referralFallback(lang, event.referral_discount_eur, true)}</p>
           </>
         ) : (
           <>
-            <p className="max-w-[540px] mx-auto mt-5 mb-2">{event.referral_intro || `${event.referral_discount_eur}€ de desconto no próximo churrasco.`}</p>
+            <p className="max-w-[540px] mx-auto mt-5 mb-2">{event.referral_intro || referralFallback(lang, event.referral_discount_eur, false)}</p>
             {!submitted ? (
               <form onSubmit={submit} className="flex gap-2.5 max-w-[460px] mx-auto mt-5 flex-col sm:flex-row">
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="o teu email" aria-label="O teu email" className={`flex-1 bg-bbq-cream border-4 p-3 text-[15px] ${error ? 'border-bbq-red' : 'border-bbq-black'}`} />
-                <button type="submit" disabled={sending} className={btnDark}>{sending ? '...' : 'Enviar'}</button>
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={t('referral_email_placeholder')} aria-label={t('email_label')} className={`flex-1 bg-bbq-cream border-4 p-3 text-[15px] ${error ? 'border-bbq-red' : 'border-bbq-black'}`} />
+                <button type="submit" disabled={sending} className={btnDark}>{sending ? '...' : t('send')}</button>
               </form>
             ) : (
               <div className="max-w-[460px] mx-auto mt-5 bg-bbq-black text-bbq-cream border-4 border-bbq-black shadow-hard-sm p-4.5 text-[15px]">
-                <strong className="text-bbq-yellow">A caminho.</strong> Enviámos o teu código para {email}.
+                <strong className="text-bbq-yellow">{t('referral_sent_prefix')}</strong> {email}.
               </div>
             )}
           </>
@@ -694,15 +737,18 @@ const EventReferral: React.FC<{ event: EventRecord }> = ({ event }) => {
   );
 };
 
-const EventFooter: React.FC = () => (
-  <footer className="bg-bbq-black text-bbq-cream py-10 text-center">
-    <div className="max-w-[960px] mx-auto px-5">
-      <div className="font-black uppercase text-sm flex justify-center items-center gap-2 mb-3">
-        <Flame size={16} className="text-bbq-yellow" /> LISBON<span className="text-bbq-yellow">BBQ</span>
+const EventFooter: React.FC = () => {
+  const t = useT();
+  return (
+    <footer className="bg-bbq-black text-bbq-cream py-10 text-center">
+      <div className="max-w-[960px] mx-auto px-5">
+        <div className="font-black uppercase text-sm flex justify-center items-center gap-2 mb-3">
+          <Flame size={16} className="text-bbq-yellow" /> LISBON<span className="text-bbq-yellow">BBQ</span>
+        </div>
+        <p className="text-xs opacity-60">Fire. Long Tables. Building Community.<br />
+          <a href="https://lisbonbbq.pt" className="text-bbq-yellow">lisbonbbq.pt</a> · pitmasters@lisbonbbq.pt · +351 961 058 571</p>
+        <p className="mt-3.5 text-[11px] opacity-60">{t('footer_private_note')}</p>
       </div>
-      <p className="text-xs opacity-60">Fire. Long Tables. Building Community.<br />
-        <a href="https://lisbonbbq.pt" className="text-bbq-yellow">lisbonbbq.pt</a> · pitmasters@lisbonbbq.pt · +351 961 058 571</p>
-      <p className="mt-3.5 text-[11px] opacity-60">Página privada do evento. Não partilhar fora do grupo de convidados.</p>
-    </div>
-  </footer>
-);
+    </footer>
+  );
+};
