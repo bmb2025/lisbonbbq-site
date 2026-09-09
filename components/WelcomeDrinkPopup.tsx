@@ -3,19 +3,12 @@ import { Instagram, X } from 'lucide-react';
 import { EVENT_SOCIALS } from '../constants';
 import { EventRecord } from '../types';
 
-function isValidEmail(email: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-type Step = 'instagram' | 'newsletter' | 'success';
+type Step = 'instagram' | 'success';
 
 export const WelcomeDrinkPopup: React.FC<{ event: EventRecord }> = ({ event }) => {
   const [visible, setVisible] = useState(false);
   const [step, setStep] = useState<Step>('instagram');
   const [fading, setFading] = useState(false);
-  const [email, setEmail] = useState('');
-  const [error, setError] = useState(false);
-  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     const id = setTimeout(() => setVisible(true), 2000);
@@ -38,33 +31,8 @@ export const WelcomeDrinkPopup: React.FC<{ event: EventRecord }> = ({ event }) =
 
   const handleInstagramClick = () => {
     window.open(instagramUrl, '_blank', 'noopener,noreferrer');
-    goTo('newsletter');
-  };
-
-  const submitNewsletter = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isValidEmail(email)) { setError(true); return; }
-    setError(false);
-    setSending(true);
-    try {
-      await fetch('/api/save-lead', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          source: 'event_popup_newsletter',
-          stage: 'partial',
-          email,
-          event_slug: event.slug,
-          event_title: event.title,
-        }),
-      });
-      goTo('success');
-      setTimeout(close, 1800);
-    } catch {
-      setError(true);
-    } finally {
-      setSending(false);
-    }
+    goTo('success');
+    setTimeout(close, 1800);
   };
 
   if (!visible) return null;
@@ -90,11 +58,11 @@ export const WelcomeDrinkPopup: React.FC<{ event: EventRecord }> = ({ event }) =
         <div className={`transition-opacity duration-200 ${fading ? 'opacity-0' : 'opacity-100'}`}>
           {step === 'instagram' && (
             <>
-              <span className="inline-block bg-bbq-red text-bbq-cream font-black uppercase text-[11px] tracking-wide px-3.5 py-1.5 mb-4">Oferta especial</span>
-              <div className="text-4xl mb-2.5">🍹</div>
-              <h2 className="text-2xl font-black uppercase leading-tight mb-3.5 text-balance">Recebe um welcome drink no dia do churrasco</h2>
+              <span className="inline-block bg-bbq-red text-bbq-cream font-black uppercase text-[11px] tracking-wide px-3.5 py-1.5 mb-4">Antes de começar</span>
+              <div className="text-4xl mb-2.5">🔥</div>
+              <h2 className="text-2xl font-black uppercase leading-tight mb-3.5 text-balance">Segue-nos no Instagram</h2>
               <p className="text-[15px] text-[#3a3a3a] mb-5 leading-relaxed">
-                Segue-nos no Instagram, mostra que já nos segues e recebe uma bebida de boas-vindas por nossa conta.
+                Fotos dos churrascos, spots novos e o que sai da grelha. É por lá que mostramos o que fazemos.
               </p>
               <button
                 onClick={handleInstagramClick}
@@ -108,33 +76,11 @@ export const WelcomeDrinkPopup: React.FC<{ event: EventRecord }> = ({ event }) =
             </>
           )}
 
-          {step === 'newsletter' && (
-            <>
-              <span className="inline-block bg-bbq-yellow text-bbq-black font-black uppercase text-[11px] tracking-wide px-3.5 py-1.5 mb-4">Quase lá</span>
-              <div className="text-4xl mb-2.5">📬</div>
-              <h2 className="text-2xl font-black uppercase leading-tight mb-3.5 text-balance">Falta só a newsletter</h2>
-              <p className="text-[15px] text-[#3a3a3a] mb-5 leading-relaxed">Novidades de eventos, spots novos e descontos — direto no teu email, sem spam.</p>
-              <form onSubmit={submitNewsletter} className="flex gap-0 mb-3.5">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="nome@exemplo.pt"
-                  className={`flex-1 min-w-0 h-[52px] border-4 border-r-0 px-3.5 text-[15px] ${error ? 'border-bbq-red' : 'border-bbq-black'}`}
-                />
-                <button type="submit" disabled={sending} className="h-[52px] flex-none bg-bbq-yellow text-bbq-black border-4 border-bbq-black font-black uppercase text-[13px] px-4.5 hover:bg-[#ffc94a] transition-colors">
-                  {sending ? '...' : 'Subscrever'}
-                </button>
-              </form>
-              <button onClick={close} className="block mx-auto text-xs font-bold text-[#8a8a8a] underline underline-offset-4 hover:text-bbq-black">Saltar este passo</button>
-            </>
-          )}
-
           {step === 'success' && (
             <div className="py-2.5">
               <div className="text-4xl mb-2">🎉</div>
-              <h2 className="text-2xl font-black uppercase mb-1">Tudo pronto!</h2>
-              <p className="text-[15px] text-[#3a3a3a]">Vemo-nos no dia do churrasco — welcome drink garantido.</p>
+              <h2 className="text-2xl font-black uppercase mb-1">Obrigado!</h2>
+              <p className="text-[15px] text-[#3a3a3a]">Vemo-nos no dia do churrasco.</p>
             </div>
           )}
         </div>
