@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { Instagram, X } from 'lucide-react';
 import { EVENT_SOCIALS } from '../constants';
 import { EventRecord } from '../types';
+import { useT } from '../i18n';
 
 type Step = 'instagram' | 'success';
 
 export const WelcomeDrinkPopup: React.FC<{ event: EventRecord }> = ({ event }) => {
+  const t = useT();
   const [visible, setVisible] = useState(false);
   const [step, setStep] = useState<Step>('instagram');
   const [fading, setFading] = useState(false);
@@ -58,29 +60,29 @@ export const WelcomeDrinkPopup: React.FC<{ event: EventRecord }> = ({ event }) =
         <div className={`transition-opacity duration-200 ${fading ? 'opacity-0' : 'opacity-100'}`}>
           {step === 'instagram' && (
             <>
-              <span className="inline-block bg-bbq-red text-bbq-cream font-black uppercase text-[11px] tracking-wide px-3.5 py-1.5 mb-4">Antes de começar</span>
+              <span className="inline-block bg-bbq-red text-bbq-cream font-black uppercase text-[11px] tracking-wide px-3.5 py-1.5 mb-4">{t('popup_kicker')}</span>
               <div className="text-4xl mb-2.5">🔥</div>
-              <h2 className="text-2xl font-black uppercase leading-tight mb-3.5 text-balance">Segue-nos no Instagram</h2>
+              <h2 className="text-2xl font-black uppercase leading-tight mb-3.5 text-balance">{t('popup_heading')}</h2>
               <p className="text-[15px] text-[#3a3a3a] mb-5 leading-relaxed">
-                Fotos dos churrascos, spots novos e o que sai da grelha. É por lá que mostramos o que fazemos.
+                {t('popup_body')}
               </p>
               <button
                 onClick={handleInstagramClick}
                 className="w-full inline-flex items-center justify-center gap-2.5 bg-bbq-black text-bbq-cream border-4 border-bbq-black font-black uppercase text-sm tracking-tight px-4.5 py-3.5 active:translate-x-[2px] active:translate-y-[2px] transition-transform"
                 style={{ boxShadow: '4px 4px 0 0 #D91A2A' }}
               >
-                <Instagram size={20} /> Seguir no Instagram
+                <Instagram size={20} /> {t('follow_instagram')}
               </button>
               <span className="block mt-3 text-[13px] font-bold text-[#6b6b6b]">@lisbon.barbecue.churrasco</span>
-              <button onClick={close} className="block mx-auto mt-4.5 text-xs font-bold text-[#8a8a8a] underline underline-offset-4 hover:text-bbq-black">Agora não</button>
+              <button onClick={close} className="block mx-auto mt-4.5 text-xs font-bold text-[#8a8a8a] underline underline-offset-4 hover:text-bbq-black">{t('popup_not_now')}</button>
             </>
           )}
 
           {step === 'success' && (
             <div className="py-2.5">
               <div className="text-4xl mb-2">🎉</div>
-              <h2 className="text-2xl font-black uppercase mb-1">Obrigado!</h2>
-              <p className="text-[15px] text-[#3a3a3a]">Vemo-nos no dia do churrasco.</p>
+              <h2 className="text-2xl font-black uppercase mb-1">{t('popup_success_heading')}</h2>
+              <p className="text-[15px] text-[#3a3a3a]">{t('popup_success_body')}</p>
             </div>
           )}
         </div>
