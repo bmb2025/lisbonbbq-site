@@ -122,15 +122,16 @@ export const LOCATIONS: VenueLocation[] = [
     name: 'Monsanto (Lisboa)',
     description: 'Espaço versátil rodeado de natureza no pulmão de Lisboa. Ideal para grandes grupos ao ar livre.',
     images: [
-      `${IMG}/Fotos/Locais/Tapadinha/Tapa1.webp`,
-      `${IMG}/Fotos/Locais/Tapadinha/Tapa2.webp`,
-      `${IMG}/Fotos/Locais/Tapadinha/Tapa3.webp`,
+      `${IMG}/Fotos/Locais/Tapadinha/Tapa_9.webp`,
       `${IMG}/Fotos/Locais/Tapadinha/Tapa_1.webp`,
-      `${IMG}/Fotos/Locais/Tapadinha/Tapa_2.webp`,
-      `${IMG}/Fotos/Locais/Tapadinha/Tapa_3.webp`,
-      `${IMG}/Fotos/Locais/Tapadinha/Tapa_4.webp`
+      `${IMG}/Fotos/Locais/Tapadinha/Tapa_5.webp`,
+      `${IMG}/Fotos/Locais/Tapadinha/Tapa_7.webp`,
+      `${IMG}/Fotos/Locais/Tapadinha/Tapa_8.webp`,
+      `${IMG}/Fotos/Locais/Tapadinha/Tapa_10.webp`,
+      `${IMG}/Fotos/Locais/Tapadinha/Tapa_11.webp`,
+      `${IMG}/Fotos/Locais/Tapadinha/Tapa_13.webp`
     ],
-    minGuests: 80,
+    minGuests: 50,
     maxGuests: 1000
   },
   {

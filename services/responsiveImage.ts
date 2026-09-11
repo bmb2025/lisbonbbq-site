@@ -9,7 +9,7 @@ const LOCAL_VARIANTS: Record<string, { base: string; widths?: number[] }> = {
   [`${IMG}/Fotos/Locais/Alcantara/AlcantaraN6.webp`]: { base: "alcantara1" },
   [`${IMG}/Fotos/Locais/Expo/Expo1_A.webp`]: { base: "expo1-a" },
   [`${IMG}/Fotos/Locais/Marvila/Marvila2.webp`]: { base: "marvila2" },
-  [`${IMG}/Fotos/Locais/Tapadinha/Tapa1.webp`]: { base: "tapa1" },
+  [`${IMG}/Fotos/Locais/Tapadinha/Tapa_9.webp`]: { base: "tapa9" },
   [`${IMG}/Fotos/Locais/Carnide/Carnide4.jpeg`]: { base: "carnide4" },
   [`${IMG}/Fotos/Locais/Benfica/Benfica3.webp`]: { base: "benfica3" },
   [`${IMG}/Fotos/Locais/Alvito/Alvito1.png`]: { base: "alvito1" },

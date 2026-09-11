@@ -233,7 +233,7 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
       text: pt
         ? 'Quintal amplo à sombra das árvores, feito para equipas grandes. O clássico dos nossos churrascos de empresa.'
         : 'A big backyard in the shade of the trees, built for large teams. The classic of our company barbecues.',
-      capacity: pt ? '80+ pessoas' : '80+ people'
+      capacity: pt ? '50+ pessoas' : '50+ people'
     },
     {
       images: venueImages('expo_rooftop'),
