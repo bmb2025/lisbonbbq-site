@@ -96,7 +96,10 @@ export const EventPageView: React.FC = () => {
   const [menuItems, setMenuItems] = useState<EventMenuItem[]>([]);
   const [status, setStatus] = useState<'loading' | 'ok' | 'notfound'>('loading');
   const [weather, setWeather] = useState<DailyWeather | null>(null);
-  const [lang, setLang] = useState<Lang>('pt');
+  const [lang, setLang] = useState<Lang>(() => {
+    const fromUrl = new URLSearchParams(window.location.search).get('lang');
+    return fromUrl === 'en' ? 'en' : 'pt';
+  });
 
   useEffect(() => {
     let cancelled = false;
