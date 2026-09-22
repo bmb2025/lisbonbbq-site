@@ -238,29 +238,31 @@ const App: React.FC = () => {
     navigate(`/blog/${slug}`);
   };
 
+  const bbqStyleLabels: Record<string, string> = {
+    portuguese: 'Português',
+    brazilian: 'Brasileiro',
+    argentinian: 'Argentino'
+  };
+
   const handleCorporateSubmit = async (data: any) => {
     setIsSending(true);
 
-    // Map selected ranges to numeric fallbacks for formulas/numeric cells in GSheets
-    const guestCounts: Record<string, number> = {
-      '10-20': 15,
-      '20-40': 30,
-      '40-60': 50,
-      '60-80': 70,
-      '80+': 80
-    };
-    const parsedGuestsNum = guestCounts[data.guests] || (data.guests ? parseInt(data.guests) : 20);
+    const parsedGuestsNum = parseInt(data.guests, 10) || 20;
 
-    // Data pretendida (opcional). Fixada ao meio-dia UTC para o dia não deslizar
-    // em nenhum fuso — o input devolve só "YYYY-MM-DD".
+    // Data pretendida. Fixada ao meio-dia UTC para o dia não deslizar em
+    // nenhum fuso — o input devolve só "YYYY-MM-DD".
     const eventDateIso = data.date ? `${data.date}T12:00:00.000Z` : null;
+
+    const locationName = data.locationId === OWN_LOCATION_ID
+      ? OWN_LOCATION_NAME
+      : (LOCATIONS.find(l => l.id === data.locationId)?.name || 'A decidir');
 
     const newLead = {
       // 1. Keep the ID format strictly conforming to standard booking pattern (LB-timestamp)
       id: `LB-${Date.now()}`,
       timestamp: new Date().toISOString(),
       client: { name: data.name, email: data.email, phone: data.phone },
-      corporate: { company: data.company, guests: data.guests, message: data.message, date: eventDateIso },
+      corporate: { guests: parsedGuestsNum, bbqStyle: data.bbqStyle || null, message: data.message, date: eventDateIso },
       source: 'corporate',
       lang,
       target_email: 'pitmasters@lisbonbbq.pt', // Explicit for corporate
@@ -269,28 +271,25 @@ const App: React.FC = () => {
       name: data.name,
       email: data.email,
       phone: data.phone,
-      company: data.company,
-      // Provide numeric guests for any cell typing/math on spreadsheet side, keep range as meta
       guests: parsedGuestsNum,
-      // Enriched message to ensure corporate guests range is clearly visible inside email body / message card
-      message: `[Pedida Gama de Convidados: ${data.guests}] ${data.message || ''}`,
+      message: data.message || '',
 
       // Fallbacks
       package: 'corporate',
-      location: 'TBD',
+      location: data.locationId || 'TBD',
       event_date: eventDateIso || new Date().toISOString(),
       drinks: 'mixed',
 
       // Fully-populated booking structure matching standard nested properties
       booking: {
-        tradition: 'portuguese',
+        tradition: data.bbqStyle || null,
         date: eventDateIso || new Date().toISOString(),
         slot: 'almoço',
         guests: parsedGuestsNum,
         guestsConfirmed: true,
-        style: 'Corporate',
+        style: data.bbqStyle ? bbqStyleLabels[data.bbqStyle] : 'A decidir',
         styleId: 'corporate',
-        locationId: 'TBD',
+        locationId: data.locationId || 'TBD',
         selectedSides: [],
         sidesConfirmed: true,
         paoAlentejano: false,
@@ -300,20 +299,39 @@ const App: React.FC = () => {
       extras: [],
       summary: {
         totalGuests: parsedGuestsNum,
-        location: 'TBD',
-        locationId: 'TBD',
-        menu: 'corporate',
+        location: locationName,
+        locationId: data.locationId || 'TBD',
+        menu: data.bbqStyle ? bbqStyleLabels[data.bbqStyle] : 'A decidir',
         menuId: 'corporate'
       }
     };
-    
+
     const success = await cloudService.saveLead(newLead);
     if (success) {
-      track('corporate_form_submitted', { guests_range: data.guests, company: data.company, event_date: data.date || null });
+      track('corporate_form_submitted', { guests: parsedGuestsNum, location: locationName, bbq_style: data.bbqStyle || null, event_date: data.date || null });
       identifyLead({ email: data.email, name: data.name, phone: data.phone });
     }
     setIsSending(false);
     return success;
+  };
+
+  // Lead capture parcial do form corporate — grava assim que nome + email +
+  // telemóvel estão preenchidos, mesmo que a pessoa não termine o formulário.
+  const handleCorporatePartialLead = async (data: { name: string; email: string; phone: string }) => {
+    const partialLead = {
+      id: `LB-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      stage: 'partial',
+      client: { name: data.name, email: data.email, phone: data.phone },
+      source: 'corporate',
+      lang,
+      name: data.name,
+      email: data.email,
+      phone: data.phone
+    };
+    await cloudService.saveLead(partialLead);
+    track('lead_capture_submitted', { source: 'corporate' });
+    identifyLead({ name: data.name, email: data.email, phone: data.phone });
   };
 
   const saveArticle = async (article: Article) => {
@@ -472,7 +490,7 @@ const App: React.FC = () => {
           const el = document.getElementById('corporate-form');
           if (el) el.scrollIntoView({ behavior: 'smooth' });
           else scrollToBooking();
-        }} onSubmit={handleCorporateSubmit} isSending={isSending} /><Footer setView={setView} lang={lang} /></>} />
+        }} onSubmit={handleCorporateSubmit} onPartialCapture={handleCorporatePartialLead} isSending={isSending} /><Footer setView={setView} lang={lang} /></>} />
         <Route path="/admin" element={<BlogAdmin articles={articles} onSave={saveArticle} onDelete={deleteArticle} onBack={() => navigate('/blog')} />} />
         <Route path="/e/:slug" element={<EventPageView />} />
         <Route path="*" element={
