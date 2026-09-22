@@ -108,6 +108,15 @@ const MAX_ATTEMPTS = 10;
  * completas (têm email) cuja notificação interna "Nova reserva" nunca foi
  * confirmada como enviada e tenta reenviá-la. Corre a cada 5 min via
  * Supabase pg_cron, com a mesma autenticação usada em notify-partial-leads.
+ *
+ * Exclui `stage: "partial"` — save-lead.ts nunca tenta notificar leads
+ * parciais (fica sempre com internal_notified_at nulo de propósito), e
+ * algumas fontes (ex: event_popup_newsletter) já guardam parciais com email
+ * preenchido. Sem este filtro, o "email presente + internal_notified_at
+ * nulo" de uma parcial é indistinguível de uma lead completa cujo envio
+ * falhou, e este cron manda um "Nova reserva" vazio sem os dados do pedido
+ * (já aconteceu com leads corporate de teste e com uma parcial do
+ * event_popup_newsletter a 2026-09-06).
  */
 export default async function handler(req: any, res: any) {
   const expected = createHash("sha256")
@@ -127,6 +136,7 @@ export default async function handler(req: any, res: any) {
       .from("leads")
       .select("id, data, internal_notify_attempts")
       .not("email", "is", null)
+      .is("data->>stage", null)
       .is("internal_notified_at", null)
       .lt("internal_notify_attempts", MAX_ATTEMPTS)
       .lte("created_at", dueBefore)
