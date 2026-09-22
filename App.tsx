@@ -315,34 +315,6 @@ const App: React.FC = () => {
     return success;
   };
 
-  // Lead capture parcial do form corporate — dispara quando a pessoa sai da
-  // página sem submeter (ver useEffect em CorporateView), e grava o que já
-  // tinha preenchido até esse momento: não só nome/email/telemóvel, mas
-  // também local, convidados, data, churrasco e mensagem, se já lá estavam.
-  const handleCorporatePartialLead = async (data: any) => {
-    const eventDateIso = data.date ? `${data.date}T12:00:00.000Z` : null;
-    const locationName = data.locationId
-      ? (data.locationId === OWN_LOCATION_ID ? OWN_LOCATION_NAME : (LOCATIONS.find(l => l.id === data.locationId)?.name || null))
-      : null;
-
-    const partialLead = {
-      id: `LB-${Date.now()}`,
-      timestamp: new Date().toISOString(),
-      stage: 'partial',
-      client: { name: data.name, email: data.email, phone: data.phone },
-      corporate: { guests: data.guests || null, bbqStyle: data.bbqStyle || null, message: data.message || '', date: eventDateIso },
-      source: 'corporate',
-      lang,
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      summary: { location: locationName }
-    };
-    await cloudService.saveLead(partialLead);
-    track('lead_capture_submitted', { source: 'corporate' });
-    identifyLead({ name: data.name, email: data.email, phone: data.phone });
-  };
-
   const saveArticle = async (article: Article) => {
     await cloudService.saveArticle(article);
     const updated = await cloudService.fetchArticles();
@@ -499,7 +471,7 @@ const App: React.FC = () => {
           const el = document.getElementById('corporate-form');
           if (el) el.scrollIntoView({ behavior: 'smooth' });
           else scrollToBooking();
-        }} onSubmit={handleCorporateSubmit} onPartialCapture={handleCorporatePartialLead} isSending={isSending} /><Footer setView={setView} lang={lang} /></>} />
+        }} onSubmit={handleCorporateSubmit} isSending={isSending} /><Footer setView={setView} lang={lang} /></>} />
         <Route path="/admin" element={<BlogAdmin articles={articles} onSave={saveArticle} onDelete={deleteArticle} onBack={() => navigate('/blog')} />} />
         <Route path="/e/:slug" element={<EventPageView />} />
         <Route path="*" element={
