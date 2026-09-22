@@ -1,13 +1,14 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Flame, Check, MessageCircle, Images, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { LOCATIONS } from '../constants';
+import { LOCATIONS, OWN_LOCATION_ID, OWN_LOCATION_NAME } from '../constants';
 import { responsiveImage } from '../services/responsiveImage';
 
 interface CorporateViewProps {
   lang: 'pt' | 'en';
   onBack: () => void;
   onSubmit: (data: any) => Promise<boolean>;
+  onPartialCapture: (data: { name: string; email: string; phone: string }) => void;
   isSending: boolean;
 }
 
@@ -45,18 +46,20 @@ const Badge: React.FC<{ variant: 'red' | 'black' | 'yellow'; children: React.Rea
 
 const btnBase = 'inline-flex items-center justify-center gap-3 border-4 border-bbq-black shadow-hard px-10 py-5 font-black uppercase text-lg tracking-tight transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none cursor-pointer';
 
-export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, isSending }) => {
+export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, onPartialCapture, isSending }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    company: '',
+    locationId: '',
+    bbqStyle: '',
     guests: '',
     date: '',
     message: ''
   });
   const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | false>(false);
+  const [partialCaptured, setPartialCaptured] = useState(false);
   const [gallery, setGallery] = useState<{ name: string; images: string[]; index: number } | null>(null);
   const heroVideoRef = useRef<HTMLVideoElement>(null);
 
@@ -109,15 +112,38 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  // Só algarismos — nunca deixa entrar "e", "-", "." ou outro lixo do teclado de número.
+  const handleGuestsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digitsOnly = e.target.value.replace(/\D/g, '');
+    setFormData(prev => ({ ...prev, guests: digitsOnly }));
+  };
+
+  // Lead capture parcial: assim que nome + email + telemóvel estão preenchidos,
+  // grava o lead mesmo que a pessoa não termine o resto do formulário.
+  const handlePhoneBlur = () => {
+    if (partialCaptured) return;
+    if (formData.name.trim() && formData.email.trim() && formData.phone.trim()) {
+      setPartialCaptured(true);
+      onPartialCapture({ name: formData.name, email: formData.email, phone: formData.phone });
+    }
+  };
+
+  const showDetails = formData.phone.trim().length > 0;
+
   const internalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (parseInt(formData.guests, 10) < 20) {
+      setError(pt ? 'Mínimo de 20 pessoas para eventos corporativos.' : 'Minimum of 20 people for corporate events.');
+      return;
+    }
     setError(false);
     const success = await onSubmit(formData);
     if (success) {
       setSubmitted(true);
-      setFormData({ name: '', email: '', phone: '', company: '', guests: '', date: '', message: '' });
+      setFormData({ name: '', email: '', phone: '', locationId: '', bbqStyle: '', guests: '', date: '', message: '' });
+      setPartialCaptured(false);
     } else {
-      setError(true);
+      setError(pt ? 'Erro ao enviar. Tenta novamente ou WhatsApp.' : 'Error sending. Try again or WhatsApp.');
     }
   };
 
@@ -631,31 +657,49 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
                     <input required type="email" name="email" value={formData.email} onChange={handleFormChange} placeholder={pt ? 'nome@empresa.pt' : 'name@company.com'} className={inputClass} />
                   </label>
                   <label className={labelClass}>{pt ? 'Telemóvel' : 'Phone'}
-                    <input type="tel" name="phone" value={formData.phone} onChange={handleFormChange} placeholder="+351" className={inputClass} />
+                    <input required type="tel" name="phone" value={formData.phone} onChange={handleFormChange} onBlur={handlePhoneBlur} placeholder="+351" className={inputClass} />
                   </label>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-[18px]">
-                  <label className={labelClass}>{pt ? 'Empresa' : 'Company'}
-                    <input type="text" name="company" value={formData.company} onChange={handleFormChange} placeholder={pt ? 'Nome da empresa' : 'Company name'} className={inputClass} />
-                  </label>
-                  <label className={labelClass}>{pt ? 'Número de pessoas' : 'Number of people'}
-                    <input required type="text" name="guests" value={formData.guests} onChange={handleFormChange} placeholder={pt ? 'ex: 80' : 'e.g. 80'} className={inputClass} />
-                  </label>
-                </div>
-                <label className={labelClass}>{pt ? 'Data pretendida (podes mudar depois)' : 'Intended date (you can change it later)'}
-                  <input type="date" name="date" value={formData.date} onChange={handleFormChange} className={inputClass} />
-                </label>
-                <label className={labelClass}>{pt ? 'Mensagem' : 'Message'}
-                  <textarea rows={4} name="message" value={formData.message} onChange={handleFormChange} placeholder={pt ? 'Addons, restrições alimentares, horário preferido…' : 'Add-ons, dietary restrictions, preferred time…'} className={`${inputClass} resize-y`} />
-                </label>
-                {error && (
-                  <p className="m-0 text-bbq-red font-black uppercase text-[10px] text-center">
-                    {pt ? 'Erro ao enviar. Tenta novamente ou WhatsApp.' : 'Error sending. Try again or WhatsApp.'}
-                  </p>
+                {showDetails && (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-[18px]">
+                      <label className={labelClass}>{pt ? 'Local preferido' : 'Preferred venue'}
+                        <select name="locationId" value={formData.locationId} onChange={handleFormChange} className={inputClass}>
+                          <option value="">{pt ? 'Aceito recomendações' : 'Open to recommendations'}</option>
+                          {LOCATIONS.map(loc => <option key={loc.id} value={loc.id}>{loc.name}</option>)}
+                          <option value={OWN_LOCATION_ID}>{pt ? 'No local da empresa' : "At the company's own venue"}</option>
+                        </select>
+                      </label>
+                      <label className={labelClass}>{pt ? 'Número de pessoas (mín. 20)' : 'Number of people (min. 20)'}
+                        <input required type="text" inputMode="numeric" pattern="[0-9]*" name="guests" value={formData.guests} onChange={handleGuestsChange} placeholder={pt ? 'ex: 80' : 'e.g. 80'} className={inputClass} />
+                      </label>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-[18px]">
+                      <label className={labelClass}>{pt ? 'Data pretendida' : 'Intended date'}
+                        <input required type="date" name="date" value={formData.date} onChange={handleFormChange} className={inputClass} />
+                      </label>
+                      <label className={labelClass}>{pt ? 'Preferência de churrasco' : 'BBQ preference'}
+                        <select name="bbqStyle" value={formData.bbqStyle} onChange={handleFormChange} className={inputClass}>
+                          <option value="">{pt ? 'Ainda não sei' : "Don't know yet"}</option>
+                          <option value="portuguese">{pt ? 'Português' : 'Portuguese'}</option>
+                          <option value="brazilian">{pt ? 'Brasileiro' : 'Brazilian'}</option>
+                          <option value="argentinian">{pt ? 'Argentino' : 'Argentinian'}</option>
+                        </select>
+                      </label>
+                    </div>
+                    <label className={labelClass}>{pt ? 'Mensagem (opcional)' : 'Message (optional)'}
+                      <textarea rows={4} name="message" value={formData.message} onChange={handleFormChange} placeholder={pt ? 'Addons, restrições alimentares, horário preferido…' : 'Add-ons, dietary restrictions, preferred time…'} className={`${inputClass} resize-y`} />
+                    </label>
+                    {error && (
+                      <p className="m-0 text-bbq-red font-black uppercase text-[10px] text-center">
+                        {error}
+                      </p>
+                    )}
+                    <button disabled={isSending} className={`${btnBase} w-full bg-bbq-yellow text-bbq-black hover:bg-white disabled:opacity-50`}>
+                      <Flame size={22} /> {isSending ? (pt ? 'A enviar…' : 'Sending…') : (pt ? 'Enviar pedido' : 'Send request')}
+                    </button>
+                  </>
                 )}
-                <button disabled={isSending} className={`${btnBase} w-full bg-bbq-yellow text-bbq-black hover:bg-white disabled:opacity-50`}>
-                  <Flame size={22} /> {isSending ? (pt ? 'A enviar…' : 'Sending…') : (pt ? 'Enviar pedido' : 'Send request')}
-                </button>
               </form>
             )}
           </div>
