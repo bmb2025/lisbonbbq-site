@@ -8,7 +8,6 @@ interface CorporateViewProps {
   lang: 'pt' | 'en';
   onBack: () => void;
   onSubmit: (data: any) => Promise<boolean>;
-  onPartialCapture: (data: { name: string; email: string; phone: string; locationId: string; bbqStyle: string; guests: string; date: string; message: string }) => void;
   isSending: boolean;
 }
 
@@ -46,7 +45,7 @@ const Badge: React.FC<{ variant: 'red' | 'black' | 'yellow'; children: React.Rea
 
 const btnBase = 'inline-flex items-center justify-center gap-3 border-4 border-bbq-black shadow-hard px-10 py-5 font-black uppercase text-lg tracking-tight transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none cursor-pointer';
 
-export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, onPartialCapture, isSending }) => {
+export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, isSending }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -59,9 +58,6 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, on
   });
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | false>(false);
-  const partialCapturedRef = useRef(false);
-  const formDataRef = useRef(formData);
-  formDataRef.current = formData;
   const [gallery, setGallery] = useState<{ name: string; images: string[]; index: number } | null>(null);
   const heroVideoRef = useRef<HTMLVideoElement>(null);
 
@@ -120,30 +116,6 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, on
     setFormData(prev => ({ ...prev, guests: digitsOnly }));
   };
 
-  // Lead capture parcial: se a pessoa sair da página (mudar de separador,
-  // fechar) sem submeter, grava o que já tinha preenchido — não só nome e
-  // contacto, mas também local, convidados, data, churrasco e mensagem, tal
-  // como estavam no momento em que saiu.
-  useEffect(() => {
-    const trySendPartial = () => {
-      if (partialCapturedRef.current) return;
-      const d = formDataRef.current;
-      if (d.name.trim() && d.email.trim() && d.phone.trim()) {
-        partialCapturedRef.current = true;
-        onPartialCapture({ ...d });
-      }
-    };
-    const onVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') trySendPartial();
-    };
-    document.addEventListener('visibilitychange', onVisibilityChange);
-    window.addEventListener('pagehide', trySendPartial);
-    return () => {
-      document.removeEventListener('visibilitychange', onVisibilityChange);
-      window.removeEventListener('pagehide', trySendPartial);
-    };
-  }, [onPartialCapture]);
-
   const showDetails = formData.phone.trim().length > 0;
 
   const internalSubmit = async (e: React.FormEvent) => {
@@ -157,7 +129,6 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, on
     if (success) {
       setSubmitted(true);
       setFormData({ name: '', email: '', phone: '', locationId: '', bbqStyle: '', guests: '', date: '', message: '' });
-      partialCapturedRef.current = false;
     } else {
       setError(pt ? 'Erro ao enviar. Tenta novamente ou WhatsApp.' : 'Error sending. Try again or WhatsApp.');
     }

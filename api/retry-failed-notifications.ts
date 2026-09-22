@@ -108,12 +108,6 @@ const MAX_ATTEMPTS = 10;
  * completas (têm email) cuja notificação interna "Nova reserva" nunca foi
  * confirmada como enviada e tenta reenviá-la. Corre a cada 5 min via
  * Supabase pg_cron, com a mesma autenticação usada em notify-partial-leads.
- *
- * Exclui explicitamente `stage: "partial"` — o capture parcial do form
- * corporate já recolhe o email antes do telemóvel, por isso teria "email
- * presente + internal_notified_at nulo" tal como uma lead completa cujo envio
- * falhou, e levaria a mandar um "Nova reserva" prematuro sem os dados do
- * pedido (data, local, convidados) que só chegam na submissão final.
  */
 export default async function handler(req: any, res: any) {
   const expected = createHash("sha256")
@@ -133,7 +127,6 @@ export default async function handler(req: any, res: any) {
       .from("leads")
       .select("id, data, internal_notify_attempts")
       .not("email", "is", null)
-      .is("data->>stage", null)
       .is("internal_notified_at", null)
       .lt("internal_notify_attempts", MAX_ATTEMPTS)
       .lte("created_at", dueBefore)
