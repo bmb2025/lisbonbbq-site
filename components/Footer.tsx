@@ -48,7 +48,7 @@ export const Footer: React.FC<FooterProps> = ({ setView, lang }) => {
       </div>
       
       <div className="max-w-6xl mx-auto px-4 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center text-xs font-bold uppercase text-gray-500">
-         <div>© 2024 Lisbon Barbecue & Churrasco. All rights reserved.</div>
+         <div>© {new Date().getFullYear()} Lisbon Barbecue & Churrasco. All rights reserved.</div>
          <div className="flex gap-6 mt-4 md:mt-0">
             <button onClick={() => setView('privacy')} className="hover:text-bbq-yellow uppercase">Privacy</button>
             <button onClick={() => setView('terms')} className="hover:text-bbq-yellow uppercase">Terms</button>

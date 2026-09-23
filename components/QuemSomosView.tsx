@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ArrowLeft, Flame, Award, Users, MapPin, ChefHat, Heart, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Flame, Users, MapPin, ChefHat, Heart, ShieldCheck } from 'lucide-react';
 
 interface QuemSomosViewProps {
   lang: 'pt' | 'en';
@@ -20,7 +20,6 @@ export const QuemSomosView: React.FC<QuemSomosViewProps> = ({ lang, onBack }) =>
       ? 'Desde 2016, a nossa missão é libertar o anfitrião. Criamos o cenário, preparamos as brasas e selecionamos as melhores carnes para que tu só tenhas de fazer uma coisa: aproveitar o momento.'
       : 'Since 2016, our mission has been to free the host. We set the scene, prepare the coals, and select the finest meats so you only have to do one thing: enjoy the moment.',
     stats: [
-      { label: lang === 'pt' ? 'Eventos' : 'Events', value: '700+', icon: Award },
       { label: lang === 'pt' ? 'Anos de Fogo' : 'Years of Fire', value: '8+', icon: Flame },
       { label: lang === 'pt' ? 'Convidados' : 'Guests', value: '15k+', icon: Users },
       { label: lang === 'pt' ? 'Spots Únicos' : 'Unique Spots', value: 'Lisboa', icon: MapPin },
@@ -71,9 +70,9 @@ export const QuemSomosView: React.FC<QuemSomosViewProps> = ({ lang, onBack }) =>
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 border-b-4 border-bbq-black bg-bbq-yellow">
+          <div className="grid grid-cols-1 sm:grid-cols-3 border-b-4 border-bbq-black bg-bbq-yellow">
             {t.stats.map((stat, i) => (
-              <div key={i} className="p-8 border-r-4 last:border-r-0 border-bbq-black flex flex-col items-center text-center">
+              <div key={i} className="p-8 border-b-4 sm:border-b-0 sm:border-r-4 last:border-0 border-bbq-black flex flex-col items-center text-center">
                 <stat.icon size={32} className="mb-4 text-bbq-black" />
                 <div className="text-4xl font-black uppercase leading-none mb-1">{stat.value}</div>
                 <div className="text-[10px] font-black uppercase tracking-widest opacity-60">{stat.label}</div>

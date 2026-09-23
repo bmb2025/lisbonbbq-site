@@ -4,6 +4,7 @@ import { track } from '../services/analytics';
 import { Header } from './Header';
 import { BookingSummary } from './BookingSummary';
 import { LogoBar, PackageCard, BrandStory, VenueGrid, Referrals } from './LandingComponents';
+import { RecentEvents } from './RecentEvents';
 import { Footer } from './Footer';
 import { BookingState, CartItem, SlotTime, DailyWeather } from '../types';
 import { LOCATIONS, getAvailableVenues, TRADITION_MEATS, getFixedSides, FIXED_DRINKS, OWN_LOCATION_ID, OWN_LOCATION_NAME } from '../constants';
@@ -244,6 +245,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       <BrandStory lang={lang} />
       <VenueGrid lang={lang} customImages={[customAssets.venueFeature1, customAssets.venueFeature2, customAssets.venueFeature3]} />
       <Referrals lang={lang} />
+      <RecentEvents lang={lang} />
 
       <main ref={traditionSectionRef} className="max-w-6xl mx-auto px-4 py-24 border-t-4 border-bbq-black bg-white">
         <div className="text-center mb-16">

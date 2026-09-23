@@ -113,11 +113,10 @@ export const SmallEventsView: React.FC<SmallEventsViewProps> = ({ lang, onBook, 
 
       {/* CITABLE FACTS strip */}
       <section className="bg-bbq-yellow border-b-4 border-bbq-black px-6 py-10">
-        <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6 text-center">
           {[
             { n: '20–100', l: pt ? 'pessoas por evento' : 'guests per event' },
             { n: '35€', l: pt ? 'por pessoa, tudo incluído' : 'per person, all included' },
-            { n: '700+', l: pt ? 'eventos realizados' : 'events hosted' },
           ].map((f, i) => (
             <div key={i} className="bg-white border-4 border-bbq-black p-6 shadow-hard-sm">
               <div className="text-4xl font-black">{f.n}</div>
