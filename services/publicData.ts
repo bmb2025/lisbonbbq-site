@@ -21,7 +21,7 @@ export interface ShowcaseEvent {
   showcase_blurb: string | null;
   guest_count: number | null;
   showcase_images: string[] | null;
-  showcase_logo: string | null;
+  showcase_url: string | null;
   venue_name: string | null;
   starts_at: string;
 }
@@ -42,7 +42,7 @@ export function fetchTestimonials(): Promise<Testimonial[]> {
 
 export function fetchShowcaseEvents(limit = 6): Promise<ShowcaseEvent[]> {
   return rest<ShowcaseEvent[]>(
-    `events?select=id,showcase_name,showcase_blurb,guest_count,showcase_images,showcase_logo,venue_name,starts_at&published=eq.true&showcase=eq.true&order=starts_at.desc&limit=${limit}`
+    `events?select=id,showcase_name,showcase_blurb,guest_count,showcase_images,showcase_url,venue_name,starts_at&published=eq.true&showcase=eq.true&order=starts_at.desc&limit=${limit}`
   );
 }
 

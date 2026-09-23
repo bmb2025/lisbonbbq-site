@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Quote, Users, MapPin } from 'lucide-react';
+import { Quote, Users, MapPin, Instagram, ArrowUpRight } from 'lucide-react';
 import { fetchShowcaseEvents, getTestimonials, ShowcaseEvent, Testimonial } from '../services/publicData';
 
 interface Props {
@@ -15,6 +15,11 @@ function storageImages(images: unknown): string[] {
   return images
     .filter((url): url is string => typeof url === 'string' && url.startsWith(STORAGE_PREFIX))
     .slice(0, 3);
+}
+
+// Link "Ver mais": só posts de Instagram (é o que o estilo do botão promete).
+function instagramUrl(url: string | null): string | null {
+  return url && /^https:\/\/(www\.)?instagram\.com\//.test(url) ? url : null;
 }
 
 // Eventos recentes com autorização do cliente (published = true e
@@ -58,7 +63,7 @@ export const RecentEvents: React.FC<Props> = ({ lang }) => {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {events.map((ev) => {
             const images = storageImages(ev.showcase_images);
-            const logo = storageImages([ev.showcase_logo])[0];
+            const igUrl = instagramUrl(ev.showcase_url);
             const name = ev.showcase_name || (pt ? 'Evento privado' : 'Private event');
             const quote = quotes[ev.id];
             const altBase = pt
@@ -82,14 +87,7 @@ export const RecentEvents: React.FC<Props> = ({ lang }) => {
                   </div>
                 )}
                 <div className="p-6 flex flex-col flex-1">
-                  <div className="flex items-center gap-4 mb-3">
-                    {logo && (
-                      <div className="shrink-0 w-20 h-14 bg-white border-2 border-bbq-black flex items-center justify-center p-1">
-                        <img src={logo} alt={pt ? `Logótipo ${name}` : `${name} logo`} loading="lazy" decoding="async" className="max-w-full max-h-full object-contain" />
-                      </div>
-                    )}
-                    <h3 className="text-2xl font-black uppercase tracking-tight leading-tight">{name}</h3>
-                  </div>
+                  <h3 className="text-2xl font-black uppercase tracking-tight leading-tight mb-3">{name}</h3>
                   <ul className="space-y-1 text-xs font-black uppercase tracking-widest text-gray-500 mb-4">
                     {ev.venue_name && (
                       <li className="flex items-center gap-2"><MapPin size={14} className="text-bbq-red" /> {ev.venue_name}</li>
@@ -107,6 +105,21 @@ export const RecentEvents: React.FC<Props> = ({ lang }) => {
                       <blockquote className="italic font-bold text-sm leading-relaxed">"{quote.quote}"</blockquote>
                       <figcaption className="mt-2 text-xs font-black uppercase tracking-widest text-bbq-red">— {quote.author_name}</figcaption>
                     </figure>
+                  )}
+                  {igUrl && (
+                    <a
+                      href={igUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={pt ? `Ver mais sobre ${name} no Instagram (abre numa nova tab)` : `See more about ${name} on Instagram (opens in a new tab)`}
+                      className="mt-auto pt-6 self-start"
+                    >
+                      <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-white text-sm font-black uppercase tracking-widest bg-[linear-gradient(45deg,#F58529,#DD2A7B_50%,#8134AF_75%,#515BD4)] hover:brightness-110 transition-[filter]">
+                        <Instagram size={18} />
+                        {pt ? 'Ver mais' : 'See more'}
+                        <ArrowUpRight size={16} />
+                      </span>
+                    </a>
                   )}
                 </div>
               </article>
