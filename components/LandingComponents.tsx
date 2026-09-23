@@ -1,14 +1,15 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { MapPin, Quote, Globe, ChefHat, Flame, Check, Camera, ImageOff, HelpCircle } from 'lucide-react';
 import { responsiveImage } from '../services/responsiveImage';
+import { getTestimonials, Testimonial } from '../services/publicData';
 
 interface LangProp {
   lang: 'pt' | 'en';
 }
 
 export const LogoBar: React.FC<LangProp> = ({ lang }) => {
-  const logos = ["LISBON BARBECUE & CHURRASCO", "DESDE 2016", "700+ EVENTOS", "AUTÊNTICO", "LISBOA", "SERVIÇO PREMIUM"];
+  const logos = ["LISBON BARBECUE & CHURRASCO", "DESDE 2016", "AUTÊNTICO", "LISBOA", "SERVIÇO PREMIUM"];
   return (
     <div className="bg-bbq-yellow border-b-4 border-bbq-black overflow-hidden py-3">
       <div className="flex animate-marquee whitespace-nowrap">
@@ -167,11 +168,20 @@ export const VenueGrid: React.FC<LangProp & { customImages?: string[] }> = ({ la
   );
 };
 
+// Testemunhos reais, lidos da tabela public.testimonials (só published = true).
+// Sem dados ou com erro, a secção não renderiza — nunca há fallback fictício.
 export const Referrals: React.FC<LangProp> = ({ lang }) => {
-  const testimonials = [
-    { name: 'Ricardo S.', text: lang === 'pt' ? 'O melhor churrasco que já organizei em Lisboa. O local em Monsanto é mágico.' : 'The best BBQ I ever organized in Lisbon. The Monsanto spot is magical.' },
-    { name: 'Elena G.', text: lang === 'pt' ? 'Qualidade da carne impecável. O concierge tratou de todos os detalhes.' : 'Meat quality was flawless. The concierge handled every single detail.' },
-  ];
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getTestimonials()
+      .then((rows) => { if (!cancelled) setTestimonials(rows); })
+      .catch(() => { if (!cancelled) setTestimonials([]); });
+    return () => { cancelled = true; };
+  }, []);
+
+  if (testimonials.length === 0) return null;
 
   return (
     <section className="py-24 px-4 bg-bbq-red text-white overflow-hidden">
@@ -181,20 +191,24 @@ export const Referrals: React.FC<LangProp> = ({ lang }) => {
                {lang === 'pt' ? 'O Que Dizem' : 'Word on'} <br/>
                <span className="text-bbq-yellow">{lang === 'pt' ? 'Os Nossos Mestres' : 'The Street'}</span>
              </h2>
-             <div className="bg-white text-bbq-black p-4 inline-block font-black uppercase text-sm border-4 border-bbq-black shadow-hard-sm">
-                700+ Clientes Felizes
-             </div>
           </div>
-          <div className="flex-1 grid md:grid-cols-2 gap-8">
-             {testimonials.map((t, i) => (
-               <div key={i} className="bg-bbq-black p-8 border-4 border-white relative shadow-hard">
-                  <Quote size={40} className="text-bbq-yellow mb-6" />
-                  <p className="text-lg font-bold uppercase tracking-wide leading-relaxed mb-6 italic">
-                    "{t.text}"
-                  </p>
-                  <div className="font-black uppercase text-bbq-yellow tracking-widest">— {t.name}</div>
-               </div>
-             ))}
+          <div className="flex-1">
+             <div className="grid md:grid-cols-2 gap-8">
+                {testimonials.map((t) => (
+                  <figure key={t.id} className="bg-bbq-black p-8 border-4 border-white relative shadow-hard">
+                     <Quote size={40} className="text-bbq-yellow mb-6" />
+                     <blockquote className="text-lg font-bold uppercase tracking-wide leading-relaxed mb-6 italic">
+                       "{t.quote}"
+                     </blockquote>
+                     <figcaption>
+                       <div className="font-black uppercase text-bbq-yellow tracking-widest">— {t.author_name}</div>
+                       {t.venue_label && (
+                         <div className="mt-1 text-xs font-bold uppercase tracking-widest text-white/60">{t.venue_label}</div>
+                       )}
+                     </figcaption>
+                  </figure>
+                ))}
+             </div>
           </div>
        </div>
     </section>
