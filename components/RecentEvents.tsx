@@ -65,6 +65,7 @@ export const RecentEvents: React.FC<Props> = ({ lang }) => {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {events.map((ev) => {
             const images = storageImages(ev.showcase_images);
+            const logo = storageImages([ev.showcase_logo])[0];
             const name = ev.showcase_name || (pt ? 'Evento privado' : 'Private event');
             const when = monthYear(ev.starts_at, lang);
             const quote = quotes[ev.id];
@@ -89,7 +90,14 @@ export const RecentEvents: React.FC<Props> = ({ lang }) => {
                   </div>
                 )}
                 <div className="p-6 flex flex-col flex-1">
-                  <h3 className="text-2xl font-black uppercase tracking-tight leading-tight mb-3">{name}</h3>
+                  <div className="flex items-center gap-4 mb-3">
+                    {logo && (
+                      <div className="shrink-0 w-20 h-14 bg-white border-2 border-bbq-black flex items-center justify-center p-1">
+                        <img src={logo} alt={pt ? `Logótipo ${name}` : `${name} logo`} loading="lazy" decoding="async" className="max-w-full max-h-full object-contain" />
+                      </div>
+                    )}
+                    <h3 className="text-2xl font-black uppercase tracking-tight leading-tight">{name}</h3>
+                  </div>
                   <ul className="space-y-1 text-xs font-black uppercase tracking-widest text-gray-500 mb-4">
                     {ev.venue_name && (
                       <li className="flex items-center gap-2"><MapPin size={14} className="text-bbq-red" /> {ev.venue_name}</li>
