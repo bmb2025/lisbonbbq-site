@@ -25,9 +25,6 @@ export interface ShowcaseEvent {
   starts_at: string;
 }
 
-// Perfil Google Business (sem /review, que abriria o diálogo de escrever).
-export const GOOGLE_REVIEWS_URL = 'https://g.page/r/CXhSax6dgZJCEAE';
-
 async function rest<T>(path: string): Promise<T> {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     headers: { apikey: SUPABASE_PUBLISHABLE_KEY },

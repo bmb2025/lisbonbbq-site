@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { MapPin, Quote, Globe, ChefHat, Flame, Check, Camera, ImageOff, HelpCircle } from 'lucide-react';
 import { responsiveImage } from '../services/responsiveImage';
-import { getTestimonials, GOOGLE_REVIEWS_URL, Testimonial } from '../services/publicData';
+import { getTestimonials, Testimonial } from '../services/publicData';
 
 interface LangProp {
   lang: 'pt' | 'en';
@@ -209,14 +209,6 @@ export const Referrals: React.FC<LangProp> = ({ lang }) => {
                   </figure>
                 ))}
              </div>
-             <a
-               href={GOOGLE_REVIEWS_URL}
-               target="_blank"
-               rel="noopener noreferrer"
-               className="inline-block mt-8 text-sm font-bold uppercase tracking-widest text-white/80 underline underline-offset-4 hover:text-bbq-yellow transition-colors"
-             >
-               {lang === 'pt' ? 'Ver avaliações no Google' : 'See reviews on Google'}
-             </a>
           </div>
        </div>
     </section>
