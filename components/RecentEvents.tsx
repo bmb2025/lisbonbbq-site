@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Quote, Users, MapPin, Calendar } from 'lucide-react';
+import { Quote, Users, MapPin } from 'lucide-react';
 import { fetchShowcaseEvents, getTestimonials, ShowcaseEvent, Testimonial } from '../services/publicData';
 
 interface Props {
@@ -17,17 +17,10 @@ function storageImages(images: unknown): string[] {
     .slice(0, 3);
 }
 
-function monthYear(iso: string, lang: 'pt' | 'en') {
-  return new Date(iso).toLocaleDateString(lang === 'pt' ? 'pt-PT' : 'en-GB', {
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'Europe/Lisbon',
-  });
-}
-
 // Eventos recentes com autorização do cliente (published = true e
 // showcase = true), lidos por RLS com a chave pública. Sem eventos ou com
-// erro, a secção não renderiza.
+// erro, a secção não renderiza. A data (starts_at) só serve para ordenar —
+// não aparece no card.
 export const RecentEvents: React.FC<Props> = ({ lang }) => {
   const [events, setEvents] = useState<ShowcaseEvent[]>([]);
   const [quotes, setQuotes] = useState<Record<string, Testimonial>>({});
@@ -67,11 +60,10 @@ export const RecentEvents: React.FC<Props> = ({ lang }) => {
             const images = storageImages(ev.showcase_images);
             const logo = storageImages([ev.showcase_logo])[0];
             const name = ev.showcase_name || (pt ? 'Evento privado' : 'Private event');
-            const when = monthYear(ev.starts_at, lang);
             const quote = quotes[ev.id];
             const altBase = pt
-              ? `Churrasco LisbonBBQ para ${name}${ev.venue_name ? ` em ${ev.venue_name}` : ''}, ${when}`
-              : `LisbonBBQ barbecue for ${name}${ev.venue_name ? ` at ${ev.venue_name}` : ''}, ${when}`;
+              ? `Churrasco LisbonBBQ para ${name}${ev.venue_name ? ` em ${ev.venue_name}` : ''}`
+              : `LisbonBBQ barbecue for ${name}${ev.venue_name ? ` at ${ev.venue_name}` : ''}`;
 
             return (
               <article key={ev.id} className="bg-white border-4 border-bbq-black shadow-hard flex flex-col">
@@ -102,7 +94,6 @@ export const RecentEvents: React.FC<Props> = ({ lang }) => {
                     {ev.venue_name && (
                       <li className="flex items-center gap-2"><MapPin size={14} className="text-bbq-red" /> {ev.venue_name}</li>
                     )}
-                    <li className="flex items-center gap-2"><Calendar size={14} className="text-bbq-red" /> {when}</li>
                     {ev.guest_count != null && (
                       <li className="flex items-center gap-2"><Users size={14} className="text-bbq-red" /> {ev.guest_count} {pt ? 'convidados' : 'guests'}</li>
                     )}
