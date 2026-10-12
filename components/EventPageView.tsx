@@ -174,14 +174,14 @@ export const EventPageView: React.FC = () => {
   const hasPlaylist = !!displayEvent.playlist_url;
   const hasAfter = !!(displayEvent.album_url || displayEvent.review_url || displayEvent.show_photographer_card);
 
-  // Depois do evento terminar, a página fica só com o que ainda faz sentido
+  // 4h depois do evento terminar, a página fica só com o que ainda faz sentido
   // (redes sociais, fotos/review e o código de referral): contagem, menu,
   // dietas, como chegar, regras e playlist deixam de aparecer. Sem ends_at,
   // assume-se que termina 6h depois do início.
   const endsAt = displayEvent.ends_at
     ? new Date(displayEvent.ends_at).getTime()
     : new Date(displayEvent.starts_at).getTime() + 6 * 36e5;
-  const isPast = Date.now() > endsAt;
+  const isPast = Date.now() > endsAt + 4 * 36e5;
 
   let n = 0;
   const num = () => String(++n).padStart(2, '0');
