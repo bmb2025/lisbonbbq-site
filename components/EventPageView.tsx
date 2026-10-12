@@ -662,6 +662,13 @@ const EventAfter: React.FC<{ event: EventRecord; n: string; isPast: boolean }> =
               <a href={instagram.url} target="_blank" rel="noopener" className={btnLight}>{t('follow_instagram')}</a>
             </div>
           )}
+          {isPast && event.playlist_url && (
+            <div className="bg-[#242424] border-4 border-bbq-cream p-6 text-center" style={{ boxShadow: '4px 4px 0 #F4B41A' }}>
+              <h3 className="text-bbq-yellow font-black uppercase text-sm mb-2.5"><Music size={16} className="inline mr-1.5" />{t('playlist_heading_past')}</h3>
+              <p className="opacity-85 text-[15px] mb-4">{t('playlist_body_past')}</p>
+              <a href={event.playlist_url} target="_blank" rel="noopener" className={btnLight}>{t('open_spotify')}</a>
+            </div>
+          )}
           {event.show_photographer_card && (
             <div className="bg-[#242424] border-4 border-bbq-cream p-6">
               <h3 className="text-bbq-yellow font-black uppercase text-sm mb-2.5">{t('photographer_heading')}</h3>
