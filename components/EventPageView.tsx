@@ -174,16 +174,25 @@ export const EventPageView: React.FC = () => {
   const hasPlaylist = !!displayEvent.playlist_url;
   const hasAfter = !!(displayEvent.album_url || displayEvent.review_url || displayEvent.show_photographer_card);
 
+  // 4h depois do evento terminar, a página fica só com o que ainda faz sentido
+  // (redes sociais, fotos/review e o código de referral): contagem, menu,
+  // dietas, como chegar, regras e playlist deixam de aparecer. Sem ends_at,
+  // assume-se que termina 6h depois do início.
+  const endsAt = displayEvent.ends_at
+    ? new Date(displayEvent.ends_at).getTime()
+    : new Date(displayEvent.starts_at).getTime() + 6 * 36e5;
+  const isPast = Date.now() > endsAt + 4 * 36e5;
+
   let n = 0;
   const num = () => String(++n).padStart(2, '0');
-  const nEssential = num();
-  const nMenu = hasMenu ? num() : null;
+  const nEssential = isPast ? null : num();
+  const nMenu = hasMenu && !isPast ? num() : null;
   const nSocials = num();
-  const nDiet = num();
-  const nBring = hasBring ? num() : null;
-  const nChegar = hasChegar ? num() : null;
-  const nRules = hasRules ? num() : null;
-  const nPlaylist = hasPlaylist ? num() : null;
+  const nDiet = isPast ? null : num();
+  const nBring = hasBring && !isPast ? num() : null;
+  const nChegar = hasChegar && !isPast ? num() : null;
+  const nRules = hasRules && !isPast ? num() : null;
+  const nPlaylist = hasPlaylist && !isPast ? num() : null;
   const nAfter = hasAfter ? num() : null;
 
   return (
@@ -191,20 +200,20 @@ export const EventPageView: React.FC = () => {
       <div className="bg-bbq-cream text-bbq-black font-sans">
         <meta name="robots" content="noindex, nofollow" />
         <title>{displayEvent.title} · LisbonBBQ</title>
-        <WelcomeDrinkPopup event={displayEvent} />
-        <EventTopBar event={displayEvent} showLangChip={!!event.translations?.en} />
-        <EventHero event={displayEvent} />
-        <EventCountdown event={displayEvent} />
-        <EventEssential event={displayEvent} n={nEssential} />
-        {hasMenu && <EventMenu event={displayEvent} menuItems={displayMenuItems} n={nMenu!} />}
-        {weather && <EventWeather weather={weather} />}
+        {!isPast && <WelcomeDrinkPopup event={displayEvent} />}
+        <EventTopBar event={displayEvent} showLangChip={!!event.translations?.en} isPast={isPast} />
+        <EventHero event={displayEvent} isPast={isPast} />
+        {!isPast && <EventCountdown event={displayEvent} />}
+        {nEssential && <EventEssential event={displayEvent} n={nEssential} />}
+        {nMenu && <EventMenu event={displayEvent} menuItems={displayMenuItems} n={nMenu} />}
+        {weather && !isPast && <EventWeather weather={weather} />}
         <EventSocials event={displayEvent} n={nSocials} />
-        <EventDiet event={displayEvent} n={nDiet} />
-        {hasBring && <EventBring event={displayEvent} n={nBring!} />}
-        {hasChegar && <EventGettingThere event={displayEvent} n={nChegar!} />}
-        {hasRules && <EventRules event={displayEvent} n={nRules!} />}
-        {hasPlaylist && <EventPlaylist event={displayEvent} n={nPlaylist!} />}
-        {hasAfter && <EventAfter event={displayEvent} n={nAfter!} />}
+        {nDiet && <EventDiet event={displayEvent} n={nDiet} />}
+        {nBring && <EventBring event={displayEvent} n={nBring} />}
+        {nChegar && <EventGettingThere event={displayEvent} n={nChegar} />}
+        {nRules && <EventRules event={displayEvent} n={nRules} />}
+        {nPlaylist && <EventPlaylist event={displayEvent} n={nPlaylist} />}
+        {nAfter && <EventAfter event={displayEvent} n={nAfter} isPast={isPast} />}
         <EventReferral event={displayEvent} />
         <EventFooter />
       </div>
@@ -212,7 +221,7 @@ export const EventPageView: React.FC = () => {
   );
 };
 
-const EventTopBar: React.FC<{ event: EventRecord; showLangChip: boolean }> = ({ event, showLangChip }) => {
+const EventTopBar: React.FC<{ event: EventRecord; showLangChip: boolean; isPast: boolean }> = ({ event, showLangChip, isPast }) => {
   const cd = useCountdown(event.starts_at);
   const t = useT();
   return (
@@ -222,17 +231,20 @@ const EventTopBar: React.FC<{ event: EventRecord; showLangChip: boolean }> = ({ 
         <span className="truncate">LISBON <span className="text-bbq-yellow">Barbecue &amp; Churrasco</span></span>
       </div>
       <div className="flex items-center gap-3 flex-none">
-        <div className="hidden sm:block text-xs font-black uppercase tracking-widest">
-          {t('countdown_prefix')} <b className="text-bbq-yellow">{cd.label}</b>
-        </div>
+        {!isPast && (
+          <div className="hidden sm:block text-xs font-black uppercase tracking-widest">
+            {t('countdown_prefix')} <b className="text-bbq-yellow">{cd.label}</b>
+          </div>
+        )}
         {showLangChip && <LangChip />}
       </div>
     </div>
   );
 };
 
-const EventHero: React.FC<{ event: EventRecord }> = ({ event }) => {
+const EventHero: React.FC<{ event: EventRecord; isPast: boolean }> = ({ event, isPast }) => {
   const { lang } = useLang();
+  const t = useT();
   const dateLabel = formatDate(event.starts_at, event.timezone, lang, { weekday: 'short', day: 'numeric', month: 'short' });
   const timeLabel = formatTime(event.starts_at, event.timezone, lang);
   return (
@@ -242,7 +254,7 @@ const EventHero: React.FC<{ event: EventRecord }> = ({ event }) => {
       )}
       <div className="absolute inset-0 flex flex-col justify-end px-5 pb-9 pt-8">
         <div className="max-w-[960px] mx-auto w-full">
-          <span className="inline-block bg-bbq-red text-white px-3 py-1.5 text-xs font-black uppercase tracking-widest mb-3.5">{event.hero_tag}</span>
+          <span className="inline-block bg-bbq-red text-white px-3 py-1.5 text-xs font-black uppercase tracking-widest mb-3.5">{isPast ? t('hero_tag_past') : event.hero_tag}</span>
           <h1 className="text-bbq-cream font-black uppercase leading-[0.88] text-[clamp(36px,8vw,80px)] tracking-tight" style={{ textShadow: '5px 5px 0 rgba(0,0,0,.35)' }}>
             {event.title}
           </h1>
@@ -616,7 +628,7 @@ const EventPlaylist: React.FC<{ event: EventRecord; n: string }> = ({ event, n }
   );
 };
 
-const EventAfter: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) => {
+const EventAfter: React.FC<{ event: EventRecord; n: string; isPast: boolean }> = ({ event, n, isPast }) => {
   const { lang } = useLang();
   const t = useT();
   const instagram = (event.socials || EVENT_SOCIALS).find(s => s.key === 'instagram');
@@ -625,14 +637,14 @@ const EventAfter: React.FC<{ event: EventRecord; n: string }> = ({ event, n }) =
       <div className="max-w-[960px] mx-auto px-5">
         <div className="flex items-end gap-4 mb-8 flex-wrap">
           <span className="text-xs font-black bg-bbq-yellow text-bbq-black px-2.5 py-1.5 tracking-wider">{n}</span>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight leading-none text-bbq-yellow">{t('after_heading')}</h2>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight leading-none text-bbq-yellow">{t(isPast ? 'after_heading_past' : 'after_heading')}</h2>
         </div>
         <div className="grid sm:grid-cols-2 gap-5">
           {event.album_url && (
             <div className="bg-[#242424] border-4 border-bbq-cream p-6" style={{ boxShadow: '4px 4px 0 #F4B41A' }}>
               <h3 className="text-bbq-yellow font-black uppercase text-sm mb-2.5"><Camera size={16} className="inline mr-1.5" />{t('album_heading')}</h3>
-              <p className="opacity-85 text-[15px]">{t('album_body')}</p>
-              <a href={event.album_url} target="_blank" rel="noopener" className={`${btnFlame} w-full mt-4`}>{t('album_cta')}</a>
+              <p className="opacity-85 text-[15px]">{t(isPast ? 'album_body_past' : 'album_body')}</p>
+              <a href={event.album_url} target="_blank" rel="noopener" className={`${btnFlame} w-full mt-4`}>{t(isPast ? 'album_cta_past' : 'album_cta')}</a>
             </div>
           )}
           {event.review_url && (
