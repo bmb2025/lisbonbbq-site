@@ -68,28 +68,40 @@ function parseMarkdown(md: string): CmsArticle {
   const front = parts[1].trim();
   const body = parts.slice(2).join("---").trim();
 
-  // Parse front-matter, handling values that span multiple lines inside double
-  // quotes (e.g. a long `excerpt:` — otherwise it was truncated at the 1st line).
+  // Front-matter parser tolerant to the three shapes the CMS writes for long
+  // values: YAML block scalars (`excerpt: >`, `>-`, `>+`, `|`), double-quoted
+  // values spanning several lines, and plain values continued on indented lines.
   const meta: Record<string, string> = {};
   const lines = front.split("\n");
   for (let i = 0; i < lines.length; i++) {
-    const idx = lines[i].indexOf(":");
+    const line = lines[i];
+    if (/^\s/.test(line)) continue; // continuation line, consumed below
+    const idx = line.indexOf(":");
     if (idx === -1) continue;
-    const key = lines[i].slice(0, idx).trim();
+    const key = line.slice(0, idx).trim();
     if (!key) continue;
-    let value = lines[i].slice(idx + 1).trim();
-    if (value.startsWith('"') && !(value.length > 1 && value.endsWith('"'))) {
+    let value = line.slice(idx + 1).trim();
+    if (/^[>|][+-]?$/.test(value)) {
+      const buf: string[] = [];
+      while (i + 1 < lines.length && (/^\s/.test(lines[i + 1]) || lines[i + 1].trim() === "")) {
+        buf.push(lines[++i].trim());
+      }
+      value = buf.filter(Boolean).join(" ");
+    } else if (value.startsWith('"') && !(value.length > 1 && value.endsWith('"'))) {
       const buf = [value.slice(1)];
       while (++i < lines.length) {
         const end = lines[i].indexOf('"');
         if (end !== -1) { buf.push(lines[i].slice(0, end).trim()); break; }
         buf.push(lines[i].trim());
       }
-      value = buf.join(" ").replace(/\s+/g, " ").trim();
+      value = buf.join(" ");
     } else {
-      value = value.replace(/^["']|["']$/g, '');
+      while (value !== "" && i + 1 < lines.length && /^\s+\S/.test(lines[i + 1])) {
+        value += " " + lines[++i].trim();
+      }
+      value = value.replace(/^["']|["']$/g, "");
     }
-    meta[key] = value;
+    meta[key] = value.replace(/\s+/g, " ").trim();
   }
 
   return {
