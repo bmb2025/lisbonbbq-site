@@ -1,4 +1,4 @@
-const REPO_OWNER = "lisbonbbq";
+const REPO_OWNER = "bmb2025";
 const REPO_NAME = "lisbonbbq-content";
 const CONTENT_PATH = "content/articles";
 const RAW_BASE = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${CONTENT_PATH}`;
