@@ -22,7 +22,7 @@ export const Footer: React.FC<FooterProps> = ({ setView, lang }) => {
                : 'The only place in Lisbon where you can rent a grill, buy the meat, and be the master of your own destiny.'}
            </p>
            <div className="flex gap-4">
-              <a href="https://www.instagram.com/lisbon.barbecue.churrasco/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 border-2 border-bbq-cream flex items-center justify-center hover:bg-bbq-red transition-colors"><Instagram size={20}/></a>
+              <a href="https://www.instagram.com/lisbonbbq/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 border-2 border-bbq-cream flex items-center justify-center hover:bg-bbq-red transition-colors"><Instagram size={20}/></a>
               <a href="https://www.linkedin.com/company/lisbon-barbecue-churrasco/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 border-2 border-bbq-cream flex items-center justify-center hover:bg-bbq-red transition-colors"><Linkedin size={20}/></a>
               <a href="https://x.com/Lisbonbbq" target="_blank" rel="noopener noreferrer" className="w-10 h-10 border-2 border-bbq-cream flex items-center justify-center hover:bg-bbq-red transition-colors"><Twitter size={20}/></a>
            </div>
