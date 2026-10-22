@@ -20,6 +20,8 @@ export interface Consent {
 export const CONSENT_KEY = 'lbbq_consent_v1';
 export const CONSENT_EVENT = 'lbbq-consent-change';
 export const OPEN_SETTINGS_EVENT = 'lbbq-open-cookie-settings';
+// O App avisa aqui quando muda o idioma (o aviso de cookies vive fora do App).
+export const LANG_EVENT = 'lbbq-lang-change';
 
 export function getConsent(): Consent | null {
   if (typeof window === 'undefined') return null;
