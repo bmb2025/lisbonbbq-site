@@ -487,7 +487,7 @@ export const WorkshopView: React.FC = () => {
               <p className="m-0 text-lg leading-normal font-bold">
                 {done.duplicate
                   ? 'Este email já estava na lista. O teu lugar continua guardado e avisamos-te antes de abrirmos ao público.'
-                  : 'Estás na lista. Enviámos-te um email com uma vantagem exclusiva. Avisamos-te antes de abrirmos ao público.'}
+                  : 'Estás na lista! Avisamos-te 48h antes de abrirmos novas datas de workshop ao público. Entretanto enviámos-te um email com uma pequena surpresa. Vai lá dar uma vista de olhos 🙂'}
               </p>
             </div>
           ) : (
