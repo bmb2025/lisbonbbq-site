@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt">
   <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5CYEYQ8563"></script>
+    <!-- Google tag (gtag.js): a fila (dataLayer, consentimento, configs) é montada já,
+         mas as bibliotecas só são descarregadas mais abaixo, fora do caminho crítico -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
@@ -34,13 +34,38 @@
       gtag('config', 'G-5CYEYQ8563');
       gtag('config', 'AW-17958063640'); // Google Ads — medição de conversões
     </script>
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-PR6VRL5T');</script>
-    <!-- End Google Tag Manager -->
+    <!-- gtag.js e GTM pesam ~490 KB: descarregá-los no <head> atrasava a imagem
+         principal em ligações móveis (LCP ~8 s). Carregam na primeira interação ou
+         poucos segundos depois do load. Tudo o que já está na dataLayer (consentimento,
+         config, eventos) é processado quando as bibliotecas chegam. As conversões
+         chamam window.lbbqLoadGoogleTags() para não dependerem deste atraso. -->
+    <script>
+      (function () {
+        var loaded = false;
+        function load() {
+          if (loaded) return;
+          loaded = true;
+          var g = document.createElement('script');
+          g.async = true;
+          g.src = 'https://www.googletagmanager.com/gtag/js?id=G-5CYEYQ8563';
+          document.head.appendChild(g);
+          window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+          var m = document.createElement('script');
+          m.async = true;
+          m.src = 'https://www.googletagmanager.com/gtm.js?id=GTM-PR6VRL5T';
+          document.head.appendChild(m);
+        }
+        window.lbbqLoadGoogleTags = load;
+        function schedule() {
+          ['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach(function (e) {
+            window.addEventListener(e, load, { once: true, passive: true });
+          });
+          setTimeout(load, 4000);
+        }
+        if (document.readyState === 'complete') schedule();
+        else window.addEventListener('load', schedule);
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- title, description, canonical e og:url/title/description são definidos por página:

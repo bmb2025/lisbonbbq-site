@@ -1,20 +1,12 @@
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { Suspense, useState, useEffect, useRef, useMemo } from 'react';
 import { Header } from './components/Header';
-import { HomePage } from './components/HomePage';
 import { Seo, SeoFor } from './components/Seo';
 import { Footer } from './components/Footer';
-import { ProposalView } from './components/ProposalView';
-import { LegalView } from './components/LegalView';
-import { FAQView } from './components/FAQView';
-import { QuemSomosView } from './components/QuemSomosView';
-import { CorporateView } from './components/CorporateView';
-import { SmallEventsView } from './components/SmallEventsView';
-import { BlogList, ArticleDetail } from './components/BlogComponents';
-import { BlogAdmin } from './components/CMSComponents';
-import { EventPageView } from './components/EventPageView';
-import { NotFoundView } from './components/NotFoundView';
-import { WorkshopView } from './components/WorkshopView';
+import {
+  HomePage, ProposalView, LegalView, FAQView, QuemSomosView, CorporateView, SmallEventsView,
+  BlogList, ArticleDetail, BlogAdmin, EventPageView, NotFoundView, WorkshopView,
+} from './routes';
 import { ADD_ONS, LOCATIONS, DEFAULT_ASSETS, BRAZILIAN_MENUS, PORTUGUESE_MENUS, ARGENTINIAN_MENUS, OWN_LOCATION_ID, OWN_LOCATION_NAME } from './constants';
 import { BookingState, CartItem, DailyWeather, Article } from './types';
 import { getLisbonWeather } from './services/weatherService';
@@ -146,11 +138,18 @@ const App: React.FC = () => {
     return saved ? JSON.parse(saved) : [];
   });
 
+  // Os artigos só são precisos no blog e no admin; nas outras páginas o pedido ao
+  // GitHub só gastava largura de banda (e quota da API pública).
+  const { pathname } = useLocation();
+  const articlesRequested = useRef(false);
   useEffect(() => {
+    const path = pathname.replace(/\/+$/, '');
+    if (articlesRequested.current || (path !== '/blog' && path !== '/admin')) return;
+    articlesRequested.current = true;
     fetchArticles()
       .then((cmsArticles) => setArticles(cmsArticles as any))
       .catch((e) => console.error('CMS fetchArticles failed:', e));
-  }, []);
+  }, [pathname]);
 
   // As tags de <head> pré-renderizadas (data-ssg, geradas por scripts/prerender.mjs)
   // servem os crawlers; a partir daqui o componente Seo assume, por isso
@@ -190,8 +189,15 @@ const App: React.FC = () => {
 
   useEffect(() => {
     setCart(ADD_ONS.map(item => ({ ...item, quantity: 0 })));
-    getLisbonWeather().then(setWeatherData);
   }, []);
+
+  // A meteorologia alimenta o calendário da homepage; nas outras páginas não faz falta.
+  const weatherRequested = useRef(false);
+  useEffect(() => {
+    if (weatherRequested.current || pathname !== '/') return;
+    weatherRequested.current = true;
+    getLisbonWeather().then(setWeatherData);
+  }, [pathname]);
 
   const setView = (view: 'booking' | 'proposal' | 'privacy' | 'terms' | 'blog' | 'cms' | 'faqs' | 'about' | 'corporate') => {
     if (view === 'booking') setLeadSource('direct');
@@ -451,6 +457,7 @@ const App: React.FC = () => {
   return (
     <>
       <ScrollToTop />
+      <Suspense fallback={null}>
       <Routes>
         <Route path="/" element={
           <>
@@ -494,6 +501,7 @@ const App: React.FC = () => {
           </>
         } />
       </Routes>
+      </Suspense>
     </>
   );
 };

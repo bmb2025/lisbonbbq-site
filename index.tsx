@@ -6,13 +6,14 @@ import App from './App';
 import { CookieBanner } from './components/CookieBanner';
 import { initAnalytics, getPostHogInstance } from './services/analytics';
 import { PostHogErrorBoundary, PostHogProvider } from '@posthog/react';
+import { preloadRoute } from './routes';
 
 initAnalytics();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error("Could not find root element to mount to");
 
-ReactDOM.createRoot(rootElement).render(
+const mount = () => ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <PostHogProvider client={getPostHogInstance()}>
       <PostHogErrorBoundary>
@@ -24,3 +25,6 @@ ReactDOM.createRoot(rootElement).render(
     </PostHogProvider>
   </React.StrictMode>
 );
+
+// Chunk da rota atual primeiro, depois o React (ver routes.ts).
+preloadRoute(window.location.pathname).then(mount, mount);
