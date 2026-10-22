@@ -143,6 +143,15 @@ const COPY = {
     doneTitle: (n: string) => `Está feito, ${n}.`,
     doneDup: 'Este email já estava na lista. O teu lugar continua guardado e avisamos-te antes de abrirmos ao público.',
     doneNew: 'Estás na lista! Avisamos-te 48h antes de abrirmos novas datas de workshop ao público. Entretanto enviámos-te um email com uma pequena surpresa. Vai lá dar uma vista de olhos 🙂',
+    inviteBoxTitle: 'Tens um convite para oferecer.',
+    inviteBoxText: (inv: number, pub: number) => `Quem se inscrever com o teu link fica na tua estação de grelha, e os dois pagam ${inv}€ em vez de ${pub}€.`,
+    inviteBoxMore: (inv: number) => `Vale para quantos camaradas quiseres. Cada um paga ${inv}€, e tu também.`,
+    shareLabel: 'Partilha o teu convite',
+    shareText: (inv: number, pub: number) => `Vem fazer comigo o workshop de churrasco da Lisbon BBQ! Com este link ficamos na mesma estação de grelha e pagamos ${inv}€ em vez de ${pub}€.`,
+    shareSubject: 'Workshop de churrasco Lisbon BBQ',
+    shareCopy: 'Copiar link',
+    shareCopied: 'Link copiado.',
+    shareIgHint: 'Link copiado. Cola-o numa mensagem ou story no Instagram.',
     lName: 'Nome',
     phName: 'Nome e apelido',
     lEmail: 'Email',
@@ -268,6 +277,15 @@ const COPY = {
     doneTitle: (n: string) => `You're in, ${n}.`,
     doneDup: 'This email was already on the list. Your spot is still saved and we will let you know before we open to the public.',
     doneNew: "You're on the list! We'll let you know 48h before we open new workshop dates to the public. In the meantime we've sent you an email with a little surprise. Go take a look 🙂",
+    inviteBoxTitle: 'You have an invite to give away.',
+    inviteBoxText: (inv: number, pub: number) => `Anyone who signs up with your link joins your grill station, and you both pay €${inv} instead of €${pub}.`,
+    inviteBoxMore: (inv: number) => `It works for as many mates as you like. Each pays €${inv}, and so do you.`,
+    shareLabel: 'Share your invite',
+    shareText: (inv: number, pub: number) => `Come to the Lisbon BBQ barbecue workshop with me! With this link we get the same grill station and each pay €${inv} instead of €${pub}.`,
+    shareSubject: 'Lisbon BBQ barbecue workshop',
+    shareCopy: 'Copy link',
+    shareCopied: 'Link copied.',
+    shareIgHint: 'Link copied. Paste it into an Instagram message or story.',
     lName: 'Name',
     phName: 'First and last name',
     lEmail: 'Email',
@@ -354,6 +372,8 @@ const Choice: React.FC<{ options: { value: string; label: string }[]; value: str
   </fieldset>
 );
 
+const shareBtn = 'inline-flex items-center justify-center min-h-[48px] px-4 bg-bbq-cream text-bbq-black border-4 border-bbq-cream font-black uppercase text-sm tracking-wider no-underline transition-colors hover:bg-bbq-yellow hover:border-bbq-yellow cursor-pointer';
+
 const inputCls = 'w-full box-border bg-white text-bbq-black border-4 border-bbq-black px-5 py-4 text-xl font-black outline-none focus:shadow-[0_0_0_4px_#F4B41A]';
 
 export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
@@ -413,7 +433,9 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
   const [form, setForm] = useState({ name: '', email: '', phone: '', slot: '', exp: '', motive: '', source: '', consent: false, website: '' });
   const [error, setError] = useState('');
   const [sending, setSending] = useState(false);
-  const [done, setDone] = useState<{ firstName: string; duplicate?: boolean } | null>(null);
+  const [done, setDone] = useState<{ firstName: string; duplicate?: boolean; inviteCode?: string; invitePrice?: number; publicPrice?: number } | null>(null);
+  const [shareNote, setShareNote] = useState('');
+  useEffect(() => { setShareNote(''); }, [lang]);
 
   const set = (k: keyof typeof form) => (v: any) => { setForm((f) => ({ ...f, [k]: v })); setError(''); };
 
@@ -451,13 +473,49 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
       if (!r.ok || !d?.ok) throw new Error(d?.error || 'failed');
       identifyLead({ email: form.email.trim(), name: form.name.trim(), phone: form.phone.trim() });
       track('workshop_waitlist_submitted', { variant, lang, invited: !!d.invited, motive: form.motive, experience: form.exp, duplicate: !!d.duplicate });
-      setDone({ firstName: d.firstName || form.name.trim().split(' ')[0], duplicate: d.duplicate });
+      setDone({ firstName: d.firstName || form.name.trim().split(' ')[0], duplicate: d.duplicate, inviteCode: d.inviteCode, invitePrice: d.invitePrice, publicPrice: d.publicPrice });
       formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch {
       setError(c.errSend);
     } finally {
       setSending(false);
     }
+  };
+
+  const canShare = !!(done && !done.duplicate && done.inviteCode && done.invitePrice && done.publicPrice);
+  const inviteUrl = canShare ? `${window.location.origin}/workshop?c=${done!.inviteCode}${lang === 'en' ? '&lang=en' : ''}` : '';
+  const shareText = canShare ? c.shareText(done!.invitePrice!, done!.publicPrice!) : '';
+  const enc = encodeURIComponent;
+  const shareChannels: { id: string; label: string; href: string }[] = canShare ? [
+    { id: 'whatsapp', label: 'WhatsApp', href: `https://wa.me/?text=${enc(`${shareText} ${inviteUrl}`)}` },
+    { id: 'telegram', label: 'Telegram', href: `https://t.me/share/url?url=${enc(inviteUrl)}&text=${enc(shareText)}` },
+    { id: 'facebook', label: 'Facebook', href: `https://www.facebook.com/sharer/sharer.php?u=${enc(inviteUrl)}` },
+    { id: 'email', label: 'Email', href: `mailto:?subject=${enc(c.shareSubject)}&body=${enc(`${shareText}\n\n${inviteUrl}`)}` },
+  ] : [];
+
+  const copyInvite = async (): Promise<boolean> => {
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  const shareCopy = async () => {
+    track('workshop_invite_shared', { channel: 'copy', lang, variant });
+    setShareNote((await copyInvite()) ? c.shareCopied : inviteUrl);
+  };
+  // O Instagram não tem endereço de partilha para páginas web: no telemóvel abre-se
+  // a folha de partilha do sistema (onde o Instagram aparece), no computador
+  // copia-se o link e abre-se a caixa de mensagens.
+  const shareInstagram = async () => {
+    track('workshop_invite_shared', { channel: 'instagram', lang, variant });
+    if (typeof navigator.share === 'function' && window.matchMedia('(pointer: coarse)').matches) {
+      try { await navigator.share({ title: c.shareSubject, text: shareText, url: inviteUrl }); } catch { /* cancelado */ }
+      return;
+    }
+    setShareNote((await copyInvite()) ? c.shareIgHint : inviteUrl);
+    window.open('https://www.instagram.com/direct/inbox/', '_blank', 'noopener');
   };
 
   return (
@@ -711,12 +769,39 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
           </div>
 
           {done ? (
-            <div role="status" className="bg-bbq-yellow text-bbq-black border-4 border-bbq-cream p-8 flex flex-col gap-3" style={{ boxShadow: '8px 8px 0 0 #d91a2a' }}>
-              <span className="text-3xl font-black uppercase tracking-tight">{c.doneTitle(done.firstName)}</span>
-              <p className="m-0 text-lg leading-normal font-bold">
-                {done.duplicate ? c.doneDup : c.doneNew}
-              </p>
-            </div>
+            <>
+              <div role="status" className="bg-bbq-yellow text-bbq-black border-4 border-bbq-cream p-8 flex flex-col gap-3" style={{ boxShadow: '8px 8px 0 0 #d91a2a' }}>
+                <span className="text-3xl font-black uppercase tracking-tight">{c.doneTitle(done.firstName)}</span>
+                <p className="m-0 text-lg leading-normal font-bold">
+                  {done.duplicate ? c.doneDup : c.doneNew}
+                </p>
+              </div>
+              {canShare && (
+                <div className="border-4 border-bbq-yellow p-6 flex flex-col gap-4">
+                  <p className="m-0 font-black uppercase text-xl leading-tight text-bbq-yellow">{c.inviteBoxTitle}</p>
+                  <p className="m-0 leading-normal">{c.inviteBoxText(done.invitePrice!, done.publicPrice!)}</p>
+                  <p className="m-0 leading-normal">{c.inviteBoxMore(done.invitePrice!)}</p>
+                  <span className="font-black text-sm tracking-[0.1em] uppercase">{c.shareLabel}</span>
+                  <div className="flex flex-wrap gap-2">
+                    {shareChannels.map((ch) => (
+                      <a
+                        key={ch.id}
+                        href={ch.href}
+                        target={ch.id === 'email' ? undefined : '_blank'}
+                        rel="noopener noreferrer"
+                        onClick={() => track('workshop_invite_shared', { channel: ch.id, lang, variant })}
+                        className={shareBtn}
+                      >
+                        {ch.label}
+                      </a>
+                    ))}
+                    <button type="button" onClick={shareInstagram} className={shareBtn}>Instagram</button>
+                    <button type="button" onClick={shareCopy} className={shareBtn}>{c.shareCopy}</button>
+                  </div>
+                  <p role="status" className="m-0 text-sm font-bold break-all min-h-[1.25rem]">{shareNote}</p>
+                </div>
+              )}
+            </>
           ) : (
             <form onSubmit={submit} noValidate className="flex flex-col gap-6">
               {/* honeypot */}
