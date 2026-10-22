@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Flame, Instagram, Linkedin, Twitter } from 'lucide-react';
+import { openCookieSettings } from '../services/consent';
 
 interface FooterProps {
   setView: (view: 'booking' | 'proposal' | 'privacy' | 'terms' | 'blog' | 'cms' | 'faqs' | 'about' | 'corporate') => void;
@@ -56,6 +57,7 @@ export const Footer: React.FC<FooterProps> = ({ setView, lang }) => {
             <button onClick={() => setView('privacy')} className="hover:text-bbq-yellow uppercase">Privacy</button>
             <button onClick={() => setView('terms')} className="hover:text-bbq-yellow uppercase">Terms</button>
             <button onClick={() => setView('faqs')} className="hover:text-bbq-yellow uppercase">FAQs</button>
+            <button onClick={openCookieSettings} className="hover:text-bbq-yellow uppercase">Cookies</button>
          </div>
       </div>
     </footer>

@@ -6,6 +6,26 @@
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
+      // Google Consent Mode v2: tudo recusado até a pessoa escolher no aviso de
+      // cookies (components/CookieBanner.tsx). Se já escolheu numa visita
+      // anterior, a escolha guardada é aplicada aqui, antes de qualquer tag.
+      gtag('consent', 'default', {
+        ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied',
+        analytics_storage: 'denied', functionality_storage: 'granted', security_storage: 'granted',
+        wait_for_update: 500
+      });
+      try {
+        var lbbqConsent = JSON.parse(localStorage.getItem('lbbq_consent_v1') || 'null');
+        if (lbbqConsent && lbbqConsent.v === 1) {
+          gtag('consent', 'update', {
+            analytics_storage: lbbqConsent.analytics ? 'granted' : 'denied',
+            ad_storage: lbbqConsent.marketing ? 'granted' : 'denied',
+            ad_user_data: lbbqConsent.marketing ? 'granted' : 'denied',
+            ad_personalization: lbbqConsent.marketing ? 'granted' : 'denied'
+          });
+        }
+      } catch (e) {}
+      gtag('set', 'ads_data_redaction', true);
       gtag('js', new Date());
 
       gtag('config', 'G-5CYEYQ8563');

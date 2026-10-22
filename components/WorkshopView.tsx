@@ -156,6 +156,22 @@ export const WorkshopView: React.FC = () => {
   const prices = invite ? { public: invite.publicPrice, invite: invite.invitePrice } : WORKSHOP_PRICES[variant];
   const shownPrice = invite ? prices.invite : prices.public;
 
+  // O botão fixo no telemóvel esconde-se quando o formulário ou o rodapé estão
+  // à vista: não faz falta junto ao formulário e taparia os links do rodapé
+  // (privacidade, termos, cookies).
+  const [hideSticky, setHideSticky] = useState(false);
+  useEffect(() => {
+    const targets = [formRef.current, document.querySelector('footer')].filter(Boolean) as Element[];
+    if (!targets.length || typeof IntersectionObserver === 'undefined') return;
+    const visible = new Set<Element>();
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => (e.isIntersecting ? visible.add(e.target) : visible.delete(e.target)));
+      setHideSticky(visible.size > 0);
+    });
+    targets.forEach((t) => io.observe(t));
+    return () => io.disconnect();
+  }, []);
+
   const [openFaq, setOpenFaq] = useState(-1);
   const [form, setForm] = useState({ name: '', email: '', phone: '', slot: '', exp: '', motive: '', source: '', consent: false, website: '' });
   const [error, setError] = useState('');
@@ -516,7 +532,7 @@ export const WorkshopView: React.FC = () => {
       </section>
 
       {/* CTA fixo no telemóvel */}
-      {!done && (
+      {!done && !hideSticky && (
         <div className="md:hidden fixed left-0 right-0 bottom-0 z-40 px-4 pt-3 bg-bbq-black border-t-4 border-bbq-yellow" style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))' }}>
           <Btn className="w-full" onClick={() => goForm('sticky')}>Entrar na waiting list · {shownPrice}€</Btn>
         </div>

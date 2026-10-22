@@ -3,6 +3,7 @@ import './index.css';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
+import { CookieBanner } from './components/CookieBanner';
 import { initAnalytics, getPostHogInstance } from './services/analytics';
 import { PostHogErrorBoundary, PostHogProvider } from '@posthog/react';
 
@@ -17,6 +18,7 @@ ReactDOM.createRoot(rootElement).render(
       <PostHogErrorBoundary>
         <BrowserRouter>
           <App />
+          <CookieBanner />
         </BrowserRouter>
       </PostHogErrorBoundary>
     </PostHogProvider>

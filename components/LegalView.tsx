@@ -47,6 +47,12 @@ export const LegalView: React.FC<LegalViewProps> = ({ type, lang, onBack }) => {
             : 'To provide the service we use providers that process data on our behalf: Supabase (database, hosted in the European Union), Resend (email delivery) and Vercel (website hosting). We do not sell or share your data with third parties for marketing purposes.'
         },
         {
+          h: lang === 'pt' ? 'Cookies e Tecnologias Semelhantes' : 'Cookies and Similar Technologies',
+          p: lang === 'pt'
+            ? 'Usamos cookies e armazenamento local do navegador em três categorias. Essenciais: guardam a sua escolha de cookies e dados necessários ao funcionamento do site (por exemplo, a variante de preço de uma campanha); estão sempre ativos. Estatística, só com o seu consentimento: Google Analytics (Google Ireland Limited) e PostHog (alojado na União Europeia), para medir a utilização do site. Marketing, só com o seu consentimento: Google Ads e Meta Pixel (Meta Platforms Ireland Limited), para medir que anúncios geram pedidos. Sem consentimento, as ferramentas da Google funcionam em modo de consentimento recusado, sem guardar cookies de estatística ou publicidade. Pode alterar ou retirar o consentimento a qualquer momento através da ligação «Cookies» no rodapé do site.'
+            : 'We use cookies and browser local storage in three categories. Essential: they store your cookie choice and data the site needs to work (for example, a campaign price variant); always active. Statistics, only with your consent: Google Analytics (Google Ireland Limited) and PostHog (hosted in the European Union), to measure site usage. Marketing, only with your consent: Google Ads and Meta Pixel (Meta Platforms Ireland Limited), to measure which ads generate requests. Without consent, Google tools run in consent-denied mode, without storing analytics or advertising cookies. You can change or withdraw consent at any time through the "Cookies" link in the site footer.'
+        },
+        {
           h: lang === 'pt' ? '5. Seus Direitos' : '5. Your Rights',
           p: lang === 'pt'
             ? 'Tem o direito de aceder, retificar, limitar o tratamento ou solicitar a eliminação total (Direito ao Esquecimento) dos seus dados a qualquer momento, escrevendo para pitmasters@lisbonbbq.pt. Tem ainda o direito de apresentar reclamação à Comissão Nacional de Proteção de Dados (CNPD).'
