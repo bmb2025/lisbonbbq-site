@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { getConsent, saveConsent, OPEN_SETTINGS_EVENT } from '../services/consent';
+import { getConsent, saveConsent, OPEN_SETTINGS_EVENT, LANG_EVENT } from '../services/consent';
 
 // Aviso de cookies para o site todo. Fica fora de #root (portal para <body>)
 // para os snapshots de scripts/prerender-snapshots.mjs, que copiam só o
@@ -8,6 +8,39 @@ import { getConsent, saveConsent, OPEN_SETTINGS_EVENT } from '../services/consen
 //
 // "Aceitar" e "Rejeitar" têm o mesmo peso visual, como a CNPD pede: recusar tem
 // de ser tão fácil como aceitar.
+
+type Lang = 'pt' | 'en';
+
+const COPY = {
+  pt: {
+    intro: 'Usamos cookies e tecnologias semelhantes para perceber como o site é usado e medir os nossos anúncios. Só os ligamos se aceitares. Podes mudar de ideias a qualquer momento em «Cookies», no fundo da página.',
+    privacy: 'Política de privacidade',
+    essential: 'Essenciais',
+    essentialDesc: 'Necessários para o site funcionar e para guardar esta escolha. Estão sempre ligados.',
+    stats: 'Estatística',
+    statsDesc: 'Google Analytics e PostHog: páginas vistas e utilização do site, para o melhorarmos.',
+    marketing: 'Marketing',
+    marketingDesc: 'Google Ads e Meta (Facebook e Instagram): medir que anúncios trazem pedidos.',
+    save: 'Guardar escolha',
+    choose: 'Escolher',
+    reject: 'Rejeitar',
+    accept: 'Aceitar tudo',
+  },
+  en: {
+    intro: 'We use cookies and similar technologies to understand how the site is used and to measure our ads. We only switch them on if you accept. You can change your mind at any time under “Cookies”, at the bottom of the page.',
+    privacy: 'Privacy policy',
+    essential: 'Essential',
+    essentialDesc: 'Needed for the site to work and to save this choice. Always on.',
+    stats: 'Statistics',
+    statsDesc: 'Google Analytics and PostHog: page views and how the site is used, so we can improve it.',
+    marketing: 'Marketing',
+    marketingDesc: 'Google Ads and Meta (Facebook and Instagram): measure which ads bring requests.',
+    save: 'Save choice',
+    choose: 'Choose',
+    reject: 'Reject',
+    accept: 'Accept all',
+  },
+};
 
 const Toggle: React.FC<{ label: string; desc: string; checked: boolean; disabled?: boolean; onChange?: (v: boolean) => void }> = ({ label, desc, checked, disabled, onChange }) => (
   <label className={`flex gap-3 items-start py-3 border-t border-white/15 ${disabled ? 'opacity-70' : 'cursor-pointer'}`}>
@@ -31,9 +64,13 @@ export const CookieBanner: React.FC = () => {
   const [details, setDetails] = useState(false);
   const [analytics, setAnalytics] = useState(false);
   const [marketing, setMarketing] = useState(false);
+  const [lang, setLang] = useState<Lang>('pt');
 
   useEffect(() => {
     setMounted(true);
+    setLang(document.documentElement.lang === 'en' ? 'en' : 'pt');
+    const onLang = (e: Event) => setLang((e as CustomEvent<Lang>).detail === 'en' ? 'en' : 'pt');
+    window.addEventListener(LANG_EVENT, onLang);
     const current = getConsent();
     if (!current) setOpen(true);
     const reopen = () => {
@@ -44,10 +81,15 @@ export const CookieBanner: React.FC = () => {
       setOpen(true);
     };
     window.addEventListener(OPEN_SETTINGS_EVENT, reopen);
-    return () => window.removeEventListener(OPEN_SETTINGS_EVENT, reopen);
+    return () => {
+      window.removeEventListener(OPEN_SETTINGS_EVENT, reopen);
+      window.removeEventListener(LANG_EVENT, onLang);
+    };
   }, []);
 
   if (!mounted || !open) return null;
+
+  const c = COPY[lang];
 
   const decide = (a: boolean, m: boolean) => {
     saveConsent({ analytics: a, marketing: m });
@@ -67,34 +109,34 @@ export const CookieBanner: React.FC = () => {
         <div className="flex flex-col gap-2">
           <h2 id="cookie-title" className="m-0 font-black uppercase text-lg tracking-tight">Cookies</h2>
           <p className="m-0 text-sm leading-relaxed max-w-3xl">
-            Usamos cookies e tecnologias semelhantes para perceber como o site é usado e medir os nossos anúncios. Só os ligamos se aceitares. Podes mudar de ideias a qualquer momento em «Cookies», no fundo da página.{' '}
-            <a href="/privacy" className="text-bbq-yellow underline">Política de privacidade</a>
+            {c.intro}{' '}
+            <a href="/privacy" className="text-bbq-yellow underline">{c.privacy}</a>
           </p>
         </div>
 
         {details && (
           <div className="max-w-3xl">
-            <Toggle label="Essenciais" desc="Necessários para o site funcionar e para guardar esta escolha. Estão sempre ligados." checked disabled />
-            <Toggle label="Estatística" desc="Google Analytics e PostHog: páginas vistas e utilização do site, para o melhorarmos." checked={analytics} onChange={setAnalytics} />
-            <Toggle label="Marketing" desc="Google Ads e Meta (Facebook e Instagram): medir que anúncios trazem pedidos." checked={marketing} onChange={setMarketing} />
+            <Toggle label={c.essential} desc={c.essentialDesc} checked disabled />
+            <Toggle label={c.stats} desc={c.statsDesc} checked={analytics} onChange={setAnalytics} />
+            <Toggle label={c.marketing} desc={c.marketingDesc} checked={marketing} onChange={setMarketing} />
           </div>
         )}
 
         <div className="flex flex-wrap gap-3">
           {details ? (
             <button type="button" onClick={() => decide(analytics, marketing)} className="min-h-[48px] px-5 bg-bbq-yellow text-bbq-black border-2 border-bbq-yellow font-black uppercase text-sm tracking-wider">
-              Guardar escolha
+              {c.save}
             </button>
           ) : (
             <button type="button" onClick={() => setDetails(true)} className="min-h-[48px] px-5 bg-transparent text-bbq-cream border-2 border-bbq-cream/50 font-black uppercase text-sm tracking-wider underline-offset-4">
-              Escolher
+              {c.choose}
             </button>
           )}
           <button type="button" onClick={() => decide(false, false)} className="min-h-[48px] px-5 bg-bbq-cream text-bbq-black border-2 border-bbq-cream font-black uppercase text-sm tracking-wider">
-            Rejeitar
+            {c.reject}
           </button>
           <button type="button" onClick={() => decide(true, true)} className="min-h-[48px] px-5 bg-bbq-cream text-bbq-black border-2 border-bbq-cream font-black uppercase text-sm tracking-wider">
-            Aceitar tudo
+            {c.accept}
           </button>
         </div>
       </div>

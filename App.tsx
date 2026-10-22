@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Header } from './components/Header';
 import { HomePage } from './components/HomePage';
-import { SeoFor } from './components/Seo';
+import { Seo, SeoFor } from './components/Seo';
 import { Footer } from './components/Footer';
 import { ProposalView } from './components/ProposalView';
 import { LegalView } from './components/LegalView';
@@ -20,6 +20,7 @@ import { BookingState, CartItem, DailyWeather, Article } from './types';
 import { getLisbonWeather } from './services/weatherService';
 import { cloudService } from './services/cloudService';
 import { track, identifyLead } from './services/analytics';
+import { LANG_EVENT } from './services/consent';
 import { fetchArticles, fetchArticleBySlug } from './services/gitCms';
 import { Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
 
@@ -108,6 +109,10 @@ const BlogArticlePage: React.FC<ViewProps & { onBack: () => void }> = ({
 const App: React.FC = () => {
   const navigate = useNavigate();
   const [lang, setLang] = useState<'pt' | 'en'>('pt');
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    window.dispatchEvent(new CustomEvent(LANG_EVENT, { detail: lang }));
+  }, [lang]);
   const today = useMemo(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
@@ -464,7 +469,7 @@ const App: React.FC = () => {
         <Route path="/blog/:slug" element={<BlogArticlePage lang={lang} setLang={setLang} setView={setView} onBack={() => navigate('/blog')} />} />
         <Route path="/quem-somos" element={<><SeoFor path="/quem-somos" /><Header setView={setView} lang={lang} setLang={setLang} /><QuemSomosView lang={lang} onBack={() => setView('booking')} /><Footer setView={setView} lang={lang} /></>} />
         <Route path="/proposal" element={<><Header setView={setView} lang={lang} setLang={setLang} /><ProposalView onReturn={() => setView('booking')} assets={customAssets} booking={booking} cart={cart} lang={lang} /><Footer setView={setView} lang={lang} /></>} />
-        <Route path="/workshop" element={<><SeoFor path="/workshop" /><Header setView={setView} lang={lang} setLang={setLang} /><WorkshopView /><Footer setView={setView} lang={lang} /></>} />
+        <Route path="/workshop" element={<>{lang === 'en' ? <Seo path="/workshop" title="Barbecue Workshop in Lisbon | Learn to Grill | LisbonBBQ" description="Hands-on barbecue workshop in Lisbon: 3 hours around the fire, embers, picanha and getting the doneness right, with a meal at the long table. Join the waiting list." /> : <SeoFor path="/workshop" />}<Header setView={setView} lang={lang} setLang={setLang} /><WorkshopView lang={lang} /><Footer setView={setView} lang={lang} /></>} />
         <Route path="/privacy" element={<><SeoFor path="/privacy" /><Header setView={setView} lang={lang} setLang={setLang} /><LegalView type="privacy" lang={lang} onBack={() => setView('booking')} /><Footer setView={setView} lang={lang} /></>} />
         <Route path="/terms" element={<><SeoFor path="/terms" /><Header setView={setView} lang={lang} setLang={setLang} /><LegalView type="terms" lang={lang} onBack={() => setView('booking')} /><Footer setView={setView} lang={lang} /></>} />
         <Route path="/faqs" element={<><SeoFor path="/faqs" /><Header setView={setView} lang={lang} setLang={setLang} /><FAQView lang={lang} onBack={() => setView('booking')} /><Footer setView={setView} lang={lang} /></>} />

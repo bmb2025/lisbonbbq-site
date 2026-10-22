@@ -28,6 +28,10 @@ const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const CONSENT_TEXT =
   "Autorizo a Lisbon BBQ a guardar estes dados para me contactar sobre o workshop de churrasco da Lisbon BBQ, de acordo com o RGPD. Posso pedir para os apagar a qualquer momento em pitmasters@lisbonbbq.pt.";
 
+// O que a pessoa leu na versão inglesa da página: fica guardado tal e qual.
+const CONSENT_TEXT_EN =
+  "I authorise Lisbon BBQ to store this data to contact me about the Lisbon BBQ barbecue workshop, in accordance with the GDPR. I can ask for it to be deleted at any time at pitmasters@lisbonbbq.pt.";
+
 const supabase = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -56,6 +60,8 @@ function cleanCode(raw: unknown) {
   return c.length === 6 ? c : null;
 }
 
+type Lang = "pt" | "en";
+
 function str(v: unknown, max = 200) {
   return typeof v === "string" ? v.trim().slice(0, max) : "";
 }
@@ -64,9 +70,9 @@ function inviteLink(code: string) {
   return `${SITE}/workshop?c=${code}`;
 }
 
-function layout(title: string, body: string) {
+function layout(title: string, body: string, lang: Lang = "pt") {
   return `<!DOCTYPE html>
-<html lang="pt-PT"><head><meta charset="utf-8"><style>
+<html lang="${lang === "en" ? "en" : "pt-PT"}"><head><meta charset="utf-8"><style>
   body { font-family: Arial, sans-serif; background: #F9F7F2; margin: 0; padding: 24px; color: #1A1A1A; }
   .card { background: #fff; border: 4px solid #1A1A1A; max-width: 600px; margin: 0 auto; padding: 32px; }
   h1 { background: #D91A2A; color: #fff; margin: -32px -32px 24px; padding: 20px 32px; font-size: 22px; text-transform: uppercase; border-bottom: 4px solid #1A1A1A; }
@@ -80,12 +86,22 @@ function layout(title: string, body: string) {
   <h1>${title}</h1>
   ${body}
   <div class="footer">Lisbon Barbecue &amp; Churrasco · Lisboa · <a href="${SITE}" style="color:#6B7280">lisbonbbq.pt</a><br>
-  Recebes este email porque entraste na waiting list do workshop. Para deixares de receber, responde com "sair".</div>
+  ${lang === "en"
+    ? `You are receiving this email because you joined the workshop waiting list. To stop receiving them, reply with "unsubscribe".`
+    : `Recebes este email porque entraste na waiting list do workshop. Para deixares de receber, responde com "sair".`}</div>
 </div></body></html>`;
 }
 
-function inviteBox(code: string, p: { public: number; invite: number }) {
+function inviteBox(code: string, p: { public: number; invite: number }, lang: Lang = "pt") {
   const link = inviteLink(code);
+  if (lang === "en") {
+    return `<div class="box">
+    <p><strong>You have an invite to give away.</strong> Anyone who signs up with your link joins your grill station, and you both pay <strong>€${p.invite} instead of €${p.public}</strong>.</p>
+    <p>It works for as many mates as you like. Each pays €${p.invite}, and so do you.</p>
+    <p style="margin:16px 0 8px"><a class="btn" href="${link}">Share my invite</a></p>
+    <p class="link" style="margin:0">${link}</p>
+  </div>`;
+  }
   return `<div class="box">
     <p><strong>Tens um convite para oferecer.</strong> Quem se inscrever com o teu link fica na tua estação de grelha, e os dois pagam <strong>${p.invite}€ em vez de ${p.public}€</strong>.</p>
     <p>Vale para quantos camaradas quiseres. Cada um paga ${p.invite}€, e tu também.</p>
@@ -94,8 +110,22 @@ function inviteBox(code: string, p: { public: number; invite: number }) {
   </div>`;
 }
 
-function welcomeEmail(row: any, p: { public: number; invite: number }, inviterFirst?: string) {
+function welcomeEmail(row: any, p: { public: number; invite: number }, inviterFirst?: string, lang: Lang = "pt") {
   const fn = escapeHtml(firstName(row.name));
+  if (lang === "en") {
+    const viaInviteEn = inviterFirst
+      ? `<p>You came in through <strong>${escapeHtml(inviterFirst)}</strong>'s invite: your spot is <strong>€${p.invite}</strong>, at the same grill station.</p>`
+      : "";
+    return layout(
+      "You're on the list",
+      `<p>${fn}, you're on the waiting list for the Lisbon BBQ barbecue workshop.</p>
+     ${viaInviteEn}
+     <p>Whenever we open new workshop dates, you hear first: you get 48 hours of priority before we open to the public. You don't pay anything now.</p>
+     ${inviteBox(row.invite_code, p, "en")}
+     <p>See you at the embers,<br><strong>LisbonBBQ team</strong></p>`,
+      "en"
+    );
+  }
   const viaInvite = inviterFirst
     ? `<p>Entraste pelo convite de <strong>${escapeHtml(inviterFirst)}</strong>: o teu lugar fica a <strong>${p.invite}€</strong>, na mesma estação de grelha.</p>`
     : "";
@@ -110,6 +140,16 @@ function welcomeEmail(row: any, p: { public: number; invite: number }, inviterFi
 }
 
 function inviterJoinedEmail(inviter: any, invitee: any, p: { public: number; invite: number }) {
+  if (inviter.lang === "en") {
+    return layout(
+      "Your mate is in",
+      `<p>${escapeHtml(firstName(inviter.name))}, <strong>${escapeHtml(firstName(invitee.name))}</strong> joined the waiting list with your invite.</p>
+     <p>You'll be at the same grill station and you both pay <strong>€${p.invite}</strong> instead of €${p.public}. We'll let you both know when the dates open.</p>
+     <p>Your invite still works for more mates: <a href="${inviteLink(inviter.invite_code)}">${inviteLink(inviter.invite_code)}</a></p>
+     <p>See you at the embers,<br><strong>LisbonBBQ team</strong></p>`,
+      "en"
+    );
+  }
   return layout(
     "O teu camarada entrou",
     `<p>${escapeHtml(firstName(inviter.name))}, <strong>${escapeHtml(firstName(invitee.name))}</strong> entrou na waiting list com o teu convite.</p>
@@ -140,6 +180,17 @@ function internalEmail(row: any, inviter: any | null) {
 
 function reminderEmail(row: any) {
   const link = `${SITE}/workshop?c=${row.invite_code}`;
+  if (row.lang === "en") {
+    return layout(
+      "Your mate can still make it",
+      `<p>${escapeHtml(firstName(row.name))}, your spot on the waiting list is saved.</p>
+     <p>Your invite is still on: anyone who signs up with your link joins your grill station, and you both pay <strong>€${row.invite_price} instead of €${row.public_price}</strong>.</p>
+     <p><a class="btn" href="${link}">Share my invite</a></p>
+     <p style="font-size:13px;word-break:break-all">${link}</p>
+     <p>See you at the embers,<br><strong>LisbonBBQ team</strong></p>`,
+      "en"
+    );
+  }
   return `<!DOCTYPE html>
 <html lang="pt-PT"><head><meta charset="utf-8"><style>
   body { font-family: Arial, sans-serif; background: #F9F7F2; margin: 0; padding: 24px; color: #1A1A1A; }
@@ -170,7 +221,7 @@ async function runReminders(req: any, res: any) {
   const cutoff = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
   const { data: due, error } = await supabase
     .from("workshop_waitlist")
-    .select("id, name, email, invite_code, public_price, invite_price, created_at")
+    .select("id, name, email, invite_code, public_price, invite_price, created_at, lang")
     .is("reminder_sent_at", null)
     .is("invited_by", null)
     .eq("status", "waitlist")
@@ -192,7 +243,7 @@ async function runReminders(req: any, res: any) {
       try {
         const { error: sendError } = await resend.emails.send({
           from: FROM, to: row.email, replyTo: REPLY_TO,
-          subject: "O teu camarada ainda vai a tempo",
+          subject: row.lang === "en" ? "Your mate can still make it" : "O teu camarada ainda vai a tempo",
           html: reminderEmail(row),
         });
         if (sendError) throw sendError;
@@ -241,6 +292,7 @@ export default async function handler(req: any, res: any) {
   const motive = str(b.motive, 60);
   const heard_from = str(b.heardFrom, 60);
   const consent = b.consent === true;
+  const lang: Lang = b.lang === "en" ? "en" : "pt";
 
   const errors: string[] = [];
   if (!name) errors.push("nome");
@@ -261,7 +313,7 @@ export default async function handler(req: any, res: any) {
   if (code) {
     const { data } = await supabase
       .from("workshop_waitlist")
-      .select("id, name, email, invite_code, price_variant, locked_price, public_price, invite_price")
+      .select("id, name, email, invite_code, price_variant, locked_price, public_price, invite_price, lang")
       .eq("invite_code", code)
       .maybeSingle();
     if (data && data.email.toLowerCase() !== email) inviter = data;
@@ -285,7 +337,8 @@ export default async function handler(req: any, res: any) {
       .from("workshop_waitlist")
       .insert({
         name, email, phone, preferred_slot, experience, motive, heard_from,
-        consent, consent_at: new Date().toISOString(), consent_text: CONSENT_TEXT,
+        consent, consent_at: new Date().toISOString(), consent_text: lang === "en" ? CONSENT_TEXT_EN : CONSENT_TEXT,
+        lang,
         invite_code: newCode(),
         invited_by: inviter?.id ?? null,
         price_variant: inviter ? inviter.price_variant : variant,
@@ -317,8 +370,10 @@ export default async function handler(req: any, res: any) {
     // O SDK do Resend devolve { error } em vez de lançar exceção.
     const { error: sendError } = await resend.emails.send({
       from: FROM, to: email, replyTo: REPLY_TO,
-      subject: inviter ? `${firstName(inviter.name)} guardou-te um lugar na grelha` : "Estás na lista. Guarda um lugar para um camarada",
-      html: welcomeEmail(row, effective, inviter ? firstName(inviter.name) : undefined),
+      subject: lang === "en"
+        ? (inviter ? `${firstName(inviter.name)} saved you a spot at the grill` : "You're on the list. Save a spot for a mate")
+        : (inviter ? `${firstName(inviter.name)} guardou-te um lugar na grelha` : "Estás na lista. Guarda um lugar para um camarada"),
+      html: welcomeEmail(row, effective, inviter ? firstName(inviter.name) : undefined, lang),
     });
     if (sendError) throw sendError;
     await supabase.from("workshop_waitlist").update({ welcome_sent_at: new Date().toISOString() }).eq("id", row.id);
@@ -329,7 +384,7 @@ export default async function handler(req: any, res: any) {
     try {
       await resend.emails.send({
         from: FROM, to: inviter.email, replyTo: REPLY_TO,
-        subject: `${firstName(row.name)} entrou com o teu convite`,
+        subject: inviter.lang === "en" ? `${firstName(row.name)} joined with your invite` : `${firstName(row.name)} entrou com o teu convite`,
         html: inviterJoinedEmail(inviter, row, effective),
       });
     } catch (e) {
