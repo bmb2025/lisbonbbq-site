@@ -14,6 +14,7 @@ import { BlogList, ArticleDetail } from './components/BlogComponents';
 import { BlogAdmin } from './components/CMSComponents';
 import { EventPageView } from './components/EventPageView';
 import { NotFoundView } from './components/NotFoundView';
+import { WorkshopView } from './components/WorkshopView';
 import { ADD_ONS, LOCATIONS, DEFAULT_ASSETS, BRAZILIAN_MENUS, PORTUGUESE_MENUS, ARGENTINIAN_MENUS, OWN_LOCATION_ID, OWN_LOCATION_NAME } from './constants';
 import { BookingState, CartItem, DailyWeather, Article } from './types';
 import { getLisbonWeather } from './services/weatherService';
@@ -463,6 +464,7 @@ const App: React.FC = () => {
         <Route path="/blog/:slug" element={<BlogArticlePage lang={lang} setLang={setLang} setView={setView} onBack={() => navigate('/blog')} />} />
         <Route path="/quem-somos" element={<><SeoFor path="/quem-somos" /><Header setView={setView} lang={lang} setLang={setLang} /><QuemSomosView lang={lang} onBack={() => setView('booking')} /><Footer setView={setView} lang={lang} /></>} />
         <Route path="/proposal" element={<><Header setView={setView} lang={lang} setLang={setLang} /><ProposalView onReturn={() => setView('booking')} assets={customAssets} booking={booking} cart={cart} lang={lang} /><Footer setView={setView} lang={lang} /></>} />
+        <Route path="/workshop" element={<><SeoFor path="/workshop" /><Header setView={setView} lang={lang} setLang={setLang} /><WorkshopView /><Footer setView={setView} lang={lang} /></>} />
         <Route path="/privacy" element={<><SeoFor path="/privacy" /><Header setView={setView} lang={lang} setLang={setLang} /><LegalView type="privacy" lang={lang} onBack={() => setView('booking')} /><Footer setView={setView} lang={lang} /></>} />
         <Route path="/terms" element={<><SeoFor path="/terms" /><Header setView={setView} lang={lang} setLang={setLang} /><LegalView type="terms" lang={lang} onBack={() => setView('booking')} /><Footer setView={setView} lang={lang} /></>} />
         <Route path="/faqs" element={<><SeoFor path="/faqs" /><Header setView={setView} lang={lang} setLang={setLang} /><FAQView lang={lang} onBack={() => setView('booking')} /><Footer setView={setView} lang={lang} /></>} />

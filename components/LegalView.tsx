@@ -19,8 +19,8 @@ export const LegalView: React.FC<LegalViewProps> = ({ type, lang, onBack }) => {
         {
           h: lang === 'pt' ? '1. Dados Recolhidos' : '1. Data Collected',
           p: lang === 'pt' 
-            ? 'Recolhemos o seu nome, endereço de e-mail e número de telefone apenas quando solicita um orçamento através do nosso formulário.'
-            : 'We collect your name, email address, and phone number only when you request a quote via our form.'
+            ? 'Recolhemos o seu nome, endereço de e-mail e número de telefone apenas quando solicita um orçamento através do nosso formulário ou quando entra na waiting list do workshop de churrasco. Na waiting list guardamos também as preferências que indica (horário, experiência a grelhar, o que o traz, como soube de nós), o código de convite pessoal, quem o convidou (se for o caso) e a origem da visita (parâmetros UTM da campanha).'
+            : 'We collect your name, email address, and phone number only when you request a quote via our form or join the barbecue workshop waiting list. For the waiting list we also store the preferences you give us (time slot, grilling experience, what brings you, how you heard about us), your personal invite code, who invited you (if applicable) and the visit source (campaign UTM parameters).'
         },
         {
           h: lang === 'pt' ? '2. Finalidade do Tratamento' : '2. Purpose of Processing',
@@ -29,10 +29,22 @@ export const LegalView: React.FC<LegalViewProps> = ({ type, lang, onBack }) => {
             : 'The data is used exclusively for sending proposals, booking management, and direct communication related to your event.'
         },
         {
-          h: lang === 'pt' ? '3. Seus Direitos' : '3. Your Rights',
+          h: lang === 'pt' ? '3. Waiting List do Workshop' : '3. Workshop Waiting List',
           p: lang === 'pt'
-            ? 'Tem o direito de aceder, retificar, limitar o tratamento ou solicitar a eliminação total (Direito ao Esquecimento) dos seus dados a qualquer momento.'
-            : 'You have the right to access, rectify, limit processing, or request total deletion (Right to be Forgotten) of your data at any time.'
+            ? 'Os dados da waiting list são tratados com base no seu consentimento, dado no formulário, e servem apenas para o avisar da abertura de datas, enviar o seu convite pessoal e os lembretes associados, e organizar as turmas. Quando alguém se inscreve com o seu convite, avisamos-o por email e indicamos o primeiro nome dessa pessoa; o seu primeiro nome é mostrado a quem abrir o seu link de convite. Pode retirar o consentimento a qualquer momento respondendo a qualquer email nosso ou escrevendo para pitmasters@lisbonbbq.pt. Guardamos estes dados até 12 meses depois do último workshop para o qual o contactámos, ou até pedir a sua eliminação.'
+            : 'Waiting list data is processed on the basis of the consent you give in the form, and is used only to notify you when dates open, send your personal invite and related reminders, and organise the classes. When someone signs up with your invite, we let you know by email with that person\'s first name; your first name is shown to anyone who opens your invite link. You may withdraw consent at any time by replying to any of our emails or writing to pitmasters@lisbonbbq.pt. We keep this data for up to 12 months after the last workshop we contacted you about, or until you ask us to delete it.'
+        },
+        {
+          h: lang === 'pt' ? '4. Subcontratantes' : '4. Processors',
+          p: lang === 'pt'
+            ? 'Para prestar o serviço usamos fornecedores que tratam dados por nossa conta: Supabase (base de dados, alojada na União Europeia), Resend (envio de emails) e Vercel (alojamento do site). Não vendemos nem cedemos os seus dados a terceiros para fins de marketing.'
+            : 'To provide the service we use providers that process data on our behalf: Supabase (database, hosted in the European Union), Resend (email delivery) and Vercel (website hosting). We do not sell or share your data with third parties for marketing purposes.'
+        },
+        {
+          h: lang === 'pt' ? '5. Seus Direitos' : '5. Your Rights',
+          p: lang === 'pt'
+            ? 'Tem o direito de aceder, retificar, limitar o tratamento ou solicitar a eliminação total (Direito ao Esquecimento) dos seus dados a qualquer momento, escrevendo para pitmasters@lisbonbbq.pt. Tem ainda o direito de apresentar reclamação à Comissão Nacional de Proteção de Dados (CNPD).'
+            : 'You have the right to access, rectify, limit processing, or request total deletion (Right to be Forgotten) of your data at any time, by writing to pitmasters@lisbonbbq.pt. You also have the right to lodge a complaint with the Portuguese data protection authority (CNPD).'
         }
       ]
     },
@@ -83,6 +95,12 @@ export const LegalView: React.FC<LegalViewProps> = ({ type, lang, onBack }) => {
           p: lang === 'pt'
             ? 'Salvo indicação em contrário, a LisbonBBQ reserva-se o direito de captar imagens para fins promocionais. Reservamos o direito de substituir pontualmente produtos por equivalentes de qualidade semelhante ou superior.'
             : 'Unless otherwise indicated, LisbonBBQ reserves the right to capture images for promotional purposes. We reserve the right to occasionally replace products with equivalents of similar or superior quality.'
+        },
+        {
+          h: lang === 'pt' ? '8. Workshops de Churrasco' : '8. Barbecue Workshops',
+          p: lang === 'pt'
+            ? 'A inscrição na waiting list do workshop é gratuita e não garante lugar nem data. Quando abrirmos datas, quem está na lista tem 48 horas de prioridade; o lugar só fica reservado após o pagamento, no prazo indicado nesse aviso. Os preços são por pessoa, com IVA incluído. O preço de convite aplica-se a quem se inscreve com o link de convite de outra pessoa inscrita, e também a quem convidou; se a pessoa convidada não vier, quem convidou mantém esse preço. Se não puder comparecer, o lugar é transferível para outra pessoa ou para outra data, sujeito a disponibilidade. O workshop inclui bebidas alcoólicas, servidas apenas a maiores de 18 anos.'
+            : 'Joining the workshop waiting list is free and does not guarantee a place or date. When we open dates, people on the list get 48 hours of priority; a place is only reserved after payment within the deadline given in that notice. Prices are per person, VAT included. The invite price applies to anyone who signs up with another registered person\'s invite link, and also to the person who invited them; if the invited person does not attend, the inviter keeps that price. If you cannot attend, your place can be transferred to another person or to another date, subject to availability. The workshop includes alcoholic drinks, served only to people aged 18 or over.'
         }
       ]
     }
@@ -134,7 +152,7 @@ export const LegalView: React.FC<LegalViewProps> = ({ type, lang, onBack }) => {
 
             <div className="mt-24 pt-12 border-t-4 border-bbq-black/5 flex flex-col md:flex-row justify-between items-center gap-8">
               <div className="text-[10px] font-black uppercase text-gray-400 tracking-widest">
-                Última Atualização: 2024-11-20
+                Última Atualização: 2026-10-22
               </div>
               <div className="flex gap-4">
                  <div className="w-8 h-8 rounded-full bg-bbq-red"></div>

@@ -47,6 +47,12 @@
       "title": "Termos e Condições | LisbonBBQ",
       "description": "Termos e condições do serviço LisbonBBQ.",
       "breadcrumb": "Termos e Condições"
+    },
+    {
+      "path": "/workshop",
+      "title": "Workshop de Churrasco em Lisboa | Aprende a Grelhar | LisbonBBQ",
+      "description": "Workshop prático de churrasco em Lisboa: 3 horas à volta do fogo, brasa, picanha e o ponto certo da carne, com refeição à mesa longa. Entra na waiting list.",
+      "breadcrumb": "Workshop de Churrasco"
     }
   ]
 }

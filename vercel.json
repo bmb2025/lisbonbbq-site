@@ -38,11 +38,15 @@
     { "source": "/faqs", "destination": "/faqs/index.html" },
     { "source": "/espaco-para-eventos-pequenos", "destination": "/espaco-para-eventos-pequenos/index.html" },
     { "source": "/corporate", "destination": "/corporate/index.html" },
+    { "source": "/workshop", "destination": "/workshop/index.html" },
     { "source": "/privacy", "destination": "/privacy/index.html" },
     { "source": "/terms", "destination": "/terms/index.html" },
     { "source": "/proposal", "destination": "/index.html" },
     { "source": "/admin", "destination": "/index.html" },
     { "source": "/e/:slug", "destination": "/index.html" }
+  ],
+  "crons": [
+    { "path": "/api/workshop-reminders", "schedule": "0 10 * * *" }
   ],
   "headers": [
     {
