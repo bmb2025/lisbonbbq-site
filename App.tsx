@@ -108,7 +108,10 @@ const BlogArticlePage: React.FC<ViewProps & { onBack: () => void }> = ({
 
 const App: React.FC = () => {
   const navigate = useNavigate();
-  const [lang, setLang] = useState<'pt' | 'en'>('pt');
+  // ?lang=en abre o site em inglês (usado nos links de convite do workshop).
+  const [lang, setLang] = useState<'pt' | 'en'>(() =>
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('lang') === 'en' ? 'en' : 'pt'
+  );
   useEffect(() => {
     document.documentElement.lang = lang;
     window.dispatchEvent(new CustomEvent(LANG_EVENT, { detail: lang }));

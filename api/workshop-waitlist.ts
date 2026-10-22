@@ -401,5 +401,8 @@ export default async function handler(req: any, res: any) {
     console.error("[workshop] internal email failed:", e);
   }
 
-  return res.status(200).json({ ok: true, firstName: firstName(row.name), inviteCode: row.invite_code, invited: !!inviter });
+  return res.status(200).json({
+    ok: true, firstName: firstName(row.name), inviteCode: row.invite_code, invited: !!inviter,
+    invitePrice: effective.invite, publicPrice: effective.public,
+  });
 }
