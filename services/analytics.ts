@@ -98,6 +98,9 @@ export function track(event: string, properties?: Record<string, any>) {
   // marked as key events and imported into Google Ads as conversions. O Consent
   // Mode decide o que a Google pode guardar ou associar: sem consentimento, só
   // seguem sinais sem cookies.
+  // As tags da Google carregam depois do load (index.html); aqui garante-se que
+  // já estão a caminho quando há um evento para enviar.
+  (window as any).lbbqLoadGoogleTags?.();
   const gtag = (window as any).gtag;
   if (typeof gtag === 'function') {
     const params: Record<string, any> = {};
