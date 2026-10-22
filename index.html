@@ -26,6 +26,9 @@
         }
       } catch (e) {}
       gtag('set', 'ads_data_redaction', true);
+      // Sem cookies de anúncios, mantém o gclid nos links internos para não perder a
+      // atribuição de conversões do Google Ads.
+      gtag('set', 'url_passthrough', true);
       gtag('js', new Date());
 
       gtag('config', 'G-5CYEYQ8563');

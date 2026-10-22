@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { track } from '../services/analytics';
+import { track, identifyLead } from '../services/analytics';
 
 // Landing page do workshop de churrasco (lisbonbbq.pt/workshop).
 // Só em português: o público são residentes, e o tom ("tu", camaradagem) não
@@ -212,6 +212,7 @@ export const WorkshopView: React.FC = () => {
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok || !d?.ok) throw new Error(d?.error || 'failed');
+      identifyLead({ email: form.email.trim(), name: form.name.trim(), phone: form.phone.trim() });
       track('workshop_waitlist_submitted', { variant, invited: !!d.invited, motive: form.motive, experience: form.exp, duplicate: !!d.duplicate });
       setDone({ firstName: d.firstName || form.name.trim().split(' ')[0], duplicate: d.duplicate });
       formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
