@@ -48,7 +48,10 @@ export const Footer: React.FC<FooterProps> = ({ setView, lang }) => {
       </div>
       
       <div className="max-w-6xl mx-auto px-4 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center text-xs font-bold uppercase text-gray-500">
-         <div>© {new Date().getFullYear()} Lisbon Barbecue & Churrasco. All rights reserved.</div>
+         <div className="text-center md:text-left">
+           <div>© {new Date().getFullYear()} Lisbon Barbecue & Churrasco. {lang === 'pt' ? 'Todos os direitos reservados.' : 'All rights reserved.'}</div>
+           <div className="mt-1 normal-case font-medium">Disruptive Theory, Lda. · NIF 519686551 · Rua José Farinha, n.º 20, 2.º B, Lisboa · <a href="https://www.livroreclamacoes.pt" target="_blank" rel="noopener noreferrer" className="underline hover:text-bbq-yellow">Livro de Reclamações</a></div>
+         </div>
          <div className="flex gap-6 mt-4 md:mt-0">
             <button onClick={() => setView('privacy')} className="hover:text-bbq-yellow uppercase">Privacy</button>
             <button onClick={() => setView('terms')} className="hover:text-bbq-yellow uppercase">Terms</button>

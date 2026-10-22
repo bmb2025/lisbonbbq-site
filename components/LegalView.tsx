@@ -17,6 +17,12 @@ export const LegalView: React.FC<LegalViewProps> = ({ type, lang, onBack }) => {
         : 'Lisbon Barbecue & Churrasco is committed to protecting your privacy and complying with the General Data Protection Regulation (GDPR).',
       sections: [
         {
+          h: lang === 'pt' ? 'Responsável pelo Tratamento' : 'Data Controller',
+          p: lang === 'pt'
+            ? 'O responsável pelo tratamento dos seus dados é a Disruptive Theory, Lda., NIF 519686551, com sede na Rua José Farinha, n.º 20, 2.º B, Lisboa, que explora a marca Lisbon Barbecue & Churrasco (LisbonBBQ). Para qualquer questão sobre os seus dados, escreva para pitmasters@lisbonbbq.pt.'
+            : 'The controller of your data is Disruptive Theory, Lda., tax number (NIF) 519686551, registered office at Rua José Farinha, n.º 20, 2.º B, Lisbon, which operates the Lisbon Barbecue & Churrasco (LisbonBBQ) brand. For any question about your data, write to pitmasters@lisbonbbq.pt.'
+        },
+        {
           h: lang === 'pt' ? '1. Dados Recolhidos' : '1. Data Collected',
           p: lang === 'pt' 
             ? 'Recolhemos o seu nome, endereço de e-mail e número de telefone apenas quando solicita um orçamento através do nosso formulário ou quando entra na waiting list do workshop de churrasco. Na waiting list guardamos também as preferências que indica (horário, experiência a grelhar, o que o traz, como soube de nós), o código de convite pessoal, quem o convidou (se for o caso) e a origem da visita (parâmetros UTM da campanha).'
@@ -51,8 +57,8 @@ export const LegalView: React.FC<LegalViewProps> = ({ type, lang, onBack }) => {
     terms: {
       title: lang === 'pt' ? 'Condições Gerais do Serviço' : 'General Terms of Service',
       intro: lang === 'pt'
-        ? 'Ao utilizar os nossos serviços de reserva, concorda com as seguintes condições comerciais e operacionais que garantem a excelência do seu evento.'
-        : 'By using our booking services, you agree to the following commercial and operational conditions that ensure the excellence of your event.',
+        ? 'Os serviços Lisbon Barbecue & Churrasco (LisbonBBQ) são prestados pela Disruptive Theory, Lda., NIF 519686551, com sede na Rua José Farinha, n.º 20, 2.º B, Lisboa. Ao utilizar os nossos serviços de reserva, concorda com as seguintes condições comerciais e operacionais que garantem a excelência do seu evento.'
+        : 'Lisbon Barbecue & Churrasco (LisbonBBQ) services are provided by Disruptive Theory, Lda., tax number (NIF) 519686551, registered office at Rua José Farinha, n.º 20, 2.º B, Lisbon. By using our booking services, you agree to the following commercial and operational conditions that ensure the excellence of your event.',
       sections: [
         {
           h: lang === 'pt' ? '1. Reserva e Pagamento' : '1. Reservation and Payment',
