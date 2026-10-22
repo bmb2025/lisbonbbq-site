@@ -7,6 +7,7 @@ import { randomInt } from "crypto";
 // POST: inscreve na lista, gera o código de convite pessoal e envia o email de
 //       boas-vindas com o convite ("traz um camarada"). Se a inscrição vier de um
 //       convite (?c=CODIGO), liga as duas pessoas e fixa o preço de convite.
+// GET ?task=reminders: cron diário de lembretes (ver runReminders).
 // GET ?c=CODIGO: valida um código e devolve o primeiro nome de quem convidou,
 //       para a página mostrar "O Rui guardou-te um lugar".
 //
@@ -137,7 +138,80 @@ function internalEmail(row: any, inviter: any | null) {
     .join("")}</table>`;
 }
 
+function reminderEmail(row: any) {
+  const link = `${SITE}/workshop?c=${row.invite_code}`;
+  return `<!DOCTYPE html>
+<html lang="pt-PT"><head><meta charset="utf-8"><style>
+  body { font-family: Arial, sans-serif; background: #F9F7F2; margin: 0; padding: 24px; color: #1A1A1A; }
+  .card { background: #fff; border: 4px solid #1A1A1A; max-width: 600px; margin: 0 auto; padding: 32px; }
+  h1 { background: #D91A2A; color: #fff; margin: -32px -32px 24px; padding: 20px 32px; font-size: 22px; text-transform: uppercase; border-bottom: 4px solid #1A1A1A; }
+  p { font-size: 16px; line-height: 1.6; margin: 0 0 16px; }
+  .btn { display: inline-block; background: #1A1A1A; color: #F4B41A !important; text-decoration: none; font-weight: bold; text-transform: uppercase; padding: 14px 22px; letter-spacing: 1px; }
+  .footer { margin-top: 32px; font-size: 13px; color: #6B7280; border-top: 1px solid #eee; padding-top: 16px; }
+</style></head><body><div class="card">
+  <h1>O teu camarada ainda vai a tempo</h1>
+  <p>${escapeHtml(firstName(row.name))}, o teu lugar na waiting list está guardado.</p>
+  <p>O teu convite continua de pé: quem se inscrever com o teu link fica na tua estação de grelha, e os dois pagam <strong>${row.invite_price}€ em vez de ${row.public_price}€</strong>.</p>
+  <p><a class="btn" href="${link}">Partilhar o meu convite</a></p>
+  <p style="font-size:13px;word-break:break-all">${link}</p>
+  <p>Até à brasa,<br><strong>Equipa LisbonBBQ</strong></p>
+  <div class="footer">Lisbon Barbecue &amp; Churrasco · Lisboa · <a href="${SITE}" style="color:#6B7280">lisbonbbq.pt</a><br>
+  Recebes este email porque entraste na waiting list do workshop. Para deixares de receber, responde com "sair".</div>
+</div></body></html>`;
+}
+
+
+async function runReminders(req: any, res: any) {
+  const secret = process.env.CRON_SECRET;
+  if (!secret || req.headers?.authorization !== `Bearer ${secret}`) {
+    return res.status(401).json({ error: "unauthorized" });
+  }
+
+  const cutoff = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+  const { data: due, error } = await supabase
+    .from("workshop_waitlist")
+    .select("id, name, email, invite_code, public_price, invite_price, created_at")
+    .is("reminder_sent_at", null)
+    .is("invited_by", null)
+    .eq("status", "waitlist")
+    .lte("created_at", cutoff)
+    .limit(100);
+  if (error) {
+    console.error("[workshop-reminders] query failed:", error);
+    return res.status(500).json({ error: "query_failed" });
+  }
+
+  let sent = 0;
+  for (const row of due || []) {
+    // Já trouxe alguém? Então não precisa de lembrete; marca para não voltar a ver.
+    const { count } = await supabase
+      .from("workshop_waitlist")
+      .select("id", { count: "exact", head: true })
+      .eq("invited_by", row.id);
+    if ((count || 0) === 0) {
+      try {
+        await resend.emails.send({
+          from: FROM, to: row.email, replyTo: REPLY_TO,
+          subject: "O teu camarada ainda vai a tempo",
+          html: reminderEmail(row),
+        });
+        sent++;
+      } catch (e) {
+        console.error("[workshop-reminders] send failed:", row.id, e);
+        continue;
+      }
+    }
+    await supabase.from("workshop_waitlist").update({ reminder_sent_at: new Date().toISOString() }).eq("id", row.id);
+  }
+
+  return res.status(200).json({ checked: (due || []).length, sent });
+}
+
 export default async function handler(req: any, res: any) {
+  // Cron diário (vercel.json → crons): lembrete aos 3 dias. Vive neste ficheiro
+  // porque o plano Hobby da Vercel limita o deploy a 12 funções em api/.
+  if (req.method === "GET" && req.query?.task === "reminders") return runReminders(req, res);
+
   if (req.method === "GET") {
     const code = cleanCode(req.query?.c);
     if (!code) return res.status(200).json({ valid: false });
