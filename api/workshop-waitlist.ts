@@ -190,11 +190,12 @@ async function runReminders(req: any, res: any) {
       .eq("invited_by", row.id);
     if ((count || 0) === 0) {
       try {
-        await resend.emails.send({
+        const { error: sendError } = await resend.emails.send({
           from: FROM, to: row.email, replyTo: REPLY_TO,
           subject: "O teu camarada ainda vai a tempo",
           html: reminderEmail(row),
         });
+        if (sendError) throw sendError;
         sent++;
       } catch (e) {
         console.error("[workshop-reminders] send failed:", row.id, e);
@@ -313,11 +314,13 @@ export default async function handler(req: any, res: any) {
 
   // Emails: uma falha aqui não desfaz a inscrição.
   try {
-    await resend.emails.send({
+    // O SDK do Resend devolve { error } em vez de lançar exceção.
+    const { error: sendError } = await resend.emails.send({
       from: FROM, to: email, replyTo: REPLY_TO,
       subject: inviter ? `${firstName(inviter.name)} guardou-te um lugar na grelha` : "Estás na lista. Guarda um lugar para um camarada",
       html: welcomeEmail(row, effective, inviter ? firstName(inviter.name) : undefined),
     });
+    if (sendError) throw sendError;
     await supabase.from("workshop_waitlist").update({ welcome_sent_at: new Date().toISOString() }).eq("id", row.id);
   } catch (e) {
     console.error("[workshop] welcome email failed:", e);
