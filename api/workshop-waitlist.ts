@@ -103,7 +103,7 @@ function welcomeEmail(row: any, p: { public: number; invite: number }, inviterFi
     "Estás na lista",
     `<p>${fn}, já estás na waiting list do workshop de churrasco da Lisbon BBQ.</p>
      ${viaInvite}
-     <p>Quando abrirmos as datas de novembro e dezembro, avisamos-te primeiro: tens 48 horas de prioridade antes de abrirmos ao público. Não pagas nada agora.</p>
+     <p>Sempre que abrirmos novas datas de workshop, avisamos-te primeiro: tens 48 horas de prioridade antes de abrirmos ao público. Não pagas nada agora.</p>
      ${inviteBox(row.invite_code, p)}
      <p>Até à brasa,<br><strong>Equipa LisbonBBQ</strong></p>`
   );
