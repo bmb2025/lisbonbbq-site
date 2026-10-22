@@ -178,7 +178,6 @@ const COPY = {
     fSlot: 'horário',
     fExp: 'experiência a grelhar',
     fMotive: 'o que te traz',
-    stickyCta: (price: string) => `Entrar na waiting list · ${price}`,
   },
   en: {
     heroBadge: 'BBQ workshop · Lisbon',
@@ -313,7 +312,6 @@ const COPY = {
     fSlot: 'day',
     fExp: 'grilling experience',
     fMotive: 'what brings you',
-    stickyCta: (price: string) => `Join the waiting list · ${price}`,
   },
 };
 
@@ -850,7 +848,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
       {/* CTA fixo no telemóvel */}
       {!done && !hideSticky && (
         <div className="md:hidden fixed left-0 right-0 bottom-0 z-40 px-4 pt-3 bg-bbq-black border-t-4 border-bbq-yellow" style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))' }}>
-          <Btn className="w-full" onClick={() => goForm('sticky')}>{c.stickyCta(price)}</Btn>
+          <Btn className="w-full" onClick={() => goForm('sticky')}>{c.cta}</Btn>
         </div>
       )}
     </div>
