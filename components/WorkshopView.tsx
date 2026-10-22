@@ -147,7 +147,8 @@ const COPY = {
     inviteBoxText: (inv: number, pub: number) => `Quem se inscrever com o teu link fica na tua estação de grelha, e os dois pagam ${inv}€ em vez de ${pub}€.`,
     inviteBoxMore: (inv: number) => `Vale para quantos camaradas quiseres. Cada um paga ${inv}€, e tu também.`,
     shareLabel: 'Partilha o teu convite',
-    shareText: (inv: number, pub: number) => `Vem fazer comigo o workshop de churrasco da Lisbon BBQ! Com este link ficamos na mesma estação de grelha e pagamos ${inv}€ em vez de ${pub}€.`,
+    shareText: (inv: number, pub: number) => `Olha este Workshop de Churrasco da Lisbon BBQ & Churrasco! Com este link, temos os dois um desconto de ${pub - inv}€ cada.`,
+    shareMore: 'Sabe mais ->',
     shareSubject: 'Workshop de churrasco Lisbon BBQ',
     shareCopy: 'Copiar link',
     shareCopied: 'Link copiado.',
@@ -281,7 +282,8 @@ const COPY = {
     inviteBoxText: (inv: number, pub: number) => `Anyone who signs up with your link joins your grill station, and you both pay €${inv} instead of €${pub}.`,
     inviteBoxMore: (inv: number) => `It works for as many mates as you like. Each pays €${inv}, and so do you.`,
     shareLabel: 'Share your invite',
-    shareText: (inv: number, pub: number) => `Come to the Lisbon BBQ barbecue workshop with me! With this link we get the same grill station and each pay €${inv} instead of €${pub}.`,
+    shareText: (inv: number, pub: number) => `Check out this barbecue workshop from Lisbon BBQ & Churrasco! With this link, we each get €${pub - inv} off.`,
+    shareMore: 'Find out more ->',
     shareSubject: 'Lisbon BBQ barbecue workshop',
     shareCopy: 'Copy link',
     shareCopied: 'Link copied.',
@@ -485,12 +487,13 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
   const canShare = !!(done && !done.duplicate && done.inviteCode && done.invitePrice && done.publicPrice);
   const inviteUrl = canShare ? `${window.location.origin}/workshop?c=${done!.inviteCode}${lang === 'en' ? '&lang=en' : ''}` : '';
   const shareText = canShare ? c.shareText(done!.invitePrice!, done!.publicPrice!) : '';
+  const shareFull = `${shareText} ${c.shareMore} ${inviteUrl}`;
   const enc = encodeURIComponent;
   const shareChannels: { id: string; label: string; href: string }[] = canShare ? [
-    { id: 'whatsapp', label: 'WhatsApp', href: `https://wa.me/?text=${enc(`${shareText} ${inviteUrl}`)}` },
+    { id: 'whatsapp', label: 'WhatsApp', href: `https://wa.me/?text=${enc(shareFull)}` },
     { id: 'telegram', label: 'Telegram', href: `https://t.me/share/url?url=${enc(inviteUrl)}&text=${enc(shareText)}` },
     { id: 'facebook', label: 'Facebook', href: `https://www.facebook.com/sharer/sharer.php?u=${enc(inviteUrl)}` },
-    { id: 'email', label: 'Email', href: `mailto:?subject=${enc(c.shareSubject)}&body=${enc(`${shareText}\n\n${inviteUrl}`)}` },
+    { id: 'email', label: 'Email', href: `mailto:?subject=${enc(c.shareSubject)}&body=${enc(shareFull)}` },
   ] : [];
 
   const copyInvite = async (): Promise<boolean> => {
@@ -511,7 +514,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
   const shareInstagram = async () => {
     track('workshop_invite_shared', { channel: 'instagram', lang, variant });
     if (typeof navigator.share === 'function' && window.matchMedia('(pointer: coarse)').matches) {
-      try { await navigator.share({ title: c.shareSubject, text: shareText, url: inviteUrl }); } catch { /* cancelado */ }
+      try { await navigator.share({ title: c.shareSubject, text: `${shareText} ${c.shareMore}`, url: inviteUrl }); } catch { /* cancelado */ }
       return;
     }
     setShareNote((await copyInvite()) ? c.shareIgHint : inviteUrl);
