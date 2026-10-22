@@ -520,7 +520,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
   };
 
   return (
-    <div className="bg-bbq-black text-bbq-cream font-sans pb-24 md:pb-0">
+    <div className="bg-bbq-black text-bbq-cream font-sans pb-16 md:pb-0">
       {/* HERO */}
       <section className="relative overflow-hidden border-b-4 border-bbq-yellow">
         <img
@@ -847,8 +847,14 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
 
       {/* CTA fixo no telemóvel */}
       {!done && !hideSticky && (
-        <div className="md:hidden fixed left-0 right-0 bottom-0 z-40 px-4 pt-3 bg-bbq-black border-t-4 border-bbq-yellow" style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))' }}>
-          <Btn className="w-full" onClick={() => goForm('sticky')}>{c.cta}</Btn>
+        <div className="md:hidden fixed left-0 right-0 bottom-0 z-40 px-3 pt-2 bg-bbq-black" style={{ paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))' }}>
+          <button
+            type="button"
+            onClick={() => goForm('sticky')}
+            className="w-full bg-bbq-yellow text-bbq-black hover:bg-bbq-cream border-2 border-bbq-black shadow-hard-sm active:shadow-none font-black uppercase tracking-wider text-sm min-h-[44px] px-4 py-2 transition-colors"
+          >
+            {c.cta}
+          </button>
         </div>
       )}
     </div>
