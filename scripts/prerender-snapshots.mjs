@@ -68,6 +68,7 @@ const ROUTES = [
   { path: "/espaco-para-eventos-pequenos", file: "espaco-para-eventos-pequenos.html", waitForSelector: "footer" },
   { path: "/privacy", file: "privacy.html", waitForSelector: "footer" },
   { path: "/terms", file: "terms.html", waitForSelector: "footer" },
+  { path: "/workshop", file: "workshop.html", waitForSelector: "#reserva" },
   // /corporate é gerado aqui também para deixar de haver dois scripts a fazer
   // a mesma coisa — substitui o antigo scripts/prerender-corporate.mjs.
   { path: "/corporate", file: "corporate.html", waitForSelector: "#proposta" },
