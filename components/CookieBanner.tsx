@@ -6,8 +6,8 @@ import { getConsent, saveConsent, OPEN_SETTINGS_EVENT, LANG_EVENT } from '../ser
 // para os snapshots de scripts/prerender-snapshots.mjs, que copiam só o
 // conteúdo de #root, não o apanharem.
 //
-// "Aceitar" e "Rejeitar" têm o mesmo peso visual, como a CNPD pede: recusar tem
-// de ser tão fácil como aceitar.
+// "Aceitar tudo" vai a amarelo; "Rejeitar" e "Escolher"/"Guardar" a preto, com
+// o mesmo tamanho e contorno visível para recusar continuar a ser fácil.
 
 type Lang = 'pt' | 'en';
 
@@ -124,18 +124,18 @@ export const CookieBanner: React.FC = () => {
 
         <div className="flex flex-wrap gap-3">
           {details ? (
-            <button type="button" onClick={() => decide(analytics, marketing)} className="min-h-[48px] px-5 bg-bbq-yellow text-bbq-black border-2 border-bbq-yellow font-black uppercase text-sm tracking-wider">
+            <button type="button" onClick={() => decide(analytics, marketing)} className="min-h-[48px] px-5 bg-bbq-black text-bbq-cream border-2 border-bbq-cream font-black uppercase text-sm tracking-wider">
               {c.save}
             </button>
           ) : (
-            <button type="button" onClick={() => setDetails(true)} className="min-h-[48px] px-5 bg-transparent text-bbq-cream border-2 border-bbq-cream/50 font-black uppercase text-sm tracking-wider underline-offset-4">
+            <button type="button" onClick={() => setDetails(true)} className="min-h-[48px] px-5 bg-bbq-black text-bbq-cream border-2 border-bbq-cream font-black uppercase text-sm tracking-wider">
               {c.choose}
             </button>
           )}
-          <button type="button" onClick={() => decide(false, false)} className="min-h-[48px] px-5 bg-bbq-cream text-bbq-black border-2 border-bbq-cream font-black uppercase text-sm tracking-wider">
+          <button type="button" onClick={() => decide(false, false)} className="min-h-[48px] px-5 bg-bbq-black text-bbq-cream border-2 border-bbq-cream font-black uppercase text-sm tracking-wider">
             {c.reject}
           </button>
-          <button type="button" onClick={() => decide(true, true)} className="min-h-[48px] px-5 bg-bbq-cream text-bbq-black border-2 border-bbq-cream font-black uppercase text-sm tracking-wider">
+          <button type="button" onClick={() => decide(true, true)} className="min-h-[48px] px-5 bg-bbq-yellow text-bbq-black border-2 border-bbq-yellow font-black uppercase text-sm tracking-wider">
             {c.accept}
           </button>
         </div>
