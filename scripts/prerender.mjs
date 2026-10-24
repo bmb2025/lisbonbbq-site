@@ -135,7 +135,22 @@ for (const route of routes) {
     );
   }
 
-  let html = template.replace("</head>", `    ${blocks.join("\n    ")}\n</head>`);
+  // Imagem de partilha própria (Facebook/WhatsApp/LinkedIn): substitui a
+  // og:image genérica do index.html. Ficheiro em 1200x630 JPG.
+  let base = template;
+  if (route.image) {
+    base = base.replace(
+      /<meta property="og:image" content="[^"]*" \/>/,
+      [
+        `<meta property="og:image" content="${esc(SITE + route.image)}" />`,
+        `<meta property="og:image:width" content="1200" />`,
+        `<meta property="og:image:height" content="630" />`,
+        `<meta property="og:image:alt" content="${esc(route.imageAlt || route.title)}" />`,
+      ].join("\n    ")
+    );
+  }
+
+  let html = base.replace("</head>", `    ${blocks.join("\n    ")}\n</head>`);
   const bodySnapshot = readBodySnapshot(route.path);
   if (bodySnapshot) {
     html = html.replace('<div id="root"></div>', `<div id="root">${bodySnapshot}</div>`);
