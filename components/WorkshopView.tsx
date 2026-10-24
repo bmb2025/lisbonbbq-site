@@ -413,22 +413,6 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
   const shownPrice = invite ? prices.invite : prices.public;
   const price = c.money(shownPrice);
 
-  // O botão fixo no telemóvel esconde-se quando o formulário ou o rodapé estão
-  // à vista: não faz falta junto ao formulário e taparia os links do rodapé
-  // (privacidade, termos, cookies).
-  const [hideSticky, setHideSticky] = useState(false);
-  useEffect(() => {
-    const targets = [formRef.current, document.querySelector('footer')].filter(Boolean) as Element[];
-    if (!targets.length || typeof IntersectionObserver === 'undefined') return;
-    const visible = new Set<Element>();
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => (e.isIntersecting ? visible.add(e.target) : visible.delete(e.target)));
-      setHideSticky(visible.size > 0);
-    });
-    targets.forEach((t) => io.observe(t));
-    return () => io.disconnect();
-  }, []);
-
   const [openFaq, setOpenFaq] = useState(-1);
   const [form, setForm] = useState({ name: '', email: '', phone: '', slot: '', exp: '', motive: '', source: '', consent: false, website: '' });
   const [error, setError] = useState('');
@@ -845,18 +829,6 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
         </div>
       </section>
 
-      {/* CTA fixo no telemóvel */}
-      {!done && !hideSticky && (
-        <div className="md:hidden fixed left-0 right-0 bottom-0 z-40 px-3 pt-2 bg-bbq-black" style={{ paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))' }}>
-          <button
-            type="button"
-            onClick={() => goForm('sticky')}
-            className="w-full bg-bbq-yellow text-bbq-black hover:bg-bbq-cream border-2 border-bbq-black shadow-hard-sm active:shadow-none font-black uppercase tracking-wider text-sm min-h-[44px] px-4 py-2 transition-colors"
-          >
-            {c.cta}
-          </button>
-        </div>
-      )}
     </div>
   );
 };
