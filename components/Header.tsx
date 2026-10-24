@@ -4,7 +4,7 @@ import { Flame } from 'lucide-react';
 import { track } from '../services/analytics';
 
 interface HeaderProps {
-  setView: (view: 'booking' | 'proposal' | 'privacy' | 'terms' | 'blog' | 'cms' | 'faqs' | 'about' | 'corporate') => void;
+  setView: (view: 'booking' | 'proposal' | 'privacy' | 'terms' | 'blog' | 'cms' | 'faqs' | 'about' | 'corporate' | 'workshop') => void;
   lang: 'pt' | 'en';
   setLang: (lang: 'pt' | 'en') => void;
 }
@@ -23,6 +23,9 @@ export const Header: React.FC<HeaderProps> = ({ setView, lang, setLang }) => {
         <nav className="flex gap-4 md:gap-6 font-bold text-[10px] md:text-sm uppercase tracking-widest items-center">
           <button onClick={() => setView('corporate')} className="hover:text-bbq-yellow transition-colors hidden md:block">
             {lang === 'pt' ? 'Empresas' : 'Corporate'}
+          </button>
+          <button onClick={() => setView('workshop')} className="hover:text-bbq-yellow transition-colors hidden md:block">
+            Workshops
           </button>
           <div className="flex bg-bbq-black/20 p-1 border-2 border-bbq-black ml-4">
             <button

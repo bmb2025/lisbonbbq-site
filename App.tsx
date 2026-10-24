@@ -199,7 +199,7 @@ const App: React.FC = () => {
     getLisbonWeather().then(setWeatherData);
   }, [pathname]);
 
-  const setView = (view: 'booking' | 'proposal' | 'privacy' | 'terms' | 'blog' | 'cms' | 'faqs' | 'about' | 'corporate') => {
+  const setView = (view: 'booking' | 'proposal' | 'privacy' | 'terms' | 'blog' | 'cms' | 'faqs' | 'about' | 'corporate' | 'workshop') => {
     if (view === 'booking') setLeadSource('direct');
     switch (view) {
       case 'booking': navigate('/'); break;
@@ -211,6 +211,7 @@ const App: React.FC = () => {
       case 'faqs': navigate('/faqs'); break;
       case 'about': navigate('/quem-somos'); break;
       case 'corporate': navigate('/corporate'); break;
+      case 'workshop': navigate('/workshop'); break;
       default: navigate('/'); break;
     }
   };
