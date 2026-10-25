@@ -23,8 +23,16 @@ const ADS_CONVERSION_EVENTS = ['quote_request_submitted', 'corporate_form_submit
 // Meta Pixel: só existe se VITE_META_PIXEL_ID estiver definido na Vercel e só
 // carrega com consentimento de marketing.
 const META_PIXEL_ID = (import.meta.env.VITE_META_PIXEL_ID as string) || '';
-// Eventos que contam como "Lead" para os anúncios da Meta.
-const META_LEAD_EVENTS = ['quote_request_submitted', 'corporate_form_submitted', 'workshop_waitlist_submitted'];
+// Eventos do site que seguem para a Meta, e com que evento padrão.
+// Pedidos de orçamento (homepage e corporate) são "Lead"; distinguem-se pelo
+// content_name em conversões personalizadas no Gestor de Eventos.
+// A waiting list do workshop vai como "CompleteRegistration" para não se misturar
+// com os pedidos de orçamento quando uma campanha otimiza para Lead.
+const META_EVENTS: Record<string, string> = {
+  quote_request_submitted: 'Lead',
+  corporate_form_submitted: 'Lead',
+  workshop_waitlist_submitted: 'CompleteRegistration',
+};
 
 let prod = false;      // domínio de produção: só aqui se mede alguma coisa
 let enabled = false;   // PostHog ativo (consentimento de estatística)
@@ -90,8 +98,9 @@ export function track(event: string, properties?: Record<string, any>) {
   if (!prod) return;
   if (enabled) posthog.capture(event, properties);
 
-  if (pixelLoaded && META_LEAD_EVENTS.includes(event)) {
-    (window as any).fbq?.('track', 'Lead', { content_name: event });
+  const metaEvent = META_EVENTS[event];
+  if (pixelLoaded && metaEvent) {
+    (window as any).fbq?.('track', metaEvent, { content_name: event });
   }
 
   // Mirror conversion events to GA4 (gtag already on the page) so they can be
