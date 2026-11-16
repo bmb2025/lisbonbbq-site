@@ -1,6 +1,6 @@
 import React from 'react';
 import { Users, Check, Flame, MapPin, ArrowRight } from 'lucide-react';
-import { LOCATIONS } from '../constants';
+import { VISIBLE_LOCATIONS } from '../constants';
 
 interface SmallEventsViewProps {
   lang: 'pt' | 'en';
@@ -15,7 +15,7 @@ export const SmallEventsView: React.FC<SmallEventsViewProps> = ({ lang, onBook, 
   const pt = lang === 'pt';
 
   // Small venues = capacity ceiling up to ~100 guests.
-  const smallVenues = LOCATIONS.filter(l => l.maxGuests <= 100);
+  const smallVenues = VISIBLE_LOCATIONS.filter(l => l.maxGuests <= 100);
 
   const faqs = [
     {

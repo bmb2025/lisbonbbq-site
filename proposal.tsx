@@ -2,7 +2,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Flame, MapPin, Printer, UtensilsCrossed, Users, Calendar, Phone, CheckCircle2 } from 'lucide-react';
-import { LOCATIONS } from './constants';
+import { VISIBLE_LOCATIONS } from './constants';
 
 const ProposalView: React.FC = () => {
   const commonAcompanhamentos = "Batata frita, Arroz branco, Salada de alface e cebola, Pão Alentejano.";
@@ -128,7 +128,7 @@ const ProposalView: React.FC = () => {
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 print:gap-4">
-            {LOCATIONS.map((loc) => (
+            {VISIBLE_LOCATIONS.map((loc) => (
               <div key={loc.id} className="border-4 border-bbq-black bg-white group shadow-hard-sm hover:shadow-hard transition-all print:shadow-none print:border-2">
                 <div className="grid grid-cols-3 h-40 border-b-4 border-bbq-black bg-gray-200 print:h-24">
                   {loc.images.map((img, i) => (

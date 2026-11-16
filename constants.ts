@@ -174,6 +174,7 @@ export const LOCATIONS: VenueLocation[] = [
     ],
     minGuests: 30,
     maxGuests: 500,
+    hidden: true, // escondido a pedido do Bruno (2026-11-16)
     // Special rule: Mon–Wed requires 80+ guests
     specialRules: [
       { days: [1, 2, 3], minGuests: 80 }
@@ -237,15 +238,35 @@ export const LOCATIONS: VenueLocation[] = [
     minGuests: 80,
     maxGuests: 300,
     availableDays: [0, 1, 2, 3, 4, 6] // every day except Friday
+  },
+  {
+    id: 'telheiras',
+    name: 'Telheiras',
+    description: 'Quinta com jardim arborizado, luzes de cordão e um pátio de azulejos. De jantares de equipa a grandes festas de empresa, em Lisboa.',
+    images: [
+      '/images/telheiras/telheiras1.webp',
+      '/images/telheiras/telheiras2.webp',
+      '/images/telheiras/telheiras3.webp',
+      '/images/telheiras/telheiras4.webp',
+      '/images/telheiras/telheiras5.webp',
+      '/images/telheiras/telheiras6.webp',
+      '/images/telheiras/telheiras7.webp'
+    ],
+    minGuests: 40,
+    maxGuests: 400
   }
 ];
 
+// Venues shown to visitors (simulador, formulários, landings). LOCATIONS keeps
+// hidden ones so old leads/events still resolve their venue name.
+export const VISIBLE_LOCATIONS: VenueLocation[] = LOCATIONS.filter(l => !l.hidden);
+
 // Filter venues by number of guests and date
 export function getAvailableVenues(guests: number, date: Date | null): VenueLocation[] {
-  if (!date) return LOCATIONS;
+  if (!date) return VISIBLE_LOCATIONS;
   const dow = date.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
 
-  return LOCATIONS.filter(loc => {
+  return VISIBLE_LOCATIONS.filter(loc => {
     // Capacity check
     if (guests < loc.minGuests || guests > loc.maxGuests) return false;
 
@@ -292,9 +313,9 @@ export function getFixedSides(tradition: BBQTradition | null): string[] {
 
 // Returns all venues available on a given day (ignores guest count — use for display with disabled state)
 export function getVenuesByDay(date: Date | null): VenueLocation[] {
-  if (!date) return LOCATIONS;
+  if (!date) return VISIBLE_LOCATIONS;
   const dow = date.getDay();
-  return LOCATIONS.filter(loc => {
+  return VISIBLE_LOCATIONS.filter(loc => {
     if (loc.availableDays && !loc.availableDays.includes(dow)) return false;
     return true;
   });

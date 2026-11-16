@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Flame, Check, MessageCircle, Images, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { LOCATIONS, OWN_LOCATION_ID, OWN_LOCATION_NAME } from '../constants';
+import { LOCATIONS, VISIBLE_LOCATIONS, OWN_LOCATION_ID, OWN_LOCATION_NAME } from '../constants';
 import { responsiveImage } from '../services/responsiveImage';
 import { RecentEvents } from './RecentEvents';
 
@@ -250,14 +250,14 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
       capacity: pt ? '50+ pessoas' : '50+ people'
     },
     {
-      images: venueImages('expo_rooftop'),
+      images: venueImages('telheiras'),
       cover: 0,
-      tag: pt ? 'Parque das Nações' : 'Parque das Nações',
-      name: 'Expo',
+      tag: pt ? 'Lisboa · Telheiras' : 'Lisbon · Telheiras',
+      name: 'Telheiras',
       text: pt
-        ? 'Prático para equipas na zona oriental. Chega-se a pé do escritório, sai-se com cheiro a fumo e boa disposição.'
-        : 'Convenient for teams on the east side. Walk over from the office, leave smelling of smoke and in high spirits.',
-      capacity: pt ? '30–500 pessoas' : '30–500 people'
+        ? 'Quinta com jardim à sombra das árvores, luzes de cordão e pátio de azulejos. Da mesa corrida para a equipa à festa de Natal em grande.'
+        : 'An estate with a tree-shaded garden, string lights and a tiled patio. From a long team table to a full-scale Christmas party.',
+      capacity: pt ? '40–400 pessoas' : '40–400 people'
     }
   ];
 
@@ -657,7 +657,7 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
                       <label className={labelClass}>{pt ? 'Local preferido' : 'Preferred venue'}
                         <select name="locationId" value={formData.locationId} onChange={handleFormChange} className={inputClass}>
                           <option value="">{pt ? 'Aceito recomendações' : 'Open to recommendations'}</option>
-                          {LOCATIONS.map(loc => <option key={loc.id} value={loc.id}>{loc.name}</option>)}
+                          {VISIBLE_LOCATIONS.map(loc => <option key={loc.id} value={loc.id}>{loc.name}</option>)}
                           <option value={OWN_LOCATION_ID}>{pt ? 'No local da empresa' : "At the company's own venue"}</option>
                         </select>
                       </label>
