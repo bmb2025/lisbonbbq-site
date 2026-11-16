@@ -32,6 +32,8 @@ const META_EVENTS: Record<string, string> = {
   quote_request_submitted: 'Lead',
   corporate_form_submitted: 'Lead',
   workshop_waitlist_submitted: 'CompleteRegistration',
+  workshop_checkout_started: 'InitiateCheckout',
+  workshop_purchase: 'Purchase',
 };
 
 let prod = false;      // domínio de produção: só aqui se mede alguma coisa
@@ -100,7 +102,8 @@ export function track(event: string, properties?: Record<string, any>) {
 
   const metaEvent = META_EVENTS[event];
   if (pixelLoaded && metaEvent) {
-    (window as any).fbq?.('track', metaEvent, { content_name: event });
+    const extra = typeof properties?.value === 'number' ? { value: properties.value, currency: properties.currency || 'EUR' } : {};
+    (window as any).fbq?.('track', metaEvent, { content_name: event, ...extra });
   }
 
   // Mirror conversion events to GA4 (gtag already on the page) so they can be

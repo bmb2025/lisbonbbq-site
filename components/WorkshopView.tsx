@@ -178,6 +178,34 @@ const COPY = {
     fSlot: 'horário',
     fExp: 'experiência a grelhar',
     fMotive: 'o que te traz',
+    ctaBook: 'Reservar lugar',
+    ctaBookNote: 'Pagamento seguro com cartão, MB Way ou Apple Pay.',
+    whenOpen: (d: string) => `${d}. Mais datas em breve.`,
+    bookEyebrow: 'Datas e reserva',
+    bookH2: 'Escolhe a data',
+    bookP: 'Reservas o lugar aqui e pagas no momento. Recebes a confirmação por email e a morada exata uns dias antes.',
+    spotsLeft: (n: number) => (n === 1 ? 'Último lugar' : `${n} lugares livres`),
+    qDate: 'Data',
+    qQty: 'Quantos lugares?',
+    perPerson: 'por pessoa',
+    total: 'Total',
+    inviteApplied: 'Preço de convite aplicado.',
+    bookConsentBefore: 'Aceito que a Lisbon BBQ use estes dados para gerir a minha reserva, de acordo com o RGPD e a ',
+    bookConsentAfter: '.',
+    pay: (v: string) => `Pagar ${v}`,
+    paying: 'A abrir o pagamento…',
+    payNote: 'O pagamento é feito na página segura da Stripe. Se não puderes vir, o lugar é transferível para outra pessoa ou outra data.',
+    errBookConsent: 'Para reservar, precisamos que aceites a caixa acima.',
+    errSoldOut: 'Já não há lugares suficientes nesta data. Escolhe menos lugares ou entra na lista de espera.',
+    errPay: 'Não conseguimos abrir o pagamento. Tenta outra vez daqui a pouco ou escreve-nos para pitmasters@lisbonbbq.pt.',
+    fDate: 'data',
+    paidTitle: (n: string) => `Lugar reservado, ${n}!`,
+    paidBody: (q: number, d: string) => `${q === 1 ? '1 lugar' : `${q} lugares`} para ${d}. Enviámos a confirmação para o teu email.`,
+    pendingBody: 'Estamos a confirmar o pagamento. Recebes um email assim que estiver confirmado.',
+    cancelledNote: 'O pagamento não foi concluído e não te cobrámos nada. O lugar continua disponível enquanto houver vagas.',
+    waitlistH2Alt: 'Não dá esta data?',
+    waitlistPAlt: 'Entra na lista e avisamos-te primeiro quando abrirmos novas datas, com 48 horas de prioridade. Não pagas nada agora.',
+    calBook: 'Reservar',
   },
   en: {
     heroBadge: 'BBQ workshop · Lisbon',
@@ -312,7 +340,58 @@ const COPY = {
     fSlot: 'day',
     fExp: 'grilling experience',
     fMotive: 'what brings you',
+    ctaBook: 'Book your spot',
+    ctaBookNote: 'Secure payment by card, MB Way or Apple Pay.',
+    whenOpen: (d: string) => `${d}. More dates coming soon.`,
+    bookEyebrow: 'Dates and booking',
+    bookH2: 'Pick a date',
+    bookP: "Book your spot here and pay right away. You'll get the confirmation by email and the exact address a few days before.",
+    spotsLeft: (n: number) => (n === 1 ? 'Last spot' : `${n} spots left`),
+    qDate: 'Date',
+    qQty: 'How many spots?',
+    perPerson: 'per person',
+    total: 'Total',
+    inviteApplied: 'Invite price applied.',
+    bookConsentBefore: 'I agree that Lisbon BBQ may use this data to manage my booking, in accordance with the GDPR and the ',
+    bookConsentAfter: '.',
+    pay: (v: string) => `Pay ${v}`,
+    paying: 'Opening payment…',
+    payNote: "Payment happens on Stripe's secure page. If you can't make it, your spot can be transferred to someone else or another date.",
+    errBookConsent: 'To book, please tick the box above.',
+    errSoldOut: "There aren't enough spots left on this date. Pick fewer spots or join the waiting list.",
+    errPay: "We couldn't open the payment. Try again in a moment or write to us at pitmasters@lisbonbbq.pt.",
+    fDate: 'date',
+    paidTitle: (n: string) => `Spot booked, ${n}!`,
+    paidBody: (q: number, d: string) => `${q === 1 ? '1 spot' : `${q} spots`} for ${d}. We've sent the confirmation to your email.`,
+    pendingBody: "We're confirming your payment. You'll get an email as soon as it's confirmed.",
+    cancelledNote: "The payment wasn't completed and you haven't been charged. The spot is still available while there are places left.",
+    waitlistH2Alt: "Can't make this date?",
+    waitlistPAlt: "Join the list and we'll tell you first when we open new dates, with 48 hours' priority. You don't pay anything now.",
+    calBook: 'Book',
   },
+};
+
+type Edition = {
+  id: string; date: string; startTime: string; endTime: string; titlePt: string; titleEn: string;
+  location: string; price: number; invitePrice: number | null; capacity: number; left: number; status: string;
+};
+
+const MONTHS = {
+  pt: ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'],
+  en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+};
+const WEEKDAYS = {
+  pt: ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'],
+  en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+};
+const hour = (t: string) => { const [h, m] = t.split(':'); return m && m !== '00' ? `${Number(h)}h${m}` : `${Number(h)}h`; };
+// "29 novembro" / "29 November"
+const edDay = (e: Edition, lang: Lang) => { const [, m, d] = e.date.split('-').map(Number); return `${d} ${MONTHS[lang][m - 1]}`; };
+// "domingo, 29 novembro, 12h–15h"
+const edWhen = (e: Edition, lang: Lang) => {
+  const [y, m, d] = e.date.split('-').map(Number);
+  const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  return `${WEEKDAYS[lang][dow]}, ${edDay(e, lang)}, ${hour(e.startTime)}–${hour(e.endTime)}`;
 };
 
 const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'fbclid', 'gclid'];
@@ -377,9 +456,11 @@ const shareBtn = 'inline-flex items-center justify-center min-h-[48px] px-4 bg-b
 const inputCls = 'w-full box-border bg-white text-bbq-black border-4 border-bbq-black px-5 py-4 text-xl font-black outline-none focus:shadow-[0_0_0_4px_#F4B41A]';
 
 export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
+  const L: Lang = lang === 'en' ? 'en' : 'pt';
   const c = COPY[lang];
   const opts = (list: typeof SLOTS) => list.map((o) => ({ value: o.value, label: o[lang] }));
   const formRef = useRef<HTMLElement>(null);
+  const bookRef = useRef<HTMLElement>(null);
 
   const params = useMemo(() => new URLSearchParams(typeof window !== 'undefined' ? window.location.search : ''), []);
   const variant = useMemo(() => {
@@ -409,7 +490,24 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
     return () => { cancelled = true; };
   }, [inviteCode]);
 
-  const prices = invite ? { public: invite.publicPrice, invite: invite.invitePrice } : WORKSHOP_PRICES[variant];
+  // Datas à venda (workshop_editions). Com datas abertas, o preço mostrado é o
+  // da data (o mesmo que a API cobra) e os botões levam à reserva.
+  const [editions, setEditions] = useState<Edition[] | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/workshop-waitlist?task=editions')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (!cancelled) setEditions(Array.isArray(d?.editions) ? d.editions : []); })
+      .catch(() => { if (!cancelled) setEditions([]); });
+    return () => { cancelled = true; };
+  }, []);
+  const openEditions = (editions || []).filter((e) => e.status === 'available' && e.left > 0);
+  const nextEdition = openEditions[0] || null;
+
+  const edPrices = nextEdition ? { public: nextEdition.price, invite: nextEdition.invitePrice ?? nextEdition.price } : null;
+  const prices = edPrices
+    ? (invite ? { public: edPrices.public, invite: edPrices.invite } : edPrices)
+    : invite ? { public: invite.publicPrice, invite: invite.invitePrice } : WORKSHOP_PRICES[variant];
   const shownPrice = invite ? prices.invite : prices.public;
   const price = c.money(shownPrice);
 
@@ -418,7 +516,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
   // (privacidade, termos, cookies).
   const [hideSticky, setHideSticky] = useState(false);
   useEffect(() => {
-    const targets = [formRef.current, document.querySelector('footer')].filter(Boolean) as Element[];
+    const targets = [formRef.current, bookRef.current, document.querySelector('footer')].filter(Boolean) as Element[];
     if (!targets.length || typeof IntersectionObserver === 'undefined') return;
     const visible = new Set<Element>();
     const io = new IntersectionObserver((entries) => {
@@ -427,7 +525,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
     });
     targets.forEach((t) => io.observe(t));
     return () => io.disconnect();
-  }, []);
+  }, [nextEdition]);
 
   const [openFaq, setOpenFaq] = useState(-1);
   const [form, setForm] = useState({ name: '', email: '', phone: '', slot: '', exp: '', motive: '', source: '', consent: false, website: '' });
@@ -440,9 +538,79 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
   const set = (k: keyof typeof form) => (v: any) => { setForm((f) => ({ ...f, [k]: v })); setError(''); };
 
   const goForm = (where: string) => {
-    track('workshop_cta_click', { where, variant, lang });
-    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    track('workshop_cta_click', { where, variant, lang, target: nextEdition ? 'booking' : 'waitlist' });
+    (nextEdition ? bookRef : formRef).current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
+  const ctaLabel = nextEdition ? c.ctaBook : c.cta;
+
+  // ── Reserva com pagamento ──
+  const [book, setBook] = useState({ editionId: '', qty: 1, name: '', email: '', phone: '', consent: false, website: '' });
+  const [bookError, setBookError] = useState('');
+  const [paying, setPaying] = useState(false);
+  useEffect(() => {
+    if (!book.editionId && nextEdition) setBook((b) => ({ ...b, editionId: nextEdition.id }));
+  }, [nextEdition, book.editionId]);
+  const setB = (k: keyof typeof book) => (v: any) => { setBook((b) => ({ ...b, [k]: v })); setBookError(''); };
+  const chosen = openEditions.find((e) => e.id === book.editionId) || null;
+  const unitPrice = chosen ? (invite && chosen.invitePrice ? chosen.invitePrice : chosen.price) : 0;
+  const maxQty = chosen ? Math.min(6, chosen.left) : 1;
+
+  const pay = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const missing: string[] = [];
+    if (!chosen) missing.push(c.fDate);
+    if (!book.name.trim()) missing.push(c.fName);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(book.email.trim())) missing.push(c.fEmail);
+    if (book.phone.replace(/\D/g, '').length < 9) missing.push(c.fPhone);
+    if (missing.length) { setBookError(c.errMissing(missing.join(', '))); return; }
+    if (!book.consent) { setBookError(c.errBookConsent); return; }
+    setPaying(true);
+    try {
+      const r = await fetch('/api/workshop-waitlist?task=checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          editionId: book.editionId, quantity: book.qty, name: book.name, email: book.email, phone: book.phone,
+          consent: book.consent, website: book.website, lang, inviteCode: invite ? inviteCode : undefined, utm,
+        }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.status === 409) { setBookError(c.errSoldOut); setPaying(false); return; }
+      if (!r.ok || !d?.url) throw new Error(d?.error || 'failed');
+      identifyLead({ email: book.email.trim(), name: book.name.trim(), phone: book.phone.trim() });
+      track('workshop_checkout_started', { edition: book.editionId, quantity: book.qty, value: unitPrice * book.qty, invited: !!invite, lang });
+      window.location.href = d.url;
+    } catch {
+      setBookError(c.errPay);
+      setPaying(false);
+    }
+  };
+
+  // Regresso da Stripe: ?reserva=ok&session_id=… ou ?reserva=cancelada
+  const returnState = params.get('reserva');
+  const [paid, setPaid] = useState<{ status: string; firstName: string; quantity: number; amount: number; edition: Edition | null } | null>(null);
+  useEffect(() => {
+    const sid = params.get('session_id');
+    if (returnState !== 'ok' || !sid) return;
+    let cancelled = false;
+    fetch(`/api/workshop-waitlist?task=booking&session_id=${encodeURIComponent(sid)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (cancelled || !d) return;
+        setPaid(d);
+        if (d.status === 'paid') {
+          const key = `workshop_paid_${sid}`;
+          let seen = false;
+          try { seen = !!sessionStorage.getItem(key); sessionStorage.setItem(key, '1'); } catch { /* sem storage */ }
+          if (!seen) track('workshop_purchase', { edition: d.edition?.id, quantity: d.quantity, value: d.amount, currency: 'EUR', lang });
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [params, returnState, lang]);
+  useEffect(() => {
+    if (returnState) setTimeout(() => bookRef.current?.scrollIntoView({ block: 'start' }), 300);
+  }, [returnState]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -559,8 +727,8 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
               </div>
             )}
             <div className="flex flex-wrap items-center gap-4">
-              <Btn onClick={() => goForm('hero')}>{c.cta}</Btn>
-              <span className="text-sm font-bold text-gray-400">{c.ctaNote}</span>
+              <Btn onClick={() => goForm('hero')}>{ctaLabel}</Btn>
+              <span className="text-sm font-bold text-gray-400">{nextEdition ? c.ctaBookNote : c.ctaNote}</span>
             </div>
           </div>
         </div>
@@ -666,7 +834,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
             ))}
           </ul>
           <div className="flex flex-col gap-2 text-[0.9375rem] leading-normal">
-            <p className="m-0"><strong className="font-black uppercase tracking-wide">{c.when[0]}</strong> {c.when[1]}</p>
+            <p className="m-0"><strong className="font-black uppercase tracking-wide">{c.when[0]}</strong> {nextEdition ? c.whenOpen(edWhen(nextEdition, L)) : c.when[1]}</p>
             <p className="m-0"><strong className="font-black uppercase tracking-wide">{c.where[0]}</strong> {c.where[1]}</p>
             <p className="m-0"><strong className="font-black uppercase tracking-wide">{c.spots[0]}</strong> {c.spots[1]}</p>
           </div>
@@ -679,7 +847,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
           </div>
           <span className="self-start bg-bbq-black text-bbq-yellow px-3 py-1.5 font-black text-sm tracking-[0.1em] uppercase">{c.vat}</span>
           <p className="m-0 font-bold leading-snug">{c.priceNote}</p>
-          <Btn variant="dark" onClick={() => goForm('price')}>{c.cta}</Btn>
+          <Btn variant="dark" onClick={() => goForm('price')}>{ctaLabel}</Btn>
         </div>
       </section>
 
@@ -742,9 +910,9 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
           <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(14rem, 100%), 1fr))' }}>
             <div className="bg-bbq-red text-white border-4 border-bbq-black shadow-hard p-5 flex flex-col gap-3">
               <span className="font-black text-xs tracking-[0.1em] uppercase">{c.calNext}</span>
-              <span className="text-2xl leading-tight font-black uppercase tracking-tight">{c.calMonths}</span>
-              <span className="font-bold text-[0.9375rem] leading-snug">{c.calNextNote}</span>
-              <button type="button" onClick={() => goForm('calendar')} className="mt-auto self-start bg-bbq-yellow text-bbq-black border-2 border-bbq-black shadow-hard-sm px-4 py-2 min-h-[44px] font-black text-xs tracking-[0.1em] uppercase">{c.cta}</button>
+              <span className="text-2xl leading-tight font-black uppercase tracking-tight">{nextEdition ? edDay(nextEdition, L) : c.calMonths}</span>
+              <span className="font-bold text-[0.9375rem] leading-snug">{nextEdition ? `${lang === 'en' ? nextEdition.titleEn : nextEdition.titlePt} · ${hour(nextEdition.startTime)}–${hour(nextEdition.endTime)} · ${c.spotsLeft(nextEdition.left)}` : c.calNextNote}</span>
+              <button type="button" onClick={() => goForm('calendar')} className="mt-auto self-start bg-bbq-yellow text-bbq-black border-2 border-bbq-black shadow-hard-sm px-4 py-2 min-h-[44px] font-black text-xs tracking-[0.1em] uppercase">{nextEdition ? c.calBook : c.cta}</button>
             </div>
             {c.recent.map((r) => (
               <div key={r.d} className="bg-white border-4 border-bbq-black p-5 flex flex-col gap-3">
@@ -760,13 +928,110 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
         </div>
       </section>
 
+      {/* DATAS E RESERVA (pagamento Stripe) */}
+      {(nextEdition || paid || returnState) && (
+        <section id="datas" ref={bookRef} className="bg-bbq-red text-white border-t-4 border-bbq-black scroll-mt-24">
+          <div className="max-w-2xl mx-auto px-5 py-20 flex flex-col gap-8">
+            <div className="flex flex-col gap-4">
+              <Eyebrow color="text-bbq-yellow">{c.bookEyebrow}</Eyebrow>
+              <H2>{c.bookH2}</H2>
+              <p className="m-0 text-[1.0625rem] leading-normal font-medium">{c.bookP}</p>
+            </div>
+
+            {paid && (
+              <div role="status" className="bg-bbq-yellow text-bbq-black border-4 border-bbq-black shadow-hard p-8 flex flex-col gap-3">
+                {paid.status === 'paid' ? (
+                  <>
+                    <span className="text-3xl font-black uppercase tracking-tight">{c.paidTitle(paid.firstName)}</span>
+                    <p className="m-0 text-lg leading-normal font-bold">{c.paidBody(paid.quantity, paid.edition ? edWhen(paid.edition, L) : '')}</p>
+                  </>
+                ) : (
+                  <p className="m-0 text-lg leading-normal font-bold">{c.pendingBody}</p>
+                )}
+              </div>
+            )}
+            {returnState === 'cancelada' && (
+              <p role="status" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{c.cancelledNote}</p>
+            )}
+
+            {nextEdition && (
+              <form onSubmit={pay} noValidate className="flex flex-col gap-6">
+                <div aria-hidden="true" className="absolute -left-[9999px] w-px h-px overflow-hidden">
+                  <label>Website<input tabIndex={-1} autoComplete="off" value={book.website} onChange={(e) => setB('website')(e.target.value)} /></label>
+                </div>
+                <fieldset className="flex flex-col gap-3 border-0 p-0 m-0">
+                  <legend className="font-black text-sm tracking-[0.1em] uppercase mb-2">{c.qDate}</legend>
+                  {openEditions.map((ed) => {
+                    const on = book.editionId === ed.id;
+                    const p = invite && ed.invitePrice ? ed.invitePrice : ed.price;
+                    return (
+                      <button
+                        key={ed.id}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => { setB('editionId')(ed.id); setB('qty')(Math.min(book.qty, Math.min(6, ed.left))); }}
+                        className={`text-left border-4 p-5 flex flex-wrap justify-between gap-3 transition-colors ${on ? 'bg-bbq-yellow text-bbq-black border-bbq-black shadow-hard' : 'bg-transparent text-white border-white hover:border-bbq-yellow'}`}
+                      >
+                        <span className="flex flex-col gap-1">
+                          <span className="text-2xl leading-none font-black uppercase tracking-tight">{edWhen(ed, L)}</span>
+                          <span className="font-bold">{lang === 'en' ? ed.titleEn : ed.titlePt} · {ed.location}</span>
+                        </span>
+                        <span className="flex flex-col sm:items-end gap-1">
+                          <span className="text-2xl leading-none font-black">{c.money(p)}</span>
+                          <span className="font-black text-xs tracking-[0.08em] uppercase">{c.spotsLeft(ed.left)}</span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </fieldset>
+
+                <fieldset className="flex flex-col gap-2 border-0 p-0 m-0">
+                  <legend className="font-black text-sm tracking-[0.1em] uppercase mb-2">{c.qQty}</legend>
+                  <div className="flex items-center gap-3">
+                    <button type="button" aria-label="-" onClick={() => setB('qty')(Math.max(1, book.qty - 1))} disabled={book.qty <= 1} className="w-14 h-14 border-4 border-white font-black text-2xl disabled:opacity-40">−</button>
+                    <span aria-live="polite" className="min-w-[3rem] text-center text-4xl font-black">{book.qty}</span>
+                    <button type="button" aria-label="+" onClick={() => setB('qty')(Math.min(maxQty, book.qty + 1))} disabled={book.qty >= maxQty} className="w-14 h-14 border-4 border-white font-black text-2xl disabled:opacity-40">+</button>
+                    <span className="font-bold">× {c.money(unitPrice)} {c.perPerson}</span>
+                  </div>
+                  {invite && chosen?.invitePrice && <span className="font-bold text-bbq-yellow">{c.inviteApplied}</span>}
+                </fieldset>
+
+                <label className="flex flex-col gap-2">
+                  <span className="font-black text-sm tracking-[0.1em] uppercase">{c.lName}</span>
+                  <input className={inputCls} type="text" autoComplete="name" placeholder={c.phName} value={book.name} onChange={(e) => setB('name')(e.target.value)} />
+                </label>
+                <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(15rem, 100%), 1fr))' }}>
+                  <label className="flex flex-col gap-2">
+                    <span className="font-black text-sm tracking-[0.1em] uppercase">{c.lEmail}</span>
+                    <input className={inputCls} type="email" autoComplete="email" inputMode="email" placeholder="nome@email.pt" value={book.email} onChange={(e) => setB('email')(e.target.value)} />
+                  </label>
+                  <label className="flex flex-col gap-2">
+                    <span className="font-black text-sm tracking-[0.1em] uppercase">{c.lPhone}</span>
+                    <input className={inputCls} type="tel" autoComplete="tel" inputMode="tel" placeholder="912 345 678" value={book.phone} onChange={(e) => setB('phone')(e.target.value)} />
+                  </label>
+                </div>
+                <label className="flex gap-3 items-start cursor-pointer leading-normal text-[0.9375rem]">
+                  <input type="checkbox" checked={book.consent} onChange={(e) => setB('consent')(e.target.checked)} className="w-6 h-6 m-0 flex-none accent-[#f4b41a]" />
+                  <span>{c.bookConsentBefore}<a href="/privacy" className="text-bbq-yellow underline">{c.consentLink}</a>{c.bookConsentAfter}</span>
+                </label>
+                {bookError && <p role="alert" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{bookError}</p>}
+                <div className="flex flex-wrap items-center gap-4">
+                  <Btn type="submit" disabled={paying}>{paying ? c.paying : c.pay(c.money(unitPrice * book.qty))}</Btn>
+                </div>
+                <p className="m-0 text-sm leading-normal text-white/80">{c.payNote}</p>
+              </form>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* WAITING LIST */}
       <section id="reserva" ref={formRef} className="border-t-4 border-bbq-black scroll-mt-24">
         <div className="max-w-2xl mx-auto px-5 py-20 flex flex-col gap-8">
           <div className="flex flex-col gap-4">
             <Eyebrow>{c.formEyebrow}</Eyebrow>
-            <H2>{c.formH2}</H2>
-            <p className="m-0 text-[1.0625rem] leading-normal">{c.formP}</p>
+            <H2>{nextEdition ? c.waitlistH2Alt : c.formH2}</H2>
+            <p className="m-0 text-[1.0625rem] leading-normal">{nextEdition ? c.waitlistPAlt : c.formP}</p>
           </div>
 
           {done ? (
@@ -853,7 +1118,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
             onClick={() => goForm('sticky')}
             className="w-full bg-bbq-yellow text-bbq-black hover:bg-bbq-cream border-2 border-bbq-black shadow-hard-sm active:shadow-none font-black uppercase tracking-wider text-sm min-h-[44px] px-4 py-2 transition-colors"
           >
-            {c.cta}
+            {ctaLabel}
           </button>
         </div>
       )}
