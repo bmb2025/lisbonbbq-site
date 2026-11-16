@@ -80,6 +80,7 @@ export interface VenueLocation {
   maxGuests: number;
   availableDays?: number[]; // undefined = all days; [0,6] = weekends; [1] = Monday only
   specialRules?: SpecialDayRule[]; // extra min-guests constraints per day group
+  hidden?: boolean; // fora do simulador e das listas públicas; mantém-se para nomes de leads/eventos antigos
 }
 
 export interface Article {
