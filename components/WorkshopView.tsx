@@ -192,6 +192,7 @@ const COPY = {
     bookConsentBefore: 'Aceito que a Lisbon BBQ use estes dados para gerir a minha reserva, de acordo com o RGPD e a ',
     bookConsentAfter: '.',
     pay: (v: string) => `Pagar ${v}`,
+    bookCta: 'Reservar vaga',
     paying: 'A abrir o pagamento…',
     payNote: 'O pagamento é feito na página segura da Stripe. Se não puderes vir, o lugar é transferível para outra pessoa ou outra data.',
     errBookConsent: 'Para reservar, precisamos que aceites a caixa acima.',
@@ -386,6 +387,7 @@ const COPY = {
     bookConsentBefore: 'I agree that Lisbon BBQ may use this data to manage my booking, in accordance with the GDPR and the ',
     bookConsentAfter: '.',
     pay: (v: string) => `Pay ${v}`,
+    bookCta: 'Book your spot',
     paying: 'Opening payment…',
     payNote: "Payment happens on Stripe's secure page. If you can't make it, your spot can be transferred to someone else or another date.",
     errBookConsent: 'To book, please tick the box above.',
@@ -1418,7 +1420,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                 </label>
                 {bookError && <p role="alert" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{bookError}</p>}
                 <div className="flex flex-wrap items-center gap-4">
-                  <Btn type="submit" disabled={paying} style={{ boxShadow: '4px 4px 0 0 #d91a2a' }}>{paying ? c.paying : total === 0 ? c.payFree : c.pay(c.money(total))}</Btn>
+                  <Btn type="submit" disabled={paying} style={{ boxShadow: '4px 4px 0 0 #d91a2a' }}>{paying ? c.paying : total === 0 ? c.payFree : c.bookCta}</Btn>
                 </div>
                 <p className="m-0 text-sm leading-normal text-white/80">{c.payNote}</p>
               </form>
