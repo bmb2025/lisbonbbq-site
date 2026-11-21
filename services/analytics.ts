@@ -34,6 +34,7 @@ const META_EVENTS: Record<string, string> = {
   workshop_waitlist_submitted: 'CompleteRegistration',
   workshop_checkout_started: 'InitiateCheckout',
   workshop_purchase: 'Purchase',
+  workshop_giftbox_purchase: 'Purchase',
 };
 
 let prod = false;      // domínio de produção: só aqui se mede alguma coisa
@@ -103,7 +104,9 @@ export function track(event: string, properties?: Record<string, any>) {
   const metaEvent = META_EVENTS[event];
   if (pixelLoaded && metaEvent) {
     const extra = typeof properties?.value === 'number' ? { value: properties.value, currency: properties.currency || 'EUR' } : {};
-    (window as any).fbq?.('track', metaEvent, { content_name: event, ...extra });
+    // event_id = o mesmo ID que o servidor envia à Conversions API (deduplicação).
+    const opts = properties?.event_id ? { eventID: String(properties.event_id) } : undefined;
+    (window as any).fbq?.('track', metaEvent, { content_name: event, ...extra }, opts);
   }
 
   // Mirror conversion events to GA4 (gtag already on the page) so they can be
@@ -144,4 +147,17 @@ export function identifyLead(props: { email?: string; name?: string; phone?: str
     ...(props.name ? { name: props.name } : {}),
     ...(props.phone ? { phone: props.phone } : {}),
   });
+}
+
+// Dados para a Conversions API da Meta (enviados com o checkout e guardados com a
+// reserva). O servidor só envia o Purchase à Meta se marketing === true.
+export function metaContext() {
+  if (typeof document === 'undefined') return null;
+  const cookie = (n: string) => document.cookie.split('; ').find((c) => c.startsWith(n + '='))?.split('=').slice(1).join('=') || undefined;
+  let fbc = cookie('_fbc');
+  if (!fbc) {
+    const fbclid = new URLSearchParams(window.location.search).get('fbclid');
+    if (fbclid) fbc = `fb.1.${Date.now()}.${fbclid}`;
+  }
+  return { marketing: getConsent()?.marketing === true, fbp: cookie('_fbp'), fbc, url: window.location.href };
 }

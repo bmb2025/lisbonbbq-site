@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { track, identifyLead } from '../services/analytics';
+import { track, identifyLead, metaContext } from '../services/analytics';
 
 // Landing page do workshop de churrasco (lisbonbbq.pt/workshop), em PT e EN.
 // O idioma vem do botão PT/EN do cabeçalho. O inglês não é tradução palavra a
@@ -805,7 +805,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
           const key = `workshop_gift_${sid}`;
           let seen = false;
           try { seen = !!sessionStorage.getItem(key); sessionStorage.setItem(key, '1'); } catch { /* sem storage */ }
-          if (!seen) track('workshop_giftbox_purchase', { value: GIFT_PRICE, currency: 'EUR', lang });
+          if (!seen) track('workshop_giftbox_purchase', { value: GIFT_PRICE, currency: 'EUR', lang, event_id: d.giftId });
         }
       })
       .catch(() => {});
@@ -826,7 +826,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
       const r = await fetch('/api/workshop-waitlist?task=gift-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...gift, lang, utm, embedded: EMBEDDED_PAY }),
+        body: JSON.stringify({ ...gift, lang, utm, embedded: EMBEDDED_PAY, capi: metaContext() }),
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok || !(d?.url || d?.clientSecret)) throw new Error(d?.error || 'failed');
@@ -886,6 +886,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
           consent: book.consent, website: book.website, lang, inviteCode: invite ? inviteCode : undefined, utm,
           giftCode: voucher || undefined,
           embedded: EMBEDDED_PAY,
+          capi: metaContext(),
         }),
       });
       const d = await r.json().catch(() => ({}));
@@ -925,7 +926,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
           const key = `workshop_paid_${sid}`;
           let seen = false;
           try { seen = !!sessionStorage.getItem(key); sessionStorage.setItem(key, '1'); } catch { /* sem storage */ }
-          if (!seen) track('workshop_purchase', { edition: d.edition?.id, quantity: d.quantity, value: d.amount, currency: 'EUR', lang });
+          if (!seen) track('workshop_purchase', { edition: d.edition?.id, quantity: d.quantity, value: d.amount, currency: 'EUR', lang, event_id: d.bookingId });
         }
       })
       .catch(() => {});
