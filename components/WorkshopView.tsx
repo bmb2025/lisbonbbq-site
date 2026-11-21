@@ -536,8 +536,9 @@ const EmbeddedPay: React.FC<{
         const phoneNumber = toE164(phone || '');
         const checkout = stripe.initCheckoutElementsSdk({
           clientSecret,
-          // Dados já pedidos no nosso formulário: vão pré-preenchidos (ex.: telemóvel do MB Way).
-          defaultValues: { ...(email ? { email } : {}), ...(phoneNumber ? { phoneNumber } : {}) },
+          // Telemóvel já pedido no nosso formulário vai pré-preenchido (ex.: MB Way). O email
+          // já segue na sessão (customer_email); a Stripe não deixa voltar a defini-lo aqui.
+          ...(phoneNumber ? { defaultValues: { phoneNumber } } : {}),
           elementsOptions: {
             appearance: {
               theme: 'night',
