@@ -1264,7 +1264,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                     </div>
                     <label className="flex gap-3 items-start cursor-pointer leading-normal text-[0.9375rem]">
                       <input type="checkbox" checked={gift.consent} onChange={(e) => setG('consent')(e.target.checked)} className="w-6 h-6 m-0 flex-none accent-[#f4b41a]" />
-                      <span>{c.gConsent}<a href="/privacy" className="text-bbq-yellow underline">{c.consentLink}</a>.</span>
+                      <span>{c.gConsent}<a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-bbq-yellow underline">{c.consentLink}</a>.</span>
                     </label>
                     {giftError && <p role="alert" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{giftError}</p>}
                     <div><Btn type="submit" disabled={giftPaying} style={{ boxShadow: '4px 4px 0 0 #d91a2a' }}>{giftPaying ? c.paying : c.pay(c.money(giftTotal))}</Btn></div>
@@ -1351,7 +1351,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                     </fieldset>
                     <label className="flex gap-3 items-start cursor-pointer leading-normal text-sm">
                       <input type="checkbox" checked={quick.consent} onChange={(e) => setQ('consent')(e.target.checked)} className="w-5 h-5 m-0 flex-none accent-[#f4b41a]" />
-                      <span>{c.altConsent}<a href="/privacy" className="text-bbq-yellow underline">{c.consentLink}</a>.</span>
+                      <span>{c.altConsent}<a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-bbq-yellow underline">{c.consentLink}</a>.</span>
                     </label>
                     {quickError && <p role="alert" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{quickError}</p>}
                     <div>
@@ -1416,7 +1416,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                 </div>
                 <label className="flex gap-3 items-start cursor-pointer leading-normal text-[0.9375rem]">
                   <input type="checkbox" checked={book.consent} onChange={(e) => setB('consent')(e.target.checked)} className="w-6 h-6 m-0 flex-none accent-[#f4b41a]" />
-                  <span>{c.bookConsentBefore}<a href="/privacy" className="text-bbq-yellow underline">{c.consentLink}</a>{c.bookConsentAfter}</span>
+                  <span>{c.bookConsentBefore}<a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-bbq-yellow underline">{c.consentLink}</a>{c.bookConsentAfter}</span>
                 </label>
                 {bookError && <p role="alert" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{bookError}</p>}
                 <div className="flex flex-wrap items-center gap-4">
@@ -1484,7 +1484,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
               </label>
               <label className="flex gap-3 items-start cursor-pointer leading-normal text-[0.9375rem]">
                 <input type="checkbox" checked={form.consent} onChange={(e) => set('consent')(e.target.checked)} className="w-6 h-6 m-0 flex-none accent-[#f4b41a]" />
-                <span>{c.consentBefore}<a href="mailto:pitmasters@lisbonbbq.pt" className="text-bbq-yellow underline">pitmasters@lisbonbbq.pt</a>{c.consentMid}<a href="/privacy" className="text-bbq-yellow underline">{c.consentLink}</a>{c.consentAfter}</span>
+                <span>{c.consentBefore}<a href="mailto:pitmasters@lisbonbbq.pt" className="text-bbq-yellow underline">pitmasters@lisbonbbq.pt</a>{c.consentMid}<a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-bbq-yellow underline">{c.consentLink}</a>{c.consentAfter}</span>
               </label>
               {error && <p role="alert" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{error}</p>}
               <div><Btn type="submit" disabled={sending}>{sending ? c.sending : c.submit}</Btn></div>
