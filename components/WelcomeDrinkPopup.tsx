@@ -73,7 +73,7 @@ export const WelcomeDrinkPopup: React.FC<{ event: EventRecord }> = ({ event }) =
               >
                 <Instagram size={20} /> {t('follow_instagram')}
               </button>
-              <span className="block mt-3 text-[13px] font-bold text-[#6b6b6b]">@lisbon.barbecue.churrasco</span>
+              <span className="block mt-3 text-[13px] font-bold text-[#6b6b6b]">@lisbonbbq</span>
               <button onClick={close} className="block mx-auto mt-4.5 text-xs font-bold text-[#8a8a8a] underline underline-offset-4 hover:text-bbq-black">{t('popup_not_now')}</button>
             </>
           )}

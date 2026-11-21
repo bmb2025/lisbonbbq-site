@@ -241,7 +241,7 @@ function announceEmail(row: any, editions: any[]) {
   const locked = row.locked_price != null;
   const F = "font-family:Arial,Helvetica,sans-serif;";
   const LOGO = "https://mlqdpjiolbyewcumvajn.supabase.co/storage/v1/object/public/lisbonbbq-media/Fotos/Newsletters/chaves-05-set-logo-badge.png";
-  const IG = "https://www.instagram.com/lisbon.barbecue.churrasco/";
+  const IG = "https://www.instagram.com/lisbonbbq/";
 
   const t = en ? {
     title: "New barbecue workshop dates are open",
@@ -255,7 +255,7 @@ function announceEmail(row: any, editions: any[]) {
     price: locked ? `Your invite still counts: your spot is <strong style="color:#F4B41A;">&euro;${inv}</strong>.` : `<strong style="color:#F4B41A;">&euro;${pub}</strong> per person, or <strong style="color:#F4B41A;">&euro;${inv} each</strong> if you bring someone. Small groups, so spots go fast.`,
     cta: "PICK YOUR DATE",
     priority: "For the next 48 hours this is just for the list. After that we open it to everyone.",
-    after: `Questions? Just reply to this email or find us on Instagram <a href="${IG}" target="_blank" style="color:#D91A2A;font-weight:700;text-decoration:none;">@lisbon.barbecue.churrasco</a>.`,
+    after: `Questions? Just reply to this email or find us on Instagram <a href="${IG}" target="_blank" style="color:#D91A2A;font-weight:700;text-decoration:none;">@lisbonbbq</a>.`,
     why: `You are receiving this email because you joined the workshop waiting list. To stop receiving them, reply with "unsubscribe".`,
     alt: "Barbecue workshop at Lisbon BBQ: four people at the charcoal grill",
   } : {
@@ -270,7 +270,7 @@ function announceEmail(row: any, editions: any[]) {
     price: locked ? `O teu convite continua a valer: o teu lugar fica a <strong style="color:#F4B41A;">${inv}&euro;</strong>.` : `<strong style="color:#F4B41A;">${pub}&euro;</strong> por pessoa, ou <strong style="color:#F4B41A;">${inv}&euro; cada</strong> se vieres acompanhado. Os grupos são pequenos e as vagas vão depressa.`,
     cta: "ESCOLHER A DATA",
     priority: "Durante as próximas 48 horas isto é só para a lista. Depois abrimos a toda a gente.",
-    after: `Dúvidas? Responde a este email ou fala connosco no Instagram <a href="${IG}" target="_blank" style="color:#D91A2A;font-weight:700;text-decoration:none;">@lisbon.barbecue.churrasco</a>.`,
+    after: `Dúvidas? Responde a este email ou fala connosco no Instagram <a href="${IG}" target="_blank" style="color:#D91A2A;font-weight:700;text-decoration:none;">@lisbonbbq</a>.`,
     why: `Estás a receber este email porque entraste na waiting list do workshop. Para deixares de receber, responde com "sair".`,
     alt: "Workshop de churrasco da Lisbon BBQ: quatro pessoas à volta da grelha a carvão",
   };
@@ -329,8 +329,6 @@ function announceEmail(row: any, editions: any[]) {
     <div style="${F}font-size:22px;line-height:26px;font-weight:900;letter-spacing:-0.5px;color:#F9F7F2;">${t.boxTitle}</div>
     <div style="height:6px;line-height:6px;font-size:1px;">&nbsp;</div>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${dates}</table>
-    <div style="height:14px;line-height:14px;font-size:1px;">&nbsp;</div>
-    <div style="${F}font-size:14px;line-height:21px;color:#cfcabd;">${t.price}</div>
     <div style="height:20px;line-height:20px;font-size:1px;">&nbsp;</div>
     <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
       <td bgcolor="#F4B41A" style="background-color:#F4B41A;padding:15px 30px;"><a href="${link}" target="_blank" style="${F}font-size:15px;line-height:18px;font-weight:900;color:#1A1A1A;text-decoration:none;">${t.cta}</a></td>
