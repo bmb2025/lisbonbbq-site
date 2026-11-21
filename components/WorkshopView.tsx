@@ -8,6 +8,10 @@ import { track, identifyLead } from '../services/analytics';
 // Preços: têm de ficar iguais a PRICES em api/workshop-waitlist.ts, que é quem
 // decide o preço de facto. A variante vem do link do anúncio (?v=b) para o teste
 // de preço; sem parâmetro é a variante "a".
+// Giftbox: tem de ficar igual a GIFT_PRICE_CENTS em api/workshop-waitlist.ts.
+const GIFT_PRICE = 110;
+const GIFT_IMG = '/images/workshop/giftbox.webp';
+
 export const WORKSHOP_PRICES: Record<string, { public: number; invite: number }> = {
   a: { public: 110, invite: 90 },
   b: { public: 95, invite: 80 },
@@ -64,7 +68,7 @@ const COPY = {
       ['3 horas', 'ao vivo, em Lisboa'],
       ['Pitmasters', 'da Lisbon BBQ, com anos de brasa e centenas de eventos'],
       ['Mão na pinça', 'cada técnica é logo posta em prática'],
-      ['16 pessoas', 'no máximo, para acompanhamento personalizado'],
+      ['Grupo pequeno', 'para acompanhamento personalizado'],
     ],
     beerH2: 'Aprender, com cerveja na mão',
     beerP: 'À volta do fogo há sempre trabalho para dividir. Alguém segura a pinça, alguém corta, alguém tem uma opinião sobre o sal. Não há jogos para quebrar o gelo nem rodas de apresentações. Há uma grelha, uma tarefa e uma cerveja. A conversa vem sozinha.',
@@ -72,16 +76,16 @@ const COPY = {
     beerAlt: 'Dois homens à grelha: um deita sal grosso na carne, o outro aponta e dá palpite com uma cerveja na mão',
     learnEyebrow: 'O que vais dominar',
     learnH2: 'Oito coisas que deixas de errar',
-    learnP: 'Carvão vegetal, brasa e os cortes que se comem cá. Nada de smoker nem molho barbecue.',
+    learnP: 'Carvão vegetal, brasa e os cortes que se comem em Portugal. Nada de smoker nem molho barbecue.',
     learn: [
-      { t: 'A churrasqueira', d: 'Que grelhador e que utensílios valem o dinheiro, e como preparar a grelha antes de acender.' },
-      { t: 'Brasa', d: 'Acendes o carvão à primeira, montas zona quente e zona fria e manténs a brasa viva até à última peça.' },
-      { t: 'Escolher as melhores carnes', d: 'Picanha, maminha, fraldinha. Escolhes a peça certa no talho e cortas no sentido certo. É muito acerto.' },
+      { t: 'O grelhador', d: 'O que faz um bom grelhador e que utensílios valem o dinheiro. Como preparar a grelha antes de acender as brasas.' },
+      { t: 'Cuidar do lume', d: 'Acender o carvão à primeira, montar zona quente e zona fria e como manter a brasa viva até à última peça.' },
+      { t: 'Escolher as melhores carnes', d: 'Picanha, maminha, fraldinha. Como identificar cada peça, saber o que escolher no talho e cortar no sentido certo.' },
       { t: 'Tempero', d: 'Sal grosso, flor de sal ou marinada? Sabes o que pôr em cada carne e em que momento.' },
       { t: 'Reação de Maillard', d: 'Percebes porque é que a carne ganha crosta e como a consegues sem passar o interior. É a diferença entre grelhar e cozer na grelha.' },
-      { t: 'O ponto', d: 'Acertas no ponto sem abrir a carne para espreitar.' },
-      { t: 'Entremeada e linguiça', d: 'Tostadas por fora, suculentas por dentro. Sem secar nem queimar.' },
+      { t: 'O ponto', d: 'Acertar no ponto sem abrir a carne para espreitar. Como fazer a carne suculenta por dentro e com textura por fora.' },
       { t: 'Descanso e corte', d: 'Deixas a carne descansar o tempo certo e cortas à mesa, para servir quente.' },
+      { t: 'Empratar', d: 'Como servir a carne, acertos e temperos finais.' },
     ],
     flowEyebrow: 'Como corre a tarde',
     flowH2: 'Do carvão à mesa',
@@ -96,9 +100,6 @@ const COPY = {
     inclEyebrow: 'O que está incluído',
     inclH2: 'Tudo. Só trazes a fome.',
     included: ['Toda a carne e os acompanhamentos', 'Refeição completa à mesa longa', 'Bebidas: cerveja ou vinho da casa', 'Avental e receita para levar para casa', '1 pitmaster que ensina e acompanha'],
-    when: ['Quando:', 'próximas sessões em novembro e dezembro de 2026, sexta ao fim da tarde, sábado ou domingo.'],
-    where: ['Onde:', 'espaço Lisbon BBQ, em Lisboa. O local exato vai na confirmação.'],
-    spots: ['Lugares:', '16 por sessão. Quem está na lista tem 48 horas de prioridade antes de abrirmos ao público.'],
     priceLabel: 'Workshop · por pessoa',
     priceLabelInvite: 'Workshop · com convite',
     money: (n: number) => `${n}€`,
@@ -125,17 +126,16 @@ const COPY = {
     ],
     calEyebrow: 'Calendário',
     calH2: 'Workshops recentes',
-    calNext: 'Próximos workshops',
+    calNext: 'Próximo workshop',
     calMonths: 'Novembro e dezembro',
     calNextNote: 'Abrem primeiro para a waiting list, com 48 horas de prioridade.',
     soldOut: 'Esgotado',
-    calMeta: '16 lugares · 3 horas',
+    calMeta: '3 horas',
     recent: [
       { d: '20 setembro', s: 'Churrasco tradicional português' },
       { d: '19 setembro', s: 'Churrasco estilo brasileiro' },
       { d: '6 setembro', s: 'Churrasco estilo argentino' },
       { d: '5 setembro', s: 'Churrasco tradicional português' },
-      { d: '30 agosto', s: 'Churrasco estilo brasileiro' },
     ],
     formEyebrow: 'Lista de espera',
     formH2: 'Entra na lista',
@@ -178,6 +178,71 @@ const COPY = {
     fSlot: 'horário',
     fExp: 'experiência a grelhar',
     fMotive: 'o que te traz',
+    ctaBook: 'Reservar lugar',
+    ctaBookNote: 'Pagamento seguro com cartão, MB Way ou Apple Pay.',
+    bookEyebrow: 'Datas e reserva',
+    bookH2: 'Escolhe a data',
+    bookP: 'Reservas o lugar aqui e pagas no momento. Recebes a confirmação por email e a morada exata uns dias antes.',
+    spotsLeft: (n: number) => (n === 1 ? 'Resta 1 vaga' : `Restam ${n} vagas`),
+    qDate: 'Data',
+    qQty: 'Quantos lugares?',
+    perPerson: 'por pessoa',
+    total: 'Total',
+    inviteApplied: 'Preço de convite aplicado.',
+    bookConsentBefore: 'Aceito que a Lisbon BBQ use estes dados para gerir a minha reserva, de acordo com o RGPD e a ',
+    bookConsentAfter: '.',
+    pay: (v: string) => `Pagar ${v}`,
+    bookCta: 'Reservar vaga',
+    paying: 'A abrir o pagamento…',
+    payNote: 'O pagamento é feito na página segura da Stripe. Se não puderes vir, o lugar é transferível para outra pessoa ou outra data.',
+    errBookConsent: 'Para reservar, precisamos que aceites a caixa acima.',
+    errSoldOut: 'Já não há lugares suficientes nesta data. Escolhe menos lugares ou entra na lista de espera.',
+    errPay: 'Não conseguimos abrir o pagamento. Tenta outra vez daqui a pouco ou escreve-nos para pitmasters@lisbonbbq.pt.',
+    fDate: 'data',
+    paidTitle: (n: string) => `Lugar reservado, ${n}!`,
+    paidBody: (q: number, d: string) => `${q === 1 ? '1 lugar' : `${q} lugares`} para ${d}. Enviámos a confirmação para o teu email.`,
+    pendingBody: 'Estamos a confirmar o pagamento. Recebes um email assim que estiver confirmado.',
+    cancelledNote: 'O pagamento não foi concluído e não te cobrámos nada. O lugar continua disponível enquanto houver vagas.',
+    futureTag: 'Prioridade exclusiva',
+    futureTitle: 'Datas futuras',
+    futureText: 'Nenhuma destas datas dá? Entra na waiting list e sê o primeiro a garantir vaga nas próximas antes de as divulgarmos ao público.',
+    futureCta: 'Quero prioridade',
+    altTitle: 'Diz-nos quando te dá jeito. Avisamos-te primeiro, antes de abrirmos ao público.',
+    altCancelTitle: 'Esta data não dá? Avisamos-te da próxima.',
+    altSlot: 'Quando te dá mais jeito?',
+    altSubmit: 'Avisem-me',
+    altDone: (n: string) => `Combinado, ${n}. Avisamos-te quando abrir uma data que te sirva.`,
+    altConsent: 'Autorizo a Lisbon BBQ a guardar estes dados para me avisar de novas datas do workshop, de acordo com a ',
+    groupApplied: (s: string) => `Desconto de acompanhante aplicado: poupam ${s}.`,
+    calBook: 'Reservar',
+    calGiftTag: 'Giftbox',
+    calGiftTitle: 'Oferece um workshop',
+    calGiftNote: 'Voucher aplicável em qualquer data de workshop futura.',
+    calGiftCta: 'Oferecer',
+    giftAlt: 'Caixa Giftbox do workshop de churrasco da Lisbon Barbecue & Churrasco',
+    modeBook: 'Reservar lugar',
+    modeGift: 'Oferecer Giftbox',
+    giftH: 'Giftbox: oferece um workshop',
+    giftP: 'Voucher de 1 lugar, válido 12 meses. Quem recebe escolhe a data. Inclui o workshop de 3 horas, a refeição à mesa longa e o avental.',
+    gRecipient: 'Para quem é? (opcional)',
+    gRecipientPh: 'Nome de quem recebe',
+    gMessage: 'Mensagem (opcional)',
+    gMessagePh: 'Parabéns! Vemo-nos na brasa.',
+    gBuyer: 'O teu nome',
+    gBuyerEmail: 'O teu email (o voucher chega aqui)',
+    gConsent: 'Autorizo a Lisbon BBQ a guardar estes dados para processar a compra e enviar o voucher, de acordo com a ',
+    gNote: 'O voucher chega por email logo após o pagamento, pronto a reencaminhar ou imprimir.',
+    giftOkTitle: (n: string) => `Obrigado, ${n}!`,
+    giftOkBody: 'Enviámos o voucher para o teu email, pronto a reencaminhar ou imprimir.',
+    giftPending: 'Estamos a confirmar o pagamento. O voucher chega por email dentro de minutos.',
+    giftCancelled: 'O pagamento da Giftbox não foi concluído e não te cobrámos nada.',
+    vLink: 'Tens um voucher Giftbox?',
+    vApply: 'Aplicar',
+    vRemove: 'Remover',
+    vApplied: (code: string) => `Voucher ${code} aplicado: 1 lugar oferecido.`,
+    vExtra: (p: string) => `Os lugares extra ficam a ${p} cada.`,
+    vErr: { not_found: 'Não encontrámos este código.', redeemed: 'Este voucher já foi usado.', expired: 'Este voucher expirou.', not_paid: 'Este voucher ainda não está ativo.', in_use: 'Este voucher está a ser usado numa reserva em curso. Tenta daqui a 30 minutos.' } as Record<string, string>,
+    payFree: 'Confirmar reserva',
   },
   en: {
     heroBadge: 'BBQ workshop · Lisbon',
@@ -198,7 +263,7 @@ const COPY = {
       ['3 hours', 'live, in Lisbon'],
       ['Pitmasters', 'from Lisbon BBQ, with years of embers and hundreds of events'],
       ['Tongs in hand', 'every technique goes straight into practice'],
-      ['16 people', 'maximum, for personal guidance'],
+      ['Small group', 'for personal guidance'],
     ],
     beerH2: 'Learn, beer in hand',
     beerP: "There's always work to share around the fire. Someone holds the tongs, someone cuts, someone has an opinion about the salt. No icebreaker games, no introduction circles. There's a grill, a task and a beer. The conversation takes care of itself.",
@@ -206,16 +271,16 @@ const COPY = {
     beerAlt: 'Two men at the grill: one sprinkles coarse salt on the meat while the other points and gives his opinion, beer in hand',
     learnEyebrow: "What you'll master",
     learnH2: "Eight things you'll stop getting wrong",
-    learnP: 'Charcoal, embers and the cuts people eat here. No smoker, no barbecue sauce.',
+    learnP: 'Charcoal, embers and the cuts people eat in Portugal. No smoker, no barbecue sauce.',
     learn: [
-      { t: 'The grill', d: 'Which grill and tools are worth the money, and how to prepare the grate before you light up.' },
-      { t: 'Embers', d: 'You light the charcoal first time, set up a hot zone and a cold zone, and keep the embers alive until the last piece.' },
-      { t: 'Choosing the best cuts', d: 'Picanha, maminha, fraldinha. You pick the right piece at the butcher and cut it against the grain. Small details make a big difference.' },
+      { t: 'The grill', d: 'What makes a good grill and which tools are worth the money. How to prepare the grate before lighting the coals.' },
+      { t: 'Tending the fire', d: 'Lighting the charcoal first time, setting up a hot zone and a cold zone, and how to keep the embers alive until the last piece.' },
+      { t: 'Choosing the best cuts', d: 'Picanha, maminha, fraldinha. How to recognise each cut, know what to pick at the butcher and cut it against the grain.' },
       { t: 'Seasoning', d: 'Coarse salt, flor de sal or marinade? You know what goes on each meat, and when.' },
       { t: 'The Maillard reaction', d: "You understand why meat gets a crust and how to get one without overcooking the inside. It's the difference between grilling and steaming on the grill." },
-      { t: 'Doneness', d: 'You nail the doneness without cutting the meat open to peek.' },
-      { t: 'Pork belly and linguiça', d: 'Crisp outside, juicy inside. No drying out, no burning.' },
+      { t: 'Doneness', d: 'Nailing the doneness without cutting the meat open to peek. How to keep the meat juicy inside with texture outside.' },
       { t: 'Resting and carving', d: 'You let the meat rest for the right time and carve at the table, so it goes out hot.' },
+      { t: 'Plating', d: 'How to serve the meat, with final touches and seasoning.' },
     ],
     flowEyebrow: 'How the afternoon goes',
     flowH2: 'From charcoal to table',
@@ -230,9 +295,6 @@ const COPY = {
     inclEyebrow: "What's included",
     inclH2: 'Everything. Just bring your appetite.',
     included: ['All the meat and sides', 'Full meal at the long table', 'Drinks: beer or house wine', 'Apron and recipe to take home', '1 pitmaster who teaches and guides you'],
-    when: ['When:', 'upcoming sessions in November and December 2026, Friday early evening, Saturday or Sunday.'],
-    where: ['Where:', 'Lisbon BBQ venue, in Lisbon. The exact location comes with your confirmation.'],
-    spots: ['Spots:', '16 per session. People on the list get 48 hours of priority before we open to the public.'],
     priceLabel: 'Workshop · per person',
     priceLabelInvite: 'Workshop · with invite',
     money: (n: number) => `€${n}`,
@@ -259,17 +321,16 @@ const COPY = {
     ],
     calEyebrow: 'Calendar',
     calH2: 'Recent workshops',
-    calNext: 'Upcoming workshops',
+    calNext: 'Next workshop',
     calMonths: 'November and December',
     calNextNote: 'They open to the waiting list first, with 48 hours of priority.',
     soldOut: 'Sold out',
-    calMeta: '16 spots · 3 hours',
+    calMeta: '3 hours',
     recent: [
       { d: '20 September', s: 'Traditional Portuguese barbecue' },
       { d: '19 September', s: 'Brazilian-style barbecue' },
       { d: '6 September', s: 'Argentine-style barbecue' },
       { d: '5 September', s: 'Traditional Portuguese barbecue' },
-      { d: '30 August', s: 'Brazilian-style barbecue' },
     ],
     formEyebrow: 'Waiting list',
     formH2: 'Join the list',
@@ -312,7 +373,101 @@ const COPY = {
     fSlot: 'day',
     fExp: 'grilling experience',
     fMotive: 'what brings you',
+    ctaBook: 'Book your spot',
+    ctaBookNote: 'Secure payment by card, MB Way or Apple Pay.',
+    bookEyebrow: 'Dates and booking',
+    bookH2: 'Pick a date',
+    bookP: "Book your spot here and pay right away. You'll get the confirmation by email and the exact address a few days before.",
+    spotsLeft: (n: number) => (n === 1 ? 'Only 1 spot left' : `Only ${n} spots left`),
+    qDate: 'Date',
+    qQty: 'How many spots?',
+    perPerson: 'per person',
+    total: 'Total',
+    inviteApplied: 'Invite price applied.',
+    bookConsentBefore: 'I agree that Lisbon BBQ may use this data to manage my booking, in accordance with the GDPR and the ',
+    bookConsentAfter: '.',
+    pay: (v: string) => `Pay ${v}`,
+    bookCta: 'Book your spot',
+    paying: 'Opening payment…',
+    payNote: "Payment happens on Stripe's secure page. If you can't make it, your spot can be transferred to someone else or another date.",
+    errBookConsent: 'To book, please tick the box above.',
+    errSoldOut: "There aren't enough spots left on this date. Pick fewer spots or join the waiting list.",
+    errPay: "We couldn't open the payment. Try again in a moment or write to us at pitmasters@lisbonbbq.pt.",
+    fDate: 'date',
+    paidTitle: (n: string) => `Spot booked, ${n}!`,
+    paidBody: (q: number, d: string) => `${q === 1 ? '1 spot' : `${q} spots`} for ${d}. We've sent the confirmation to your email.`,
+    pendingBody: "We're confirming your payment. You'll get an email as soon as it's confirmed.",
+    cancelledNote: "The payment wasn't completed and you haven't been charged. The spot is still available while there are places left.",
+    futureTag: 'Exclusive priority',
+    futureTitle: 'Future dates',
+    futureText: "None of these dates work? Join the waiting list and be the first to secure a spot on the next ones before we announce them to the public.",
+    futureCta: 'I want priority',
+    altTitle: "Tell us when suits you. We'll tell you first, before we open to the public.",
+    altCancelTitle: "Can't make this date? We'll tell you about the next one.",
+    altSlot: 'When suits you best?',
+    altSubmit: 'Let me know',
+    altDone: (n: string) => `Done, ${n}. We'll let you know when a date that suits you opens.`,
+    altConsent: 'I authorise Lisbon BBQ to store this data to tell me about new workshop dates, in accordance with the ',
+    groupApplied: (s: string) => `Companion discount applied: you save ${s}.`,
+    calBook: 'Book',
+    calGiftTag: 'Giftbox',
+    calGiftTitle: 'Give a workshop',
+    calGiftNote: 'Voucher valid for any future workshop date.',
+    calGiftCta: 'Give',
+    giftAlt: 'Lisbon Barbecue & Churrasco barbecue workshop Giftbox',
+    modeBook: 'Book a spot',
+    modeGift: 'Give a Giftbox',
+    giftH: 'Giftbox: give a workshop',
+    giftP: 'Voucher for 1 spot, valid for 12 months. They pick the date. Includes the 3-hour workshop, the meal at the long table and the apron.',
+    gRecipient: "Who's it for? (optional)",
+    gRecipientPh: "Recipient's name",
+    gMessage: 'Message (optional)',
+    gMessagePh: 'Happy birthday! See you at the embers.',
+    gBuyer: 'Your name',
+    gBuyerEmail: 'Your email (the voucher goes here)',
+    gConsent: 'I authorise Lisbon BBQ to store this data to process the purchase and send the voucher, in accordance with the ',
+    gNote: "The voucher arrives by email right after payment, ready to forward or print.",
+    giftOkTitle: (n: string) => `Thank you, ${n}!`,
+    giftOkBody: "We've sent the voucher to your email, ready to forward or print.",
+    giftPending: "We're confirming the payment. The voucher will arrive by email in a few minutes.",
+    giftCancelled: "The Giftbox payment wasn't completed and you haven't been charged.",
+    vLink: 'Have a Giftbox voucher?',
+    vApply: 'Apply',
+    vRemove: 'Remove',
+    vApplied: (code: string) => `Voucher ${code} applied: 1 spot covered.`,
+    vExtra: (p: string) => `Extra spots are ${p} each.`,
+    vErr: { not_found: "We couldn't find this code.", redeemed: 'This voucher has already been used.', expired: 'This voucher has expired.', not_paid: "This voucher isn't active yet.", in_use: 'This voucher is being used in a booking in progress. Try again in 30 minutes.' } as Record<string, string>,
+    payFree: 'Confirm booking',
   },
+};
+
+type Edition = {
+  id: string; date: string; startTime: string; endTime: string; titlePt: string; titleEn: string;
+  location: string; price: number; invitePrice: number | null; capacity: number; left: number; status: string;
+};
+
+const MONTHS = {
+  pt: ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'],
+  en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+};
+const WEEKDAYS = {
+  pt: ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'],
+  en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+};
+const hour = (t: string) => { const [h, m] = t.split(':'); return m && m !== '00' ? `${Number(h)}h${m}` : `${Number(h)}h`; };
+// "29 novembro" / "29 November"
+const edDay = (e: Edition, lang: Lang) => { const [, m, d] = e.date.split('-').map(Number); return `${d} ${MONTHS[lang][m - 1]}`; };
+// "domingo, 29 novembro, 12h–15h"
+// Vagas mostradas: 5 abaixo das reais (16 → 11), nunca abaixo de 5 enquanto
+// houver mais de 5; com 5 ou menos reais, mostra o número real. As 5 de
+// margem ficam para convites, Giftbox e waiting list. A compra fica limitada ao
+// número mostrado (maxQty), para o "Restam X" ser sempre verdade para quem compra.
+const shownLeft = (left: number) => (left > 10 ? left - 5 : Math.min(left, 5));
+
+const edWhen = (e: Edition, lang: Lang) => {
+  const [y, m, d] = e.date.split('-').map(Number);
+  const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  return `${WEEKDAYS[lang][dow]}, ${edDay(e, lang)}, ${hour(e.startTime)}–${hour(e.endTime)}`;
 };
 
 const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'fbclid', 'gclid'];
@@ -324,8 +479,8 @@ const FlameMark: React.FC<{ size?: number; fill?: string; stroke?: string }> = (
 );
 
 type BtnVariant = 'accent' | 'dark';
-const Btn: React.FC<{ variant?: BtnVariant; onClick?: () => void; type?: 'button' | 'submit'; disabled?: boolean; className?: string; children: React.ReactNode }> = ({
-  variant = 'accent', onClick, type = 'button', disabled, className = '', children,
+const Btn: React.FC<{ variant?: BtnVariant; onClick?: () => void; type?: 'button' | 'submit'; disabled?: boolean; className?: string; style?: React.CSSProperties; children: React.ReactNode }> = ({
+  variant = 'accent', onClick, type = 'button', disabled, className = '', style, children,
 }) => {
   const colors = variant === 'accent'
     ? 'bg-bbq-yellow text-bbq-black hover:bg-bbq-cream'
@@ -335,6 +490,7 @@ const Btn: React.FC<{ variant?: BtnVariant; onClick?: () => void; type?: 'button
       type={type}
       onClick={onClick}
       disabled={disabled}
+      style={style}
       className={`${colors} border-4 border-bbq-black shadow-hard active:shadow-none active:translate-x-[2px] active:translate-y-[2px] font-black uppercase tracking-wider text-lg px-8 py-4 min-h-[56px] transition-colors disabled:opacity-60 disabled:cursor-wait ${className}`}
     >
       {children}
@@ -377,9 +533,11 @@ const shareBtn = 'inline-flex items-center justify-center min-h-[48px] px-4 bg-b
 const inputCls = 'w-full box-border bg-white text-bbq-black border-4 border-bbq-black px-5 py-4 text-xl font-black outline-none focus:shadow-[0_0_0_4px_#F4B41A]';
 
 export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
+  const L: Lang = lang === 'en' ? 'en' : 'pt';
   const c = COPY[lang];
   const opts = (list: typeof SLOTS) => list.map((o) => ({ value: o.value, label: o[lang] }));
   const formRef = useRef<HTMLElement>(null);
+  const bookRef = useRef<HTMLElement>(null);
 
   const params = useMemo(() => new URLSearchParams(typeof window !== 'undefined' ? window.location.search : ''), []);
   const variant = useMemo(() => {
@@ -409,7 +567,24 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
     return () => { cancelled = true; };
   }, [inviteCode]);
 
-  const prices = invite ? { public: invite.publicPrice, invite: invite.invitePrice } : WORKSHOP_PRICES[variant];
+  // Datas à venda (workshop_editions). Com datas abertas, o preço mostrado é o
+  // da data (o mesmo que a API cobra) e os botões levam à reserva.
+  const [editions, setEditions] = useState<Edition[] | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/workshop-waitlist?task=editions')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (!cancelled) setEditions(Array.isArray(d?.editions) ? d.editions : []); })
+      .catch(() => { if (!cancelled) setEditions([]); });
+    return () => { cancelled = true; };
+  }, []);
+  const openEditions = (editions || []).filter((e) => e.status === 'available' && e.left > 0);
+  const nextEdition = openEditions[0] || null;
+
+  const edPrices = nextEdition ? { public: nextEdition.price, invite: nextEdition.invitePrice ?? nextEdition.price } : null;
+  const prices = edPrices
+    ? (invite ? { public: edPrices.public, invite: edPrices.invite } : edPrices)
+    : invite ? { public: invite.publicPrice, invite: invite.invitePrice } : WORKSHOP_PRICES[variant];
   const shownPrice = invite ? prices.invite : prices.public;
   const price = c.money(shownPrice);
 
@@ -418,7 +593,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
   // (privacidade, termos, cookies).
   const [hideSticky, setHideSticky] = useState(false);
   useEffect(() => {
-    const targets = [formRef.current, document.querySelector('footer')].filter(Boolean) as Element[];
+    const targets = [formRef.current, bookRef.current, document.querySelector('footer')].filter(Boolean) as Element[];
     if (!targets.length || typeof IntersectionObserver === 'undefined') return;
     const visible = new Set<Element>();
     const io = new IntersectionObserver((entries) => {
@@ -427,7 +602,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
     });
     targets.forEach((t) => io.observe(t));
     return () => io.disconnect();
-  }, []);
+  }, [nextEdition]);
 
   const [openFaq, setOpenFaq] = useState(-1);
   const [form, setForm] = useState({ name: '', email: '', phone: '', slot: '', exp: '', motive: '', source: '', consent: false, website: '' });
@@ -440,8 +615,216 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
   const set = (k: keyof typeof form) => (v: any) => { setForm((f) => ({ ...f, [k]: v })); setError(''); };
 
   const goForm = (where: string) => {
-    track('workshop_cta_click', { where, variant, lang });
-    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    track('workshop_cta_click', { where, variant, lang, target: nextEdition ? 'booking' : 'waitlist' });
+    (nextEdition ? bookRef : formRef).current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  const ctaLabel = nextEdition ? c.ctaBook : c.cta;
+
+  // ── Reserva com pagamento ──
+  const [book, setBook] = useState({ editionId: '', qty: 1, name: '', email: '', phone: '', consent: false, website: '' });
+  const [bookError, setBookError] = useState('');
+  const [paying, setPaying] = useState(false);
+  useEffect(() => {
+    if (!book.editionId && nextEdition) setBook((b) => ({ ...b, editionId: nextEdition.id }));
+  }, [nextEdition, book.editionId]);
+  const setB = (k: keyof typeof book) => (v: any) => { setBook((b) => ({ ...b, [k]: v })); setBookError(''); };
+  const chosen = openEditions.find((e) => e.id === book.editionId) || null;
+  // Preço a dois: a partir de 2 lugares todos pagam o preço de convite. Não
+  // acumula com o convite. A API (createCheckout) aplica a mesma regra.
+  const discounted = (ed: Edition, qty: number) => !!ed.invitePrice && ed.invitePrice < ed.price && (!!invite || qty >= 2);
+  const unitFor = (ed: Edition, qty: number) => (discounted(ed, qty) ? ed.invitePrice! : ed.price);
+  const unitPrice = chosen ? unitFor(chosen, book.qty) : 0;
+  const groupOn = !!chosen && !invite && book.qty >= 2 && discounted(chosen, book.qty);
+  const groupSaving = chosen && groupOn ? (chosen.price - unitPrice) * book.qty : 0;
+  const maxQty = chosen ? Math.min(6, shownLeft(chosen.left)) : 1;
+
+  // ── Giftbox ──
+  const giftReturn = params.get('giftbox');
+  const [mode, setMode] = useState<'book' | 'gift'>(giftReturn ? 'gift' : 'book');
+  const [gift, setGift] = useState({ buyerName: '', buyerEmail: '', recipientName: '', message: '', consent: false, website: '' });
+  const [giftError, setGiftError] = useState('');
+  const [giftPaying, setGiftPaying] = useState(false);
+  const [giftDone, setGiftDone] = useState<{ status: string; firstName: string } | null>(null);
+  const setG = (k: keyof typeof gift) => (v: any) => { setGift((g) => ({ ...g, [k]: v })); setGiftError(''); };
+  const giftTotal = GIFT_PRICE;
+  const openGift = (where: string) => {
+    track('workshop_giftbox_click', { where, lang });
+    setMode('gift');
+    setTimeout(() => bookRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+  };
+  useEffect(() => {
+    const sid = params.get('session_id');
+    if (giftReturn !== 'ok' || !sid) return;
+    let cancelled = false;
+    fetch(`/api/workshop-waitlist?task=gift&session_id=${encodeURIComponent(sid)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (cancelled || !d) return;
+        setGiftDone(d);
+        if (d.status === 'paid') {
+          const key = `workshop_gift_${sid}`;
+          let seen = false;
+          try { seen = !!sessionStorage.getItem(key); sessionStorage.setItem(key, '1'); } catch { /* sem storage */ }
+          if (!seen) track('workshop_giftbox_purchase', { value: GIFT_PRICE, currency: 'EUR', lang });
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [params, giftReturn, lang]);
+  useEffect(() => {
+    if (giftReturn) setTimeout(() => bookRef.current?.scrollIntoView({ block: 'start' }), 300);
+  }, [giftReturn]);
+  const payGift = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const missing: string[] = [];
+    if (!gift.buyerName.trim()) missing.push(c.fName);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(gift.buyerEmail.trim())) missing.push(c.fEmail);
+    if (missing.length) { setGiftError(c.errMissing(missing.join(', '))); return; }
+    if (!gift.consent) { setGiftError(c.errBookConsent); return; }
+    setGiftPaying(true);
+    try {
+      const r = await fetch('/api/workshop-waitlist?task=gift-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...gift, lang, utm }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || !d?.url) throw new Error(d?.error || 'failed');
+      identifyLead({ email: gift.buyerEmail.trim(), name: gift.buyerName.trim() });
+      track('workshop_giftbox_checkout_started', { value: giftTotal, lang });
+      window.location.href = d.url;
+    } catch {
+      setGiftError(c.errPay);
+      setGiftPaying(false);
+    }
+  };
+
+  // Voucher Giftbox na reserva: cobre 1 lugar; os extra pagam o preço de acompanhante.
+  const [voucherOpen, setVoucherOpen] = useState(!!params.get('gift'));
+  const [voucherInput, setVoucherInput] = useState((params.get('gift') || '').toUpperCase());
+  const [voucher, setVoucher] = useState<string | null>(null);
+  const [voucherError, setVoucherError] = useState('');
+  const fmtGift = (code: string) => `${code.slice(0, 4)}-${code.slice(4)}`;
+  const applyVoucher = async (raw?: string) => {
+    const code = (raw ?? voucherInput).toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (code.length !== 8) { setVoucherError(c.vErr.not_found); return; }
+    try {
+      const r = await fetch(`/api/workshop-waitlist?task=gift-check&code=${code}`);
+      const d = await r.json().catch(() => ({}));
+      if (d?.valid) { setVoucher(code); setVoucherError(''); track('workshop_giftbox_voucher_applied', { lang }); }
+      else setVoucherError(c.vErr[d?.reason] || c.vErr.not_found);
+    } catch {
+      setVoucherError(c.errPay);
+    }
+  };
+  useEffect(() => { if (params.get('gift')) applyVoucher(params.get('gift')!); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const companionUnit = chosen ? (chosen.invitePrice ?? chosen.price) : 0;
+  const total = voucher ? companionUnit * Math.max(0, book.qty - 1) : unitPrice * book.qty;
+
+  const pay = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const missing: string[] = [];
+    if (!chosen) missing.push(c.fDate);
+    if (!book.name.trim()) missing.push(c.fName);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(book.email.trim())) missing.push(c.fEmail);
+    if (book.phone.replace(/\D/g, '').length < 9) missing.push(c.fPhone);
+    if (missing.length) { setBookError(c.errMissing(missing.join(', '))); return; }
+    if (!book.consent) { setBookError(c.errBookConsent); return; }
+    setPaying(true);
+    try {
+      const r = await fetch('/api/workshop-waitlist?task=checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          editionId: book.editionId, quantity: book.qty, name: book.name, email: book.email, phone: book.phone,
+          consent: book.consent, website: book.website, lang, inviteCode: invite ? inviteCode : undefined, utm,
+          giftCode: voucher || undefined,
+        }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.status === 409 && d?.error === 'gift_invalid') { setVoucher(null); setVoucherError(c.vErr[d.reason] || c.vErr.not_found); setBookError(c.vErr[d.reason] || c.vErr.not_found); setPaying(false); return; }
+      if (r.status === 409) { setBookError(c.errSoldOut); setPaying(false); return; }
+      identifyLead({ email: book.email.trim(), name: book.name.trim(), phone: book.phone.trim() });
+      if (r.ok && d?.free && d.booking) {
+        track('workshop_purchase', { edition: book.editionId, quantity: book.qty, value: 0, currency: 'EUR', gift: true, lang });
+        setPaid(d.booking);
+        setPaying(false);
+        bookRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      if (!r.ok || !d?.url) throw new Error(d?.error || 'failed');
+      track('workshop_checkout_started', { edition: book.editionId, quantity: book.qty, value: total, invited: !!invite, gift: !!voucher, lang });
+      window.location.href = d.url;
+    } catch {
+      setBookError(c.errPay);
+      setPaying(false);
+    }
+  };
+
+  // Regresso da Stripe: ?reserva=ok&session_id=… ou ?reserva=cancelada
+  const returnState = params.get('reserva');
+  const [paid, setPaid] = useState<{ status: string; firstName: string; quantity: number; amount: number; edition: Edition | null } | null>(null);
+  useEffect(() => {
+    const sid = params.get('session_id');
+    if (returnState !== 'ok' || !sid) return;
+    let cancelled = false;
+    fetch(`/api/workshop-waitlist?task=booking&session_id=${encodeURIComponent(sid)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (cancelled || !d) return;
+        setPaid(d);
+        if (d.status === 'paid') {
+          const key = `workshop_paid_${sid}`;
+          let seen = false;
+          try { seen = !!sessionStorage.getItem(key); sessionStorage.setItem(key, '1'); } catch { /* sem storage */ }
+          if (!seen) track('workshop_purchase', { edition: d.edition?.id, quantity: d.quantity, value: d.amount, currency: 'EUR', lang });
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [params, returnState, lang]);
+  useEffect(() => {
+    if (returnState) setTimeout(() => bookRef.current?.scrollIntoView({ block: 'start' }), 300);
+  }, [returnState]);
+
+  // ── Lista de espera curta, dentro do bloco de compra ──
+  const [altOpen, setAltOpen] = useState(returnState === 'cancelada');
+  const [quick, setQuick] = useState({ name: '', email: '', slot: '', consent: false, website: '' });
+  const [quickError, setQuickError] = useState('');
+  const [quickSending, setQuickSending] = useState(false);
+  const [quickDone, setQuickDone] = useState('');
+  const setQ = (k: keyof typeof quick) => (v: any) => { setQuick((q) => ({ ...q, [k]: v })); setQuickError(''); };
+  const submitQuick = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const missing: string[] = [];
+    if (!quick.name.trim()) missing.push(c.fName);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(quick.email.trim())) missing.push(c.fEmail);
+    if (!quick.slot) missing.push(c.fSlot);
+    if (missing.length) { setQuickError(c.errMissing(missing.join(', '))); return; }
+    if (!quick.consent) { setQuickError(c.errConsent); return; }
+    setQuickSending(true);
+    try {
+      const r = await fetch('/api/workshop-waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quick: true, name: quick.name, email: quick.email, preferredSlot: quick.slot,
+          consent: quick.consent, website: quick.website, lang,
+          priceVariant: variant, inviteCode: invite ? inviteCode : undefined,
+          utm, landingUrl: window.location.href, referrer: document.referrer || undefined,
+        }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || !d?.ok) throw new Error(d?.error || 'failed');
+      identifyLead({ email: quick.email.trim(), name: quick.name.trim() });
+      track('workshop_waitlist_submitted', { variant, lang, quick: true, from: returnState === 'cancelada' ? 'checkout_cancelled' : 'booking', slot: quick.slot, invited: !!d.invited, duplicate: !!d.duplicate });
+      setQuickDone(d.firstName || quick.name.trim().split(' ')[0]);
+      setDone({ firstName: d.firstName || quick.name.trim().split(' ')[0], duplicate: d.duplicate, inviteCode: d.inviteCode, invitePrice: d.invitePrice, publicPrice: d.publicPrice });
+    } catch {
+      setQuickError(c.errSend);
+    } finally {
+      setQuickSending(false);
+    }
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -509,6 +892,33 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
   // O Instagram não tem endereço de partilha para páginas web: no telemóvel abre-se
   // a folha de partilha do sistema (onde o Instagram aparece), no computador
   // copia-se o link e abre-se a caixa de mensagens.
+  // Caixa de partilha do convite (lista completa e registo curto no bloco de compra).
+  const renderShare = () => canShare ? (
+    <div className="border-4 border-bbq-yellow p-6 flex flex-col gap-4">
+                  <p className="m-0 font-black uppercase text-xl leading-tight text-bbq-yellow">{c.inviteBoxTitle}</p>
+                  <p className="m-0 leading-normal">{c.inviteBoxText(done.invitePrice!, done.publicPrice!)}</p>
+                  <p className="m-0 leading-normal">{c.inviteBoxMore(done.invitePrice!)}</p>
+                  <span className="font-black text-sm tracking-[0.1em] uppercase">{c.shareLabel}</span>
+                  <div className="flex flex-wrap gap-2">
+                    {shareChannels.map((ch) => (
+                      <a
+                        key={ch.id}
+                        href={ch.href}
+                        target={ch.id === 'email' ? undefined : '_blank'}
+                        rel="noopener noreferrer"
+                        onClick={() => track('workshop_invite_shared', { channel: ch.id, lang, variant })}
+                        className={shareBtn}
+                      >
+                        {ch.label}
+                      </a>
+                    ))}
+                    <button type="button" onClick={shareInstagram} className={shareBtn}>Instagram</button>
+                    <button type="button" onClick={shareCopy} className={shareBtn}>{c.shareCopy}</button>
+                  </div>
+                  <p role="status" className="m-0 text-sm font-bold break-all min-h-[1.25rem]">{shareNote}</p>
+                </div>
+  ) : null;
+
   const shareInstagram = async () => {
     track('workshop_invite_shared', { channel: 'instagram', lang, variant });
     if (typeof navigator.share === 'function' && window.matchMedia('(pointer: coarse)').matches) {
@@ -559,8 +969,8 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
               </div>
             )}
             <div className="flex flex-wrap items-center gap-4">
-              <Btn onClick={() => goForm('hero')}>{c.cta}</Btn>
-              <span className="text-sm font-bold text-gray-400">{c.ctaNote}</span>
+              <Btn onClick={() => goForm('hero')}>{ctaLabel}</Btn>
+              <span className="text-sm font-bold text-gray-400">{nextEdition ? c.ctaBookNote : c.ctaNote}</span>
             </div>
           </div>
         </div>
@@ -578,7 +988,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
           <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(13rem, 1fr))' }}>
             {c.stats.map(([t, d]) => (
               <div key={t} className="bg-bbq-black text-bbq-cream border-4 border-bbq-black p-6 flex flex-col gap-2" style={{ boxShadow: '6px 6px 0 0 #d91a2a' }}>
-                <span className="text-4xl leading-none font-black tracking-tight uppercase text-bbq-yellow">{t}</span>
+                <span className="text-2xl leading-none font-black tracking-tight uppercase text-bbq-yellow">{t}</span>
                 <span className="font-bold leading-snug">{d}</span>
               </div>
             ))}
@@ -666,9 +1076,6 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
             ))}
           </ul>
           <div className="flex flex-col gap-2 text-[0.9375rem] leading-normal">
-            <p className="m-0"><strong className="font-black uppercase tracking-wide">{c.when[0]}</strong> {c.when[1]}</p>
-            <p className="m-0"><strong className="font-black uppercase tracking-wide">{c.where[0]}</strong> {c.where[1]}</p>
-            <p className="m-0"><strong className="font-black uppercase tracking-wide">{c.spots[0]}</strong> {c.spots[1]}</p>
           </div>
         </div>
         <div className="bg-bbq-yellow text-bbq-black border-4 border-bbq-cream p-8 flex flex-col gap-4" style={{ boxShadow: '8px 8px 0 0 #d91a2a' }}>
@@ -679,7 +1086,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
           </div>
           <span className="self-start bg-bbq-black text-bbq-yellow px-3 py-1.5 font-black text-sm tracking-[0.1em] uppercase">{c.vat}</span>
           <p className="m-0 font-bold leading-snug">{c.priceNote}</p>
-          <Btn variant="dark" onClick={() => goForm('price')}>{c.cta}</Btn>
+          <Btn variant="dark" onClick={() => goForm('price')}>{ctaLabel}</Btn>
         </div>
       </section>
 
@@ -740,12 +1147,14 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
             <H2>{c.calH2}</H2>
           </div>
           <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(14rem, 100%), 1fr))' }}>
-            <div className="bg-bbq-red text-white border-4 border-bbq-black shadow-hard p-5 flex flex-col gap-3">
-              <span className="font-black text-xs tracking-[0.1em] uppercase">{c.calNext}</span>
-              <span className="text-2xl leading-tight font-black uppercase tracking-tight">{c.calMonths}</span>
-              <span className="font-bold text-[0.9375rem] leading-snug">{c.calNextNote}</span>
-              <button type="button" onClick={() => goForm('calendar')} className="mt-auto self-start bg-bbq-yellow text-bbq-black border-2 border-bbq-black shadow-hard-sm px-4 py-2 min-h-[44px] font-black text-xs tracking-[0.1em] uppercase">{c.cta}</button>
-            </div>
+            {(openEditions.length ? openEditions : [null]).map((ed) => (
+              <div key={ed ? ed.id : 'next'} className="bg-bbq-red text-white border-4 border-bbq-black shadow-hard p-5 flex flex-col gap-3">
+                <span className="font-black text-xs tracking-[0.1em] uppercase">{c.calNext}</span>
+                <span className="text-2xl leading-tight font-black uppercase tracking-tight">{ed ? edDay(ed, L) : c.calMonths}</span>
+                <span className="font-bold text-[0.9375rem] leading-snug">{ed ? `${lang === 'en' ? ed.titleEn : ed.titlePt} · ${hour(ed.startTime)}–${hour(ed.endTime)}` : c.calNextNote}</span>
+                <button type="button" onClick={() => { if (ed) { setMode('book'); setBook((b) => ({ ...b, editionId: ed.id })); } goForm('calendar'); }} className="mt-auto self-start bg-bbq-yellow text-bbq-black border-2 border-bbq-black shadow-hard-sm px-4 py-2 min-h-[44px] font-black text-xs tracking-[0.1em] uppercase">{ed ? c.calBook : c.cta}</button>
+              </div>
+            ))}
             {c.recent.map((r) => (
               <div key={r.d} className="bg-white border-4 border-bbq-black p-5 flex flex-col gap-3">
                 <div className="flex justify-between items-start gap-3">
@@ -756,11 +1165,275 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                 <span className="font-bold text-sm text-gray-600">{c.calMeta}</span>
               </div>
             ))}
+            {/* Giftbox: ocupa duas colunas a partir de md, imagem à esquerda e texto à direita */}
+            <div className="md:col-span-2 bg-bbq-black text-bbq-cream border-4 border-bbq-black shadow-hard p-5 flex flex-col sm:flex-row items-center gap-5">
+              <img src={GIFT_IMG} alt={c.giftAlt} width={600} height={625} loading="lazy" className="h-44 sm:h-48 w-auto object-contain flex-none" />
+              <div className="flex flex-col gap-3 self-stretch justify-center flex-1 min-w-0">
+                <span className="text-2xl leading-none font-black uppercase tracking-tight text-bbq-yellow">{c.calGiftTag}</span>
+                <span className="text-xl font-black uppercase leading-tight">{c.calGiftTitle}</span>
+                <span className="font-bold text-sm text-gray-300 leading-snug">{c.calGiftNote}</span>
+                <button type="button" onClick={() => openGift('calendar')} className="mt-2 self-start bg-bbq-yellow text-bbq-black border-2 border-bbq-cream px-5 py-2 min-h-[44px] font-black text-xs tracking-[0.1em] uppercase">{c.calGiftCta}</button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* WAITING LIST */}
+      {/* DATAS E RESERVA (pagamento Stripe) */}
+      {(nextEdition || paid || returnState || mode === 'gift' || giftReturn) && (
+        <section id="datas" ref={bookRef} className="bg-bbq-black text-white border-t-4 border-bbq-yellow scroll-mt-24">
+          <div className="max-w-2xl mx-auto px-5 py-20 flex flex-col gap-8">
+            <div className="flex flex-col gap-4">
+              <Eyebrow color="text-bbq-yellow">{c.bookEyebrow}</Eyebrow>
+              <H2>{c.bookH2}</H2>
+              <p className="m-0 text-[1.0625rem] leading-normal font-medium">{c.bookP}</p>
+            </div>
+
+            {paid && (
+              <div role="status" className="bg-bbq-yellow text-bbq-black border-4 border-bbq-cream p-8 flex flex-col gap-3" style={{ boxShadow: '6px 6px 0 0 #d91a2a' }}>
+                {paid.status === 'paid' ? (
+                  <>
+                    <span className="text-3xl font-black uppercase tracking-tight">{c.paidTitle(paid.firstName)}</span>
+                    <p className="m-0 text-lg leading-normal font-bold">{c.paidBody(paid.quantity, paid.edition ? edWhen(paid.edition, L) : '')}</p>
+                  </>
+                ) : (
+                  <p className="m-0 text-lg leading-normal font-bold">{c.pendingBody}</p>
+                )}
+              </div>
+            )}
+            {returnState === 'cancelada' && (
+              <p role="status" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{c.cancelledNote}</p>
+            )}
+
+            {nextEdition && !paid && (
+              <div role="tablist" className="grid grid-cols-2 border-4 border-bbq-cream">
+                {(['book', 'gift'] as const).map((m) => (
+                  <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => { setMode(m); if (m === 'gift') track('workshop_giftbox_click', { where: 'tab', lang }); }}
+                    className={`min-h-[52px] px-3 font-black uppercase tracking-wider text-sm ${mode === m ? 'bg-bbq-yellow text-bbq-black' : 'bg-transparent text-white hover:text-bbq-yellow'}`}>
+                    {m === 'book' ? c.modeBook : c.modeGift}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {mode === 'gift' && (
+              <div className="flex flex-col gap-6">
+                {giftReturn === 'cancelada' && !giftDone && (
+                  <p role="status" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{c.giftCancelled}</p>
+                )}
+                {giftDone ? (
+                  <div role="status" className="bg-bbq-yellow text-bbq-black border-4 border-bbq-cream p-8 flex flex-col gap-3" style={{ boxShadow: '6px 6px 0 0 #d91a2a' }}>
+                    {giftDone.status === 'paid' ? (
+                      <>
+                        <span className="text-3xl font-black uppercase tracking-tight">{c.giftOkTitle(giftDone.firstName)}</span>
+                        <p className="m-0 text-lg leading-normal font-bold">{c.giftOkBody}</p>
+                      </>
+                    ) : (
+                      <p className="m-0 text-lg leading-normal font-bold">{c.giftPending}</p>
+                    )}
+                  </div>
+                ) : (
+                  <form onSubmit={payGift} noValidate className="flex flex-col gap-6">
+                    <div className="flex gap-5 items-center flex-wrap">
+                      <img src={GIFT_IMG} alt={c.giftAlt} width={600} height={625} loading="lazy" className="w-32 h-auto block flex-none" />
+                      <div className="flex flex-col gap-2 flex-1 min-w-[14rem]">
+                        <span className="text-2xl leading-tight font-black uppercase tracking-tight">{c.giftH}</span>
+                        <p className="m-0 leading-normal font-medium">{c.giftP}</p>
+                      </div>
+                    </div>
+                    <div aria-hidden="true" className="absolute -left-[9999px] w-px h-px overflow-hidden">
+                      <label>Website<input tabIndex={-1} autoComplete="off" value={gift.website} onChange={(e) => setG('website')(e.target.value)} /></label>
+                    </div>
+                    <label className="flex flex-col gap-2">
+                      <span className="font-black text-sm tracking-[0.1em] uppercase">{c.gRecipient}</span>
+                      <input className={inputCls} type="text" placeholder={c.gRecipientPh} value={gift.recipientName} onChange={(e) => setG('recipientName')(e.target.value)} />
+                    </label>
+                    <label className="flex flex-col gap-2">
+                      <span className="font-black text-sm tracking-[0.1em] uppercase">{c.gMessage}</span>
+                      <textarea className={`${inputCls} min-h-[96px] text-lg`} maxLength={300} placeholder={c.gMessagePh} value={gift.message} onChange={(e) => setG('message')(e.target.value)} />
+                    </label>
+                    <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(15rem, 100%), 1fr))' }}>
+                      <label className="flex flex-col gap-2">
+                        <span className="font-black text-sm tracking-[0.1em] uppercase">{c.gBuyer}</span>
+                        <input className={inputCls} type="text" autoComplete="name" placeholder={c.phName} value={gift.buyerName} onChange={(e) => setG('buyerName')(e.target.value)} />
+                      </label>
+                      <label className="flex flex-col gap-2">
+                        <span className="font-black text-sm tracking-[0.1em] uppercase">{c.gBuyerEmail}</span>
+                        <input className={inputCls} type="email" autoComplete="email" inputMode="email" placeholder="nome@email.pt" value={gift.buyerEmail} onChange={(e) => setG('buyerEmail')(e.target.value)} />
+                      </label>
+                    </div>
+                    <label className="flex gap-3 items-start cursor-pointer leading-normal text-[0.9375rem]">
+                      <input type="checkbox" checked={gift.consent} onChange={(e) => setG('consent')(e.target.checked)} className="w-6 h-6 m-0 flex-none accent-[#f4b41a]" />
+                      <span>{c.gConsent}<a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-bbq-yellow underline">{c.consentLink}</a>.</span>
+                    </label>
+                    {giftError && <p role="alert" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{giftError}</p>}
+                    <div><Btn type="submit" disabled={giftPaying} style={{ boxShadow: '4px 4px 0 0 #d91a2a' }}>{giftPaying ? c.paying : c.pay(c.money(giftTotal))}</Btn></div>
+                    <p className="m-0 text-sm leading-normal text-white/80">{c.gNote}</p>
+                  </form>
+                )}
+              </div>
+            )}
+
+            {nextEdition && mode === 'book' && (
+              <>
+                <fieldset className="flex flex-col gap-3 border-0 p-0 m-0">
+                  <legend className="font-black text-sm tracking-[0.1em] uppercase mb-2">{c.qDate}</legend>
+                  {openEditions.map((ed) => {
+                    const on = book.editionId === ed.id;
+                    const p = unitFor(ed, book.qty);
+                    return (
+                      <button
+                        key={ed.id}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => { setB('editionId')(ed.id); setB('qty')(Math.min(book.qty, Math.min(6, shownLeft(ed.left)))); }}
+                        className={`text-left border-4 p-5 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center transition-colors ${on ? 'bg-bbq-yellow text-bbq-black border-bbq-cream shadow-[5px_5px_0_0_#d91a2a]' : 'bg-transparent text-white border-white/60 hover:border-bbq-yellow'}`}
+                      >
+                        <span className="flex flex-col gap-2 min-w-0">
+                          {/* Urgência: selo vermelho com ponto a pulsar */}
+                          <span className="self-start inline-flex items-center gap-2 bg-bbq-red text-white px-3 py-1 font-black text-xs tracking-[0.1em] uppercase">
+                            <span className="relative flex h-2 w-2" aria-hidden="true">
+                              <span className="absolute inline-flex h-full w-full rounded-full bg-white opacity-75 animate-ping" />
+                              <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
+                            </span>
+                            {c.spotsLeft(shownLeft(ed.left))}
+                          </span>
+                          <span className="text-2xl leading-none font-black uppercase tracking-tight">{edWhen(ed, L)}</span>
+                          <span className="font-bold leading-snug">{lang === 'en' ? ed.titleEn : ed.titlePt}</span>
+                          <span className={`text-sm font-bold ${on ? 'text-bbq-black/70' : 'text-white/70'}`}>{ed.location}</span>
+                        </span>
+                        <span className="flex items-baseline gap-2 sm:flex-col sm:items-end sm:gap-1 sm:pl-4">
+                          <span className="text-4xl leading-none font-black tracking-tight">{c.money(p)}</span>
+                          <span className={`text-xs font-black tracking-[0.08em] uppercase ${on ? 'text-bbq-black/70' : 'text-white/70'}`}>{c.perPerson}</span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </fieldset>
+                <div className="flex flex-col gap-3">
+                  {/* Datas futuras: waiting list com prioridade exclusiva (registo curto, mesmos emails e convites) */}
+                  <button
+                    type="button"
+                    aria-expanded={altOpen}
+                    onClick={() => { if (!altOpen) track('workshop_waitlist_link_open', { lang, where: 'future_box' }); setAltOpen(!altOpen); }}
+                    className={`text-left border-4 border-dashed p-5 flex flex-col gap-2 transition-colors ${altOpen ? 'border-bbq-yellow' : 'border-white/40 hover:border-bbq-yellow'}`}
+                  >
+                    <span className="self-start bg-bbq-yellow text-bbq-black px-3 py-1 font-black text-xs tracking-[0.1em] uppercase">{c.futureTag}</span>
+                    <span className="text-2xl leading-none font-black uppercase tracking-tight">{c.futureTitle}</span>
+                    <span className="font-bold leading-snug text-white/80">{c.futureText}</span>
+                    {!altOpen && <span className="font-black text-sm tracking-[0.1em] uppercase text-bbq-yellow underline underline-offset-4">{c.futureCta} →</span>}
+                  </button>
+                  {altOpen && (quickDone ? (
+                  <div className="flex flex-col gap-4">
+                    <p role="status" className="m-0 font-bold leading-snug">{c.altDone(quickDone)}</p>
+                    {renderShare()}
+                  </div>
+                ) : (
+                  <form onSubmit={submitQuick} noValidate className="flex flex-col gap-4 border-4 border-bbq-yellow p-5">
+                    <p className="m-0 font-black uppercase leading-tight">{returnState === 'cancelada' ? c.altCancelTitle : c.altTitle}</p>
+                    <div aria-hidden="true" className="absolute -left-[9999px] w-px h-px overflow-hidden">
+                      <label>Website<input tabIndex={-1} autoComplete="off" value={quick.website} onChange={(e) => setQ('website')(e.target.value)} /></label>
+                    </div>
+                    <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(13rem, 100%), 1fr))' }}>
+                      <input aria-label={c.lName} className={inputCls} type="text" autoComplete="name" placeholder={c.phName} value={quick.name} onChange={(e) => setQ('name')(e.target.value)} />
+                      <input aria-label={c.lEmail} className={inputCls} type="email" autoComplete="email" inputMode="email" placeholder="nome@email.pt" value={quick.email} onChange={(e) => setQ('email')(e.target.value)} />
+                    </div>
+                    <fieldset className="flex flex-col gap-2 border-0 p-0 m-0">
+                      <legend className="font-black text-sm tracking-[0.1em] uppercase mb-2">{c.altSlot}</legend>
+                      <div className="flex flex-wrap gap-2">
+                        {SLOTS.map((o) => (
+                          <button key={o.value} type="button" aria-pressed={quick.slot === o.value} onClick={() => setQ('slot')(o.value)}
+                            className={`min-h-[44px] px-4 border-2 font-bold ${quick.slot === o.value ? 'bg-bbq-yellow text-bbq-black border-bbq-yellow' : 'border-white text-white'}`}>
+                            {o[lang]}
+                          </button>
+                        ))}
+                      </div>
+                    </fieldset>
+                    <label className="flex gap-3 items-start cursor-pointer leading-normal text-sm">
+                      <input type="checkbox" checked={quick.consent} onChange={(e) => setQ('consent')(e.target.checked)} className="w-5 h-5 m-0 flex-none accent-[#f4b41a]" />
+                      <span>{c.altConsent}<a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-bbq-yellow underline">{c.consentLink}</a>.</span>
+                    </label>
+                    {quickError && <p role="alert" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{quickError}</p>}
+                    <div>
+                      <button type="submit" disabled={quickSending} className="min-h-[48px] px-6 border-4 border-white text-white font-black uppercase tracking-wider text-sm hover:bg-white hover:text-bbq-black transition-colors disabled:opacity-60">
+                        {quickSending ? c.sending : c.altSubmit}
+                      </button>
+                    </div>
+                  </form>
+                ))}
+                </div>
+              <form onSubmit={pay} noValidate className="flex flex-col gap-6">
+                <div aria-hidden="true" className="absolute -left-[9999px] w-px h-px overflow-hidden">
+                  <label>Website<input tabIndex={-1} autoComplete="off" value={book.website} onChange={(e) => setB('website')(e.target.value)} /></label>
+                </div>
+
+                <fieldset className="flex flex-col gap-2 border-0 p-0 m-0">
+                  <legend className="font-black text-sm tracking-[0.1em] uppercase mb-2">{c.qQty}</legend>
+                  <div className="flex items-center gap-3">
+                    <button type="button" aria-label="-" onClick={() => setB('qty')(Math.max(1, book.qty - 1))} disabled={book.qty <= 1} className="w-14 h-14 border-4 border-white font-black text-2xl disabled:opacity-40">−</button>
+                    <span aria-live="polite" className="min-w-[3rem] text-center text-4xl font-black">{book.qty}</span>
+                    <button type="button" aria-label="+" onClick={() => setB('qty')(Math.min(maxQty, book.qty + 1))} disabled={book.qty >= maxQty} className="w-14 h-14 border-4 border-white font-black text-2xl disabled:opacity-40">+</button>
+                    {!voucher && <span className="font-bold">× {c.money(unitPrice)} {c.perPerson}</span>}
+                  </div>
+                  {invite && chosen?.invitePrice && <span className="font-bold text-bbq-yellow">{c.inviteApplied}</span>}
+                  {!voucher && groupOn && (
+                    <span className="font-bold text-bbq-yellow">
+                      <s className="text-white/70 mr-2">{c.money(chosen!.price * book.qty)}</s>{c.groupApplied(c.money(groupSaving))}
+                    </span>
+                  )}
+                </fieldset>
+
+                <div className="flex flex-col gap-3">
+                  {voucher ? (
+                    <p className="m-0 font-bold text-bbq-yellow">
+                      {c.vApplied(fmtGift(voucher))} {book.qty > 1 && c.vExtra(c.money(companionUnit))}{' '}
+                      <button type="button" onClick={() => setVoucher(null)} className="underline underline-offset-4 text-white font-bold">{c.vRemove}</button>
+                    </p>
+                  ) : !voucherOpen ? (
+                    <button type="button" onClick={() => setVoucherOpen(true)} className="self-start underline underline-offset-4 font-bold text-white/90">{c.vLink}</button>
+                  ) : (
+                    <div className="flex flex-wrap gap-3 items-stretch">
+                      <input aria-label={c.vLink} className={`${inputCls} !w-auto flex-1 min-w-[12rem] uppercase tracking-widest`} type="text" placeholder="XXXX-XXXX" value={voucherInput} onChange={(e) => { setVoucherInput(e.target.value); setVoucherError(''); }} />
+                      <button type="button" onClick={() => applyVoucher()} className="px-6 border-4 border-white text-white font-black uppercase tracking-wider text-sm hover:bg-white hover:text-bbq-black transition-colors">{c.vApply}</button>
+                    </div>
+                  )}
+                  {voucherError && <p role="alert" className="m-0 font-bold text-bbq-yellow">{voucherError}</p>}
+                </div>
+
+                <label className="flex flex-col gap-2">
+                  <span className="font-black text-sm tracking-[0.1em] uppercase">{c.lName}</span>
+                  <input className={inputCls} type="text" autoComplete="name" placeholder={c.phName} value={book.name} onChange={(e) => setB('name')(e.target.value)} />
+                </label>
+                <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(15rem, 100%), 1fr))' }}>
+                  <label className="flex flex-col gap-2">
+                    <span className="font-black text-sm tracking-[0.1em] uppercase">{c.lEmail}</span>
+                    <input className={inputCls} type="email" autoComplete="email" inputMode="email" placeholder="nome@email.pt" value={book.email} onChange={(e) => setB('email')(e.target.value)} />
+                  </label>
+                  <label className="flex flex-col gap-2">
+                    <span className="font-black text-sm tracking-[0.1em] uppercase">{c.lPhone}</span>
+                    <input className={inputCls} type="tel" autoComplete="tel" inputMode="tel" placeholder="912 345 678" value={book.phone} onChange={(e) => setB('phone')(e.target.value)} />
+                  </label>
+                </div>
+                <label className="flex gap-3 items-start cursor-pointer leading-normal text-[0.9375rem]">
+                  <input type="checkbox" checked={book.consent} onChange={(e) => setB('consent')(e.target.checked)} className="w-6 h-6 m-0 flex-none accent-[#f4b41a]" />
+                  <span>{c.bookConsentBefore}<a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-bbq-yellow underline">{c.consentLink}</a>{c.bookConsentAfter}</span>
+                </label>
+                {bookError && <p role="alert" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{bookError}</p>}
+                <div className="flex flex-wrap items-center gap-4">
+                  <Btn type="submit" disabled={paying} style={{ boxShadow: '4px 4px 0 0 #d91a2a' }}>{paying ? c.paying : total === 0 ? c.payFree : c.bookCta}</Btn>
+                </div>
+                <p className="m-0 text-sm leading-normal text-white/80">{c.payNote}</p>
+              </form>
+              </>
+            )}
+
+          </div>
+        </section>
+      )}
+
+      {/* WAITING LIST: só quando não há datas à venda. Com datas abertas, a
+          lista vive como link discreto dentro do bloco de compra. */}
+      {editions !== null && !nextEdition && (
       <section id="reserva" ref={formRef} className="border-t-4 border-bbq-black scroll-mt-24">
         <div className="max-w-2xl mx-auto px-5 py-20 flex flex-col gap-8">
           <div className="flex flex-col gap-4">
@@ -777,31 +1450,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                   {done.duplicate ? c.doneDup : c.doneNew}
                 </p>
               </div>
-              {canShare && (
-                <div className="border-4 border-bbq-yellow p-6 flex flex-col gap-4">
-                  <p className="m-0 font-black uppercase text-xl leading-tight text-bbq-yellow">{c.inviteBoxTitle}</p>
-                  <p className="m-0 leading-normal">{c.inviteBoxText(done.invitePrice!, done.publicPrice!)}</p>
-                  <p className="m-0 leading-normal">{c.inviteBoxMore(done.invitePrice!)}</p>
-                  <span className="font-black text-sm tracking-[0.1em] uppercase">{c.shareLabel}</span>
-                  <div className="flex flex-wrap gap-2">
-                    {shareChannels.map((ch) => (
-                      <a
-                        key={ch.id}
-                        href={ch.href}
-                        target={ch.id === 'email' ? undefined : '_blank'}
-                        rel="noopener noreferrer"
-                        onClick={() => track('workshop_invite_shared', { channel: ch.id, lang, variant })}
-                        className={shareBtn}
-                      >
-                        {ch.label}
-                      </a>
-                    ))}
-                    <button type="button" onClick={shareInstagram} className={shareBtn}>Instagram</button>
-                    <button type="button" onClick={shareCopy} className={shareBtn}>{c.shareCopy}</button>
-                  </div>
-                  <p role="status" className="m-0 text-sm font-bold break-all min-h-[1.25rem]">{shareNote}</p>
-                </div>
-              )}
+              {renderShare()}
             </>
           ) : (
             <form onSubmit={submit} noValidate className="flex flex-col gap-6">
@@ -835,7 +1484,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
               </label>
               <label className="flex gap-3 items-start cursor-pointer leading-normal text-[0.9375rem]">
                 <input type="checkbox" checked={form.consent} onChange={(e) => set('consent')(e.target.checked)} className="w-6 h-6 m-0 flex-none accent-[#f4b41a]" />
-                <span>{c.consentBefore}<a href="mailto:pitmasters@lisbonbbq.pt" className="text-bbq-yellow underline">pitmasters@lisbonbbq.pt</a>{c.consentMid}<a href="/privacy" className="text-bbq-yellow underline">{c.consentLink}</a>{c.consentAfter}</span>
+                <span>{c.consentBefore}<a href="mailto:pitmasters@lisbonbbq.pt" className="text-bbq-yellow underline">pitmasters@lisbonbbq.pt</a>{c.consentMid}<a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-bbq-yellow underline">{c.consentLink}</a>{c.consentAfter}</span>
               </label>
               {error && <p role="alert" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{error}</p>}
               <div><Btn type="submit" disabled={sending}>{sending ? c.sending : c.submit}</Btn></div>
@@ -844,6 +1493,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
           )}
         </div>
       </section>
+      )}
 
       {/* CTA fixo no telemóvel */}
       {!done && !hideSticky && (
@@ -853,7 +1503,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
             onClick={() => goForm('sticky')}
             className="w-full bg-bbq-yellow text-bbq-black hover:bg-bbq-cream border-2 border-bbq-black shadow-hard-sm active:shadow-none font-black uppercase tracking-wider text-sm min-h-[44px] px-4 py-2 transition-colors"
           >
-            {c.cta}
+            {ctaLabel}
           </button>
         </div>
       )}
