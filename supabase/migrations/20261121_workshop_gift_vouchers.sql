@@ -1,5 +1,5 @@
 -- POR APLICAR no projeto Supabase mlqdpjiolbyewcumvajn (antes do merge).
--- Giftbox: voucher de 1 lugar no workshop, válido 12 meses, com caixa física opcional.
+-- Giftbox: voucher digital de 1 lugar no workshop, válido 12 meses.
 create table if not exists public.workshop_gift_vouchers (
   id uuid primary key default gen_random_uuid(),
   created_at timestamptz not null default now(),
@@ -8,8 +8,6 @@ create table if not exists public.workshop_gift_vouchers (
   buyer_email text not null,
   recipient_name text,
   message text,
-  physical boolean not null default false,
-  shipping jsonb,
   amount_cents int not null,
   lang text not null default 'pt',
   consent boolean not null default false,
@@ -23,7 +21,6 @@ create table if not exists public.workshop_gift_vouchers (
   paid_at timestamptz,
   valid_until date,
   email_sent_at timestamptz,
-  shipped_at timestamptz,
   redeemed_at timestamptz,
   redeemed_booking_id uuid references public.workshop_bookings(id)
 );

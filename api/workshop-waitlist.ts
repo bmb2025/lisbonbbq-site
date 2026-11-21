@@ -617,11 +617,9 @@ async function markBookingPaid(session: any) {
 }
 
 // ── Giftbox ──
-// Voucher de 1 lugar no workshop, válido 12 meses. Caixa física opcional
-// (+15€, envio CTT; morada recolhida no Checkout). Resgate: código no checkout
+// Voucher digital de 1 lugar no workshop, válido 12 meses. Resgate: código no checkout
 // do workshop (createCheckout); lugares extra pagam o preço de acompanhante.
 const GIFT_PRICE_CENTS = 11000;
-const GIFT_BOX_CENTS = 1500;
 const GIFT_VALID_MONTHS = 12;
 const GIFT_CONSENT_TEXT =
   "Autorizo a Lisbon BBQ a guardar estes dados para processar a compra da Giftbox e enviar o voucher, de acordo com o RGPD. Posso pedir para os apagar a qualquer momento em pitmasters@lisbonbbq.pt.";
@@ -668,7 +666,6 @@ async function createGiftCheckout(req: any, res: any) {
   const buyerEmail = str(b.buyerEmail, 200).toLowerCase();
   const recipientName = str(b.recipientName, 80);
   const message = str(b.message, 300);
-  const physical = b.physical === true;
   const consent = b.consent === true;
   const lang: Lang = b.lang === "en" ? "en" : "pt";
 
@@ -678,13 +675,13 @@ async function createGiftCheckout(req: any, res: any) {
   if (!consent) errors.push("consentimento");
   if (errors.length) return res.status(400).json({ error: "invalid", fields: errors });
 
-  const amount = GIFT_PRICE_CENTS + (physical ? GIFT_BOX_CENTS : 0);
+  const amount = GIFT_PRICE_CENTS;
   const expiresAt = new Date(Date.now() + CHECKOUT_TTL_MIN * 60 * 1000 + 30 * 1000);
   let gift: any = null;
   for (let attempt = 0; attempt < 5 && !gift; attempt++) {
     const { data, error } = await supabase.from("workshop_gift_vouchers").insert({
       code: newGiftCode(), buyer_name: buyerName, buyer_email: buyerEmail,
-      recipient_name: recipientName || null, message: message || null, physical, amount_cents: amount, lang,
+      recipient_name: recipientName || null, message: message || null, amount_cents: amount, lang,
       consent, consent_at: new Date().toISOString(), consent_text: lang === "en" ? GIFT_CONSENT_TEXT_EN : GIFT_CONSENT_TEXT,
       utm: b.utm && typeof b.utm === "object" ? b.utm : null,
       status: "pending", expires_at: expiresAt.toISOString(),
@@ -699,7 +696,7 @@ async function createGiftCheckout(req: any, res: any) {
 
   const origin = siteOrigin(req);
   const en = lang === "en";
-  const line_items: any[] = [{
+  const line_items = [{
     quantity: 1,
     price_data: {
       currency: "eur", unit_amount: GIFT_PRICE_CENTS,
@@ -709,15 +706,6 @@ async function createGiftCheckout(req: any, res: any) {
       },
     },
   }];
-  if (physical) {
-    line_items.push({
-      quantity: 1,
-      price_data: {
-        currency: "eur", unit_amount: GIFT_BOX_CENTS,
-        product_data: { name: en ? "Physical box + CTT delivery" : "Caixa física + envio CTT", description: en ? "Mainland Portugal, 3–5 working days." : "Portugal continental, 3–5 dias úteis." },
-      },
-    });
-  }
   try {
     const session = await stripe("POST", "/checkout/sessions", {
       mode: "payment",
@@ -726,7 +714,6 @@ async function createGiftCheckout(req: any, res: any) {
       client_reference_id: gift.id,
       expires_at: Math.floor(expiresAt.getTime() / 1000) - 30,
       line_items,
-      ...(physical ? { shipping_address_collection: { allowed_countries: ["PT"] }, phone_number_collection: { enabled: true } } : {}),
       metadata: { gift_id: gift.id, kind: "workshop" },
       payment_intent_data: { description: "Giftbox workshop", metadata: { gift_id: gift.id, kind: "workshop" } },
       success_url: `${origin}/workshop?giftbox=ok&session_id={CHECKOUT_SESSION_ID}${en ? "&lang=en" : ""}`,
@@ -758,7 +745,7 @@ function giftEmail(g: any) {
          <p style="margin:0">Valid until ${untilTxt}.</p>
        </div>
        <p><strong>How to use it:</strong> open <a href="${link}">${link}</a>, pick a date and the code is applied at checkout. Bringing someone? Each extra spot is €90.</p>
-       ${g.physical ? "<p>The physical box ships by CTT in 3–5 working days to the address you gave us.</p>" : "<p>You can forward this email or print it and give it as a gift.</p>"}
+       <p>You can forward this email or print it and give it as a gift.</p>
        <p>See you at the embers,<br><strong>LisbonBBQ team</strong></p>`,
       "en"
     );
@@ -772,7 +759,7 @@ function giftEmail(g: any) {
        <p style="margin:0">Válido até ${untilTxt}.</p>
      </div>
      <p><strong>Como usar:</strong> abre <a href="${link}">${link}</a>, escolhe a data e o código fica aplicado no pagamento. Quer levar alguém? Cada lugar extra fica a 90€.</p>
-     ${g.physical ? "<p>A caixa física segue por CTT em 3–5 dias úteis para a morada que indicaste.</p>" : "<p>Podes reencaminhar este email ou imprimi-lo e oferecê-lo.</p>"}
+     <p>Podes reencaminhar este email ou imprimi-lo e oferecê-lo.</p>
      <p>Até à brasa,<br><strong>Equipa LisbonBBQ</strong></p>`
   );
 }
@@ -787,7 +774,6 @@ async function markGiftPaid(session: any) {
   if (g.status === "pending" || g.status === "expired") {
     const until = new Date();
     until.setMonth(until.getMonth() + GIFT_VALID_MONTHS);
-    const ship = session.shipping_details || session.collected_information?.shipping_details || null;
     const update = {
       status: "paid",
       paid_at: new Date().toISOString(),
@@ -795,7 +781,6 @@ async function markGiftPaid(session: any) {
       stripe_session_id: session.id,
       stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
       amount_cents: session.amount_total ?? g.amount_cents,
-      shipping: g.physical && ship ? { ...ship, phone: session.customer_details?.phone || null } : null,
     };
     await supabase.from("workshop_gift_vouchers").update(update).eq("id", g.id);
     row = { ...g, ...update };
@@ -813,18 +798,15 @@ async function markGiftPaid(session: any) {
   } catch (e) {
     console.error("[workshop-gift] voucher email failed:", e);
   }
-  const addr = row.shipping?.address;
   try {
     await resend.emails.send({
       from: FROM, to: NOTIFY_EMAIL,
-      subject: `🎁 Giftbox paga: ${row.buyer_name}${row.physical ? " · ENVIAR CAIXA" : ""}`,
+      subject: `🎁 Giftbox paga: ${row.buyer_name}`,
       html: `<table style="font-family:Arial,sans-serif;font-size:14px">${([
         ["Código", fmtGift(row.code)], ["Comprador", row.buyer_name], ["Email", row.buyer_email],
         ["Para", row.recipient_name || "—"], ["Mensagem", row.message || "—"],
         ["Total", `${(row.amount_cents / 100).toFixed(2)}€`], ["Válido até", row.valid_until || "—"],
-        ["Caixa física", row.physical ? "SIM, enviar por CTT" : "não"],
-        ["Morada", addr ? [row.shipping?.name, addr.line1, addr.line2, `${addr.postal_code || ""} ${addr.city || ""}`, addr.country].filter(Boolean).join(", ") : "—"],
-        ["Telefone", row.shipping?.phone || "—"], ["Sessão Stripe", session.id],
+        ["Sessão Stripe", session.id],
       ] as [string, string][]).map(([k, v]) => `<tr><td style="padding:6px 12px;font-weight:bold;color:#555">${k}</td><td style="padding:6px 12px">${escapeHtml(v)}</td></tr>`).join("")}</table>`,
     });
   } catch (e) {
@@ -836,7 +818,7 @@ async function markGiftPaid(session: any) {
 async function getGift(req: any, res: any) {
   const sessionId = str(req.query?.session_id, 200);
   if (!/^cs_(test|live)_[A-Za-z0-9]+$/.test(sessionId)) return res.status(400).json({ error: "invalid" });
-  const { data: g } = await supabase.from("workshop_gift_vouchers").select("status, buyer_name, physical, valid_until").eq("stripe_session_id", sessionId).maybeSingle();
+  const { data: g } = await supabase.from("workshop_gift_vouchers").select("status, buyer_name, valid_until").eq("stripe_session_id", sessionId).maybeSingle();
   if (!g) return res.status(404).json({ error: "not_found" });
   let status = g.status;
   if (status === "pending") {
@@ -848,7 +830,7 @@ async function getGift(req: any, res: any) {
     }
   }
   res.setHeader("Cache-Control", "no-store");
-  return res.status(200).json({ status, firstName: firstName(g.buyer_name), physical: g.physical });
+  return res.status(200).json({ status, firstName: firstName(g.buyer_name) });
 }
 
 async function stripeWebhook(req: any, res: any) {

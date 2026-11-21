@@ -8,9 +8,8 @@ import { track, identifyLead } from '../services/analytics';
 // Preços: têm de ficar iguais a PRICES em api/workshop-waitlist.ts, que é quem
 // decide o preço de facto. A variante vem do link do anúncio (?v=b) para o teste
 // de preço; sem parâmetro é a variante "a".
-// Giftbox: têm de ficar iguais a GIFT_PRICE_CENTS / GIFT_BOX_CENTS em api/workshop-waitlist.ts.
+// Giftbox: tem de ficar igual a GIFT_PRICE_CENTS em api/workshop-waitlist.ts.
 const GIFT_PRICE = 110;
-const GIFT_BOX = 15;
 const GIFT_IMG = '/images/workshop/giftbox.webp';
 
 export const WORKSHOP_PRICES: Record<string, { public: number; invite: number }> = {
@@ -229,13 +228,12 @@ const COPY = {
     gRecipientPh: 'Nome de quem recebe',
     gMessage: 'Mensagem (opcional)',
     gMessagePh: 'Parabéns! Vemo-nos na brasa.',
-    gPhysical: (p: string) => `Quero a caixa física (+${p}, envio CTT em 3–5 dias úteis)`,
     gBuyer: 'O teu nome',
     gBuyerEmail: 'O teu email (o voucher chega aqui)',
     gConsent: 'Autorizo a Lisbon BBQ a guardar estes dados para processar a compra e enviar o voucher, de acordo com a ',
-    gNote: 'O voucher chega por email logo após o pagamento, pronto a reencaminhar ou imprimir. A morada para a caixa física é pedida na página da Stripe.',
+    gNote: 'O voucher chega por email logo após o pagamento, pronto a reencaminhar ou imprimir.',
     giftOkTitle: (n: string) => `Obrigado, ${n}!`,
-    giftOkBody: (phys: boolean) => `Enviámos o voucher para o teu email.${phys ? ' A caixa física segue por CTT em 3–5 dias úteis.' : ''}`,
+    giftOkBody: 'Enviámos o voucher para o teu email, pronto a reencaminhar ou imprimir.',
     giftPending: 'Estamos a confirmar o pagamento. O voucher chega por email dentro de minutos.',
     giftCancelled: 'O pagamento da Giftbox não foi concluído e não te cobrámos nada.',
     vLink: 'Tens um voucher Giftbox?',
@@ -425,13 +423,12 @@ const COPY = {
     gRecipientPh: "Recipient's name",
     gMessage: 'Message (optional)',
     gMessagePh: 'Happy birthday! See you at the embers.',
-    gPhysical: (p: string) => `I want the physical box (+${p}, CTT delivery in 3–5 working days)`,
     gBuyer: 'Your name',
     gBuyerEmail: 'Your email (the voucher goes here)',
     gConsent: 'I authorise Lisbon BBQ to store this data to process the purchase and send the voucher, in accordance with the ',
-    gNote: "The voucher arrives by email right after payment, ready to forward or print. The address for the physical box is asked on Stripe's page.",
+    gNote: "The voucher arrives by email right after payment, ready to forward or print.",
     giftOkTitle: (n: string) => `Thank you, ${n}!`,
-    giftOkBody: (phys: boolean) => `We've sent the voucher to your email.${phys ? ' The physical box ships by CTT in 3–5 working days.' : ''}`,
+    giftOkBody: "We've sent the voucher to your email, ready to forward or print.",
     giftPending: "We're confirming the payment. The voucher will arrive by email in a few minutes.",
     giftCancelled: "The Giftbox payment wasn't completed and you haven't been charged.",
     vLink: 'Have a Giftbox voucher?',
@@ -637,12 +634,12 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
   // ── Giftbox ──
   const giftReturn = params.get('giftbox');
   const [mode, setMode] = useState<'book' | 'gift'>(giftReturn ? 'gift' : 'book');
-  const [gift, setGift] = useState({ buyerName: '', buyerEmail: '', recipientName: '', message: '', physical: false, consent: false, website: '' });
+  const [gift, setGift] = useState({ buyerName: '', buyerEmail: '', recipientName: '', message: '', consent: false, website: '' });
   const [giftError, setGiftError] = useState('');
   const [giftPaying, setGiftPaying] = useState(false);
-  const [giftDone, setGiftDone] = useState<{ status: string; firstName: string; physical: boolean } | null>(null);
+  const [giftDone, setGiftDone] = useState<{ status: string; firstName: string } | null>(null);
   const setG = (k: keyof typeof gift) => (v: any) => { setGift((g) => ({ ...g, [k]: v })); setGiftError(''); };
-  const giftTotal = (GIFT_PRICE + (gift.physical ? GIFT_BOX : 0));
+  const giftTotal = GIFT_PRICE;
   const openGift = (where: string) => {
     track('workshop_giftbox_click', { where, lang });
     setMode('gift');
@@ -661,7 +658,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
           const key = `workshop_gift_${sid}`;
           let seen = false;
           try { seen = !!sessionStorage.getItem(key); sessionStorage.setItem(key, '1'); } catch { /* sem storage */ }
-          if (!seen) track('workshop_giftbox_purchase', { physical: d.physical, value: GIFT_PRICE + (d.physical ? GIFT_BOX : 0), currency: 'EUR', lang });
+          if (!seen) track('workshop_giftbox_purchase', { value: GIFT_PRICE, currency: 'EUR', lang });
         }
       })
       .catch(() => {});
@@ -687,7 +684,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
       const d = await r.json().catch(() => ({}));
       if (!r.ok || !d?.url) throw new Error(d?.error || 'failed');
       identifyLead({ email: gift.buyerEmail.trim(), name: gift.buyerName.trim() });
-      track('workshop_giftbox_checkout_started', { physical: gift.physical, value: giftTotal, lang });
+      track('workshop_giftbox_checkout_started', { value: giftTotal, lang });
       window.location.href = d.url;
     } catch {
       setGiftError(c.errPay);
@@ -1193,7 +1190,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                     {giftDone.status === 'paid' ? (
                       <>
                         <span className="text-3xl font-black uppercase tracking-tight">{c.giftOkTitle(giftDone.firstName)}</span>
-                        <p className="m-0 text-lg leading-normal font-bold">{c.giftOkBody(giftDone.physical)}</p>
+                        <p className="m-0 text-lg leading-normal font-bold">{c.giftOkBody}</p>
                       </>
                     ) : (
                       <p className="m-0 text-lg leading-normal font-bold">{c.giftPending}</p>
@@ -1218,10 +1215,6 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                     <label className="flex flex-col gap-2">
                       <span className="font-black text-sm tracking-[0.1em] uppercase">{c.gMessage}</span>
                       <textarea className={`${inputCls} min-h-[96px] text-lg`} maxLength={300} placeholder={c.gMessagePh} value={gift.message} onChange={(e) => setG('message')(e.target.value)} />
-                    </label>
-                    <label className="flex gap-3 items-start cursor-pointer leading-normal font-bold">
-                      <input type="checkbox" checked={gift.physical} onChange={(e) => setG('physical')(e.target.checked)} className="w-6 h-6 m-0 flex-none accent-[#f4b41a]" />
-                      <span>{c.gPhysical(c.money(GIFT_BOX))}</span>
                     </label>
                     <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(15rem, 100%), 1fr))' }}>
                       <label className="flex flex-col gap-2">
