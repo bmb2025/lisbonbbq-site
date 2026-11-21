@@ -236,36 +236,132 @@ function announceEmail(row: any, editions: any[]) {
   const listOnly = editions.length > 0 && editions.every((e) => e.list_only === true);
   const fn = escapeHtml(firstName(row.name));
   const link = `${SITE}/workshop?utm_source=waitlist&utm_medium=email&utm_campaign=novas-datas${en ? "&lang=en" : ""}#datas`;
-  const items = editions.map((e) => {
-    const when = escapeHtml(editionWhen(e, en ? "en" : "pt"));
-    const title = escapeHtml(String((en ? e.title_en : e.title_pt) || "").split(/\s*[\r\n]+\s*/).join(" · "));
-    return `<p style="margin:0 0 10px"><strong>${when}</strong><br>${title}</p>`;
-  }).join("");
   const pub = Math.round((editions[0]?.price_cents ?? 11000) / 100);
   const inv = Math.round((editions[0]?.invite_price_cents ?? editions[0]?.price_cents ?? 9000) / 100);
   const locked = row.locked_price != null;
-  const hero = `<a href="${link}"><img class="hero" src="${SITE}/images/email/workshop.jpg" width="530" alt="${en ? "Barbecue workshop at Lisbon BBQ: four people at the charcoal grill" : "Workshop de churrasco da Lisbon BBQ: quatro pessoas à volta da grelha a carvão"}"></a>`;
-  if (en) {
-    return layout(
-      "New dates are open",
-      `${hero}<p>${fn}, you're on the waiting list, so you hear it first: new barbecue workshop dates are open.</p>
-       <div class="box">${items}</div>
-       <p>${locked ? `Your invite still counts: your spot is <strong>€${inv}</strong>.` : `<strong>€${pub}</strong> per person, or <strong>€${inv} each</strong> if you bring someone.`} Small groups, so spots go fast.</p>
-       <p style="margin:24px 0"><a class="btn" href="${link}">Pick your date</a></p>
-       ${listOnly ? "<p>For the next 48 hours this is just for the list. After that we open it to everyone.</p>" : ""}
-       <p>See you at the embers,<br><strong>LisbonBBQ team</strong></p>`,
-      "en"
-    );
-  }
-  return layout(
-    "Abriram datas novas",
-    `${hero}<p>${fn}, estás na waiting list, por isso és dos primeiros a saber: abrimos novas datas do workshop de churrasco.</p>
-     <div class="box">${items}</div>
-     <p>${locked ? `O teu convite continua a valer: o teu lugar fica a <strong>${inv}€</strong>.` : `<strong>${pub}€</strong> por pessoa, ou <strong>${inv}€ cada</strong> se vieres acompanhado.`} Os grupos são pequenos e as vagas vão depressa.</p>
-     <p style="margin:24px 0"><a class="btn" href="${link}">Escolher a data</a></p>
-     ${listOnly ? "<p>Durante as próximas 48 horas isto é só para a lista. Depois abrimos a toda a gente.</p>" : ""}
-     <p>Até à brasa,<br><strong>Equipa LisbonBBQ</strong></p>`
-  );
+  const F = "font-family:Arial,Helvetica,sans-serif;";
+  const LOGO = "https://mlqdpjiolbyewcumvajn.supabase.co/storage/v1/object/public/lisbonbbq-media/Fotos/Newsletters/chaves-05-set-logo-badge.png";
+  const IG = "https://www.instagram.com/lisbon.barbecue.churrasco/";
+
+  const t = en ? {
+    title: "New barbecue workshop dates are open",
+    pre: "New workshop dates are open. You're on the list, so you hear it first 🔥",
+    tag: "BARBECUE WORKSHOP &middot; LISBON",
+    h1: "NEW DATES ARE OPEN &#128293;",
+    p1: `${fn}, you're on the waiting list, so you hear it first: we've opened new dates for the barbecue workshop.`,
+    p2: "Three hours around the fire, a pitmaster by your side and the long table at the end.",
+    badge: "&#128197; DATES OPEN",
+    boxTitle: "PICK YOUR DATE",
+    price: locked ? `Your invite still counts: your spot is <strong style="color:#F4B41A;">&euro;${inv}</strong>.` : `<strong style="color:#F4B41A;">&euro;${pub}</strong> per person, or <strong style="color:#F4B41A;">&euro;${inv} each</strong> if you bring someone. Small groups, so spots go fast.`,
+    cta: "PICK YOUR DATE",
+    priority: "For the next 48 hours this is just for the list. After that we open it to everyone.",
+    after: `Questions? Just reply to this email or find us on Instagram <a href="${IG}" target="_blank" style="color:#D91A2A;font-weight:700;text-decoration:none;">@lisbon.barbecue.churrasco</a>.`,
+    why: `You are receiving this email because you joined the workshop waiting list. To stop receiving them, reply with "unsubscribe".`,
+    alt: "Barbecue workshop at Lisbon BBQ: four people at the charcoal grill",
+  } : {
+    title: "Abriram datas novas do workshop de churrasco",
+    pre: "Abrimos novas datas do workshop. Estás na lista, por isso és dos primeiros a saber 🔥",
+    tag: "WORKSHOP DE CHURRASCO &middot; LISBOA",
+    h1: "ABRIRAM DATAS NOVAS &#128293;",
+    p1: `${fn}, estás na waiting list, por isso és dos primeiros a saber: abrimos novas datas do workshop de churrasco.`,
+    p2: "Três horas à volta do fogo, um pitmaster ao teu lado e a mesa longa no fim.",
+    badge: "&#128197; DATAS ABERTAS",
+    boxTitle: "ESCOLHE A TUA DATA",
+    price: locked ? `O teu convite continua a valer: o teu lugar fica a <strong style="color:#F4B41A;">${inv}&euro;</strong>.` : `<strong style="color:#F4B41A;">${pub}&euro;</strong> por pessoa, ou <strong style="color:#F4B41A;">${inv}&euro; cada</strong> se vieres acompanhado. Os grupos são pequenos e as vagas vão depressa.`,
+    cta: "ESCOLHER A DATA",
+    priority: "Durante as próximas 48 horas isto é só para a lista. Depois abrimos a toda a gente.",
+    after: `Dúvidas? Responde a este email ou fala connosco no Instagram <a href="${IG}" target="_blank" style="color:#D91A2A;font-weight:700;text-decoration:none;">@lisbon.barbecue.churrasco</a>.`,
+    why: `Estás a receber este email porque entraste na waiting list do workshop. Para deixares de receber, responde com "sair".`,
+    alt: "Workshop de churrasco da Lisbon BBQ: quatro pessoas à volta da grelha a carvão",
+  };
+
+  const dates = editions.map((e) => {
+    const when = escapeHtml(editionWhen(e, en ? "en" : "pt"));
+    const title = escapeHtml(String((en ? e.title_en : e.title_pt) || "").split(/\s*[\r\n]+\s*/).join(" · "));
+    return `<tr><td style="padding-top:12px;padding-bottom:12px;border-top:1px solid #333333;">
+      <div style="${F}font-size:16px;line-height:20px;font-weight:900;color:#F9F7F2;">${when.toUpperCase()}</div>
+      <div style="${F}font-size:14px;line-height:20px;color:#cfcabd;">${title}</div></td></tr>`;
+  }).join("");
+
+  return `<!DOCTYPE html>
+<html lang="${en ? "en" : "pt-PT"}">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<title>${t.title}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#E8E4D8;">
+<div style="display:none;visibility:hidden;opacity:0;height:0;width:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;max-height:0;max-width:0;">${t.pre}</div>
+<!--[if mso]><table role="presentation" width="600" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#E8E4D8" style="background-color:#E8E4D8;">
+<tr><td align="center" style="padding:28px 12px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F9F7F2" style="background-color:#F9F7F2;max-width:600px;">
+
+<tr><td bgcolor="#1A1A1A" align="left" style="background-color:#1A1A1A;padding:14px 24px;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="left"><tr>
+    <td valign="middle" style="padding-right:8px;"><a href="${SITE}" target="_blank"><img src="${LOGO}" width="26" height="26" alt="Lisbon Barbecue &amp; Churrasco" style="display:block;border:0;" /></a></td>
+    <td valign="middle" style="${F}font-size:22px;line-height:26px;font-weight:900;letter-spacing:-0.5px;color:#F9F7F2;">LISBON BARBECUE &amp; CHURRASCO</td>
+  </tr></table>
+</td></tr>
+
+<tr><td><a href="${link}" target="_blank"><img src="${SITE}/images/email/workshop.jpg" width="600" height="320" alt="${t.alt}" style="display:block;width:100%;max-width:600px;height:auto;border:0;" /></a></td></tr>
+
+<tr><td bgcolor="#1A1A1A" style="background-color:#1A1A1A;padding:0 24px 14px;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+    <td bgcolor="#D91A2A" style="background-color:#D91A2A;padding:8px 14px;${F}font-size:12px;line-height:14px;font-weight:900;color:#ffffff;">${t.tag}</td>
+  </tr></table>
+</td></tr>
+
+<tr><td style="padding:32px 28px 8px;">
+  <h1 style="margin:0 0 16px;${F}font-size:30px;line-height:32px;font-weight:900;letter-spacing:-0.5px;color:#1A1A1A;">${t.h1}</h1>
+  <p style="margin:0 0 16px;${F}font-size:16px;line-height:24px;color:#1A1A1A;">${t.p1}</p>
+  <p style="margin:0;${F}font-size:14px;line-height:21px;color:#55524a;">${t.p2}</p>
+</td></tr>
+
+<tr><td style="padding:8px 28px 28px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1A1A1A" style="background-color:#1A1A1A;">
+  <tr><td style="padding:26px 24px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+      <td bgcolor="#F4B41A" style="background-color:#F4B41A;padding:5px 10px;${F}font-size:11px;line-height:13px;font-weight:900;color:#1A1A1A;">${t.badge}</td>
+    </tr></table>
+    <div style="height:14px;line-height:14px;font-size:1px;">&nbsp;</div>
+    <div style="${F}font-size:22px;line-height:26px;font-weight:900;letter-spacing:-0.5px;color:#F9F7F2;">${t.boxTitle}</div>
+    <div style="height:6px;line-height:6px;font-size:1px;">&nbsp;</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${dates}</table>
+    <div style="height:14px;line-height:14px;font-size:1px;">&nbsp;</div>
+    <div style="${F}font-size:14px;line-height:21px;color:#cfcabd;">${t.price}</div>
+    <div style="height:20px;line-height:20px;font-size:1px;">&nbsp;</div>
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+      <td bgcolor="#F4B41A" style="background-color:#F4B41A;padding:15px 30px;"><a href="${link}" target="_blank" style="${F}font-size:15px;line-height:18px;font-weight:900;color:#1A1A1A;text-decoration:none;">${t.cta}</a></td>
+    </tr></table>
+    ${listOnly ? `<div style="height:16px;line-height:16px;font-size:1px;">&nbsp;</div><div style="${F}font-size:13px;line-height:19px;color:#F4B41A;font-weight:700;">${t.priority}</div>` : ""}
+  </td></tr>
+  </table>
+</td></tr>
+
+<tr><td style="padding:4px 28px 32px;">
+  <p style="margin:0;${F}font-size:14px;line-height:21px;color:#55524a;">${t.after}</p>
+</td></tr>
+
+<tr><td bgcolor="#1A1A1A" align="center" style="background-color:#1A1A1A;padding:26px 24px;">
+  <div style="${F}font-size:13px;line-height:16px;font-weight:900;color:#F9F7F2;margin-bottom:10px;">LISBON BARBECUE &amp; CHURRASCO</div>
+  <div style="${F}font-size:12px;line-height:18px;">
+    <a href="${IG}" style="color:#F4B41A;font-weight:700;text-decoration:none;">Instagram</a>&nbsp;&nbsp;
+    <a href="https://www.linkedin.com/company/lisbon-barbecue-churrasco/" style="color:#F4B41A;font-weight:700;text-decoration:none;">LinkedIn</a>&nbsp;&nbsp;
+    <a href="https://x.com/Lisbonbbq" style="color:#F4B41A;font-weight:700;text-decoration:none;">X</a>&nbsp;&nbsp;
+    <a href="https://wa.me/351961058571" style="color:#F4B41A;font-weight:700;text-decoration:none;">WhatsApp</a>
+  </div>
+  <div style="${F}font-size:12px;line-height:18px;color:#cfcabd;margin-top:14px;">Lisboa, Portugal &middot; lisbonbbq.pt</div>
+  <div style="${F}font-size:11px;line-height:16px;color:#7d7a70;margin-top:14px;">${t.why}</div>
+</td></tr>
+
+</table>
+</td></tr>
+</table>
+<!--[if mso]></td></tr></table><![endif]-->
+</body>
+</html>`;
 }
 
 async function runAnnouncements() {
