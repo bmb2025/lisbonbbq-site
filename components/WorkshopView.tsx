@@ -530,7 +530,7 @@ const EmbeddedPay: React.FC<{
                 colorPrimary: '#F4B41A', colorBackground: '#242424', colorText: '#FFFFFF',
                 colorDanger: '#FF6B6B', borderRadius: '0px', fontFamily: 'Rubik, system-ui, sans-serif', spacingUnit: '4px',
               },
-              rules: { '.Input': { border: '2px solid rgba(255,255,255,0.4)' }, '.Tab, .AccordionItem': { border: '2px solid rgba(255,255,255,0.4)' } },
+              rules: { '.Input': { border: '2px solid rgba(255,255,255,0.4)' }, '.AccordionItem': { border: '2px solid rgba(255,255,255,0.4)' } },
             },
           },
         });
@@ -544,7 +544,7 @@ const EmbeddedPay: React.FC<{
           const r = await a.confirm({ expressCheckoutConfirmEvent: event });
           if (r?.type === 'error') setErr(r.error?.message || labels.error);
         });
-        const payment = checkout.createPaymentElement({ layout: { type: 'accordion', defaultCollapsed: false, radios: true, spacedAccordionItems: true } } as any);
+        const payment = checkout.createPaymentElement({ layout: { type: 'accordion', defaultCollapsed: false, radios: 'always', spacedAccordionItems: true } } as any);
         if (expressRef.current) express.mount(expressRef.current);
         if (paymentRef.current) payment.mount(paymentRef.current);
         els = [express, payment];
