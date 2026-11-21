@@ -215,7 +215,7 @@ const COPY = {
     calBook: 'Reservar',
     calGiftTag: 'Giftbox',
     calGiftTitle: 'Oferece um workshop',
-    calGiftNote: 'Voucher de 1 lugar, válido 12 meses. Quem recebe escolhe a data.',
+    calGiftNote: 'Voucher aplicável em qualquer data de workshop futura.',
     calGiftCta: 'Oferecer',
     giftAlt: 'Caixa Giftbox do workshop de churrasco da Lisbon Barbecue & Churrasco',
     modeBook: 'Reservar lugar',
@@ -408,8 +408,8 @@ const COPY = {
     calBook: 'Book',
     calGiftTag: 'Giftbox',
     calGiftTitle: 'Give a workshop',
-    calGiftNote: 'Voucher for 1 spot, valid for 12 months. They pick the date.',
-    calGiftCta: 'Give it',
+    calGiftNote: 'Voucher valid for any future workshop date.',
+    calGiftCta: 'Give',
     giftAlt: 'Lisbon Barbecue & Churrasco barbecue workshop Giftbox',
     modeBook: 'Book a spot',
     modeGift: 'Give a Giftbox',
@@ -1115,12 +1115,14 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
             <H2>{c.calH2}</H2>
           </div>
           <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(14rem, 100%), 1fr))' }}>
-            <div className="bg-bbq-red text-white border-4 border-bbq-black shadow-hard p-5 flex flex-col gap-3">
-              <span className="font-black text-xs tracking-[0.1em] uppercase">{c.calNext}</span>
-              <span className="text-2xl leading-tight font-black uppercase tracking-tight">{nextEdition ? edDay(nextEdition, L) : c.calMonths}</span>
-              <span className="font-bold text-[0.9375rem] leading-snug">{nextEdition ? `${lang === 'en' ? nextEdition.titleEn : nextEdition.titlePt} · ${hour(nextEdition.startTime)}–${hour(nextEdition.endTime)}` : c.calNextNote}</span>
-              <button type="button" onClick={() => goForm('calendar')} className="mt-auto self-start bg-bbq-yellow text-bbq-black border-2 border-bbq-black shadow-hard-sm px-4 py-2 min-h-[44px] font-black text-xs tracking-[0.1em] uppercase">{nextEdition ? c.calBook : c.cta}</button>
-            </div>
+            {(openEditions.length ? openEditions : [null]).map((ed) => (
+              <div key={ed ? ed.id : 'next'} className="bg-bbq-red text-white border-4 border-bbq-black shadow-hard p-5 flex flex-col gap-3">
+                <span className="font-black text-xs tracking-[0.1em] uppercase">{c.calNext}</span>
+                <span className="text-2xl leading-tight font-black uppercase tracking-tight">{ed ? edDay(ed, L) : c.calMonths}</span>
+                <span className="font-bold text-[0.9375rem] leading-snug">{ed ? `${lang === 'en' ? ed.titleEn : ed.titlePt} · ${hour(ed.startTime)}–${hour(ed.endTime)}` : c.calNextNote}</span>
+                <button type="button" onClick={() => { if (ed) { setMode('book'); setBook((b) => ({ ...b, editionId: ed.id })); } goForm('calendar'); }} className="mt-auto self-start bg-bbq-yellow text-bbq-black border-2 border-bbq-black shadow-hard-sm px-4 py-2 min-h-[44px] font-black text-xs tracking-[0.1em] uppercase">{ed ? c.calBook : c.cta}</button>
+              </div>
+            ))}
             {c.recent.map((r) => (
               <div key={r.d} className="bg-white border-4 border-bbq-black p-5 flex flex-col gap-3">
                 <div className="flex justify-between items-start gap-3">
@@ -1134,12 +1136,11 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
             <div className="bg-bbq-black text-bbq-cream border-4 border-bbq-black shadow-hard p-5 flex flex-col gap-3">
               <div className="flex justify-between items-start gap-3">
                 <span className="text-2xl leading-none font-black uppercase tracking-tight text-bbq-yellow">{c.calGiftTag}</span>
-                <span className="flex-none text-2xl leading-none font-black">{c.money(GIFT_PRICE)}</span>
               </div>
               <div className="flex justify-center"><img src={GIFT_IMG} alt={c.giftAlt} width={600} height={625} loading="lazy" className="h-48 w-auto object-contain" /></div>
               <span className="font-black uppercase leading-tight">{c.calGiftTitle}</span>
               <span className="font-bold text-sm text-gray-300 leading-snug">{c.calGiftNote}</span>
-              <button type="button" onClick={() => openGift('calendar')} className="mt-auto self-start bg-bbq-yellow text-bbq-black border-2 border-bbq-cream px-4 py-2 min-h-[44px] font-black text-xs tracking-[0.1em] uppercase">{c.calGiftCta} · {c.money(GIFT_PRICE)}</button>
+              <button type="button" onClick={() => openGift('calendar')} className="mt-auto self-start bg-bbq-yellow text-bbq-black border-2 border-bbq-cream px-4 py-2 min-h-[44px] font-black text-xs tracking-[0.1em] uppercase">{c.calGiftCta}</button>
             </div>
           </div>
         </div>
