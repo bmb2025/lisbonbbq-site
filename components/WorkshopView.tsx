@@ -194,6 +194,12 @@ const COPY = {
     pay: (v: string) => `Pagar ${v}`,
     bookCta: 'Reservar vaga',
     paying: 'A abrir o pagamento…',
+    payTitle: 'Pagamento',
+    payExpress: 'ou paga com',
+    payNow: (v: string) => `Pagar ${v}`,
+    payProcessing: 'A processar…',
+    payChange: 'Alterar dados',
+    payNoteInline: 'Pagamento seguro processado pela Stripe. Não guardamos os dados do teu cartão.',
     payNote: 'O pagamento é feito na página segura da Stripe. Se não puderes vir, o lugar é transferível para outra pessoa ou outra data.',
     errBookConsent: 'Para reservar, precisamos que aceites a caixa acima.',
     errSoldOut: 'Já não há lugares suficientes nesta data. Escolhe menos lugares ou entra na lista de espera.',
@@ -389,6 +395,12 @@ const COPY = {
     pay: (v: string) => `Pay ${v}`,
     bookCta: 'Book your spot',
     paying: 'Opening payment…',
+    payTitle: 'Payment',
+    payExpress: 'or pay with',
+    payNow: (v: string) => `Pay ${v}`,
+    payProcessing: 'Processing…',
+    payChange: 'Change details',
+    payNoteInline: "Secure payment processed by Stripe. We don't store your card details.",
     payNote: "Payment happens on Stripe's secure page. If you can't make it, your spot can be transferred to someone else or another date.",
     errBookConsent: 'To book, please tick the box above.',
     errSoldOut: "There aren't enough spots left on this date. Pick fewer spots or join the waiting list.",
@@ -477,6 +489,117 @@ const FlameMark: React.FC<{ size?: number; fill?: string; stroke?: string }> = (
     <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
   </svg>
 );
+
+// ── Pagamento dentro do site (Stripe Elements com Checkout Sessions) ──
+// A chave pública é lida no build (Vite). Sem ela, o site mantém o
+// redirecionamento para a página da Stripe.
+const STRIPE_PK = (import.meta as any).env?.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined;
+const EMBEDDED_PAY = !!STRIPE_PK;
+let stripePromise: Promise<any> | null = null;
+const getStripe = () => {
+  if (!stripePromise) stripePromise = import('@stripe/stripe-js').then((m) => m.loadStripe(STRIPE_PK!, { locale: 'auto' }));
+  return stripePromise;
+};
+
+const EmbeddedPay: React.FC<{
+  clientSecret: string; amount: string; lang: 'pt' | 'en';
+  labels: { title: string; express: string; payNow: (v: string) => string; processing: string; change: string; note: string; error: string };
+  onChange: () => void;
+}> = ({ clientSecret, amount, lang, labels, onChange }) => {
+  const expressRef = useRef<HTMLDivElement>(null);
+  const paymentRef = useRef<HTMLDivElement>(null);
+  const actionsRef = useRef<any>(null);
+  const [ready, setReady] = useState(false);
+  const [hasExpress, setHasExpress] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    let els: any[] = [];
+    (async () => {
+      try {
+        const stripe = await getStripe();
+        if (cancelled || !stripe) return;
+        const checkout = stripe.initCheckoutElementsSdk({
+          clientSecret,
+          elementsOptions: {
+            appearance: {
+              theme: 'night',
+              variables: {
+                colorPrimary: '#F4B41A', colorBackground: '#242424', colorText: '#FFFFFF',
+                colorDanger: '#FF6B6B', borderRadius: '0px', fontFamily: 'Rubik, system-ui, sans-serif', spacingUnit: '4px',
+              },
+              rules: { '.Input': { border: '2px solid rgba(255,255,255,0.4)' }, '.AccordionItem': { border: '2px solid rgba(255,255,255,0.4)' } },
+            },
+          },
+        });
+        const express = checkout.createExpressCheckoutElement({
+          buttonHeight: 48, buttonTheme: { applePay: 'white' }, layout: { maxColumns: 1, maxRows: 1 },
+          // Só Apple Pay nos botões rápidos (sem Google Pay nem Link)
+          paymentMethods: { applePay: 'always', googlePay: 'never', link: 'never', amazonPay: 'never', klarna: 'never', paypal: 'never' },
+        } as any);
+        express.on('ready', (e: any) => { if (!cancelled) setHasExpress(!!e?.availablePaymentMethods && Object.values(e.availablePaymentMethods).some(Boolean)); });
+        express.on('confirm', async (event: any) => {
+          const a = actionsRef.current;
+          if (!a) return;
+          const r = await a.confirm({ expressCheckoutConfirmEvent: event });
+          if (r?.type === 'error') setErr(r.error?.message || labels.error);
+        });
+        const payment = checkout.createPaymentElement({
+          layout: { type: 'accordion', defaultCollapsed: false, radios: 'always', spacedAccordionItems: true },
+          paymentMethodOrder: ['mb_way', 'apple_pay', 'card', 'klarna', 'revolut_pay'],
+          wallets: { applePay: 'auto', googlePay: 'never', link: 'never' },
+        } as any);
+        if (expressRef.current) express.mount(expressRef.current);
+        if (paymentRef.current) payment.mount(paymentRef.current);
+        els = [express, payment];
+        const res = await checkout.loadActions();
+        if (cancelled) return;
+        if (res.type === 'success') { actionsRef.current = res.actions; setReady(true); }
+        else { console.error('[workshop-pay] loadActions', res.error); setErr(labels.error); }
+      } catch (e) {
+        console.error('[workshop-pay] init', e);
+        if (!cancelled) setErr(labels.error);
+      }
+    })();
+    return () => { cancelled = true; els.forEach((e) => { try { e.destroy(); } catch { /* já desmontado */ } }); };
+  }, [clientSecret]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const pay = async () => {
+    if (!actionsRef.current) return;
+    setBusy(true); setErr('');
+    try {
+      const r = await actionsRef.current.confirm({ redirect: 'always' });
+      if (r?.type === 'error') { setErr(r.error?.message || labels.error); setBusy(false); }
+    } catch {
+      setErr(labels.error); setBusy(false);
+    }
+  };
+
+  return (
+    <div className="border-4 border-bbq-yellow p-5 flex flex-col gap-4" lang={lang}>
+      <div className="flex justify-between items-baseline gap-3">
+        <span className="font-black text-sm tracking-[0.1em] uppercase text-bbq-yellow">{labels.title}</span>
+        <button type="button" onClick={onChange} className="text-sm font-bold underline underline-offset-4 text-white/80">{labels.change}</button>
+      </div>
+      <div ref={expressRef} />
+      {hasExpress && (
+        <div className="flex items-center gap-3 text-xs font-black tracking-[0.1em] uppercase text-white/60">
+          <span className="flex-1 h-px bg-white/20" />{labels.express}<span className="flex-1 h-px bg-white/20" />
+        </div>
+      )}
+      <div ref={paymentRef} className="min-h-[120px]" />
+      {err && <p role="alert" className="m-0 px-4 py-3 border-4 border-bbq-red font-bold leading-snug">{err}</p>}
+      <button type="button" onClick={pay} disabled={!ready || busy}
+        className="bg-bbq-yellow text-bbq-black border-4 border-bbq-black font-black uppercase tracking-wider text-lg px-8 py-4 min-h-[56px] disabled:opacity-60"
+        style={{ boxShadow: '4px 4px 0 0 #d91a2a' }}>
+        {busy ? labels.processing : labels.payNow(amount)}
+      </button>
+      <p className="m-0 text-xs leading-normal text-white/60">{labels.note}</p>
+    </div>
+  );
+};
 
 type BtnVariant = 'accent' | 'dark';
 const Btn: React.FC<{ variant?: BtnVariant; onClick?: () => void; type?: 'button' | 'submit'; disabled?: boolean; className?: string; style?: React.CSSProperties; children: React.ReactNode }> = ({
@@ -686,12 +809,13 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
       const r = await fetch('/api/workshop-waitlist?task=gift-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...gift, lang, utm }),
+        body: JSON.stringify({ ...gift, lang, utm, embedded: EMBEDDED_PAY }),
       });
       const d = await r.json().catch(() => ({}));
-      if (!r.ok || !d?.url) throw new Error(d?.error || 'failed');
+      if (!r.ok || !(d?.url || d?.clientSecret)) throw new Error(d?.error || 'failed');
       identifyLead({ email: gift.buyerEmail.trim(), name: gift.buyerName.trim() });
-      track('workshop_giftbox_checkout_started', { value: giftTotal, lang });
+      track('workshop_giftbox_checkout_started', { value: giftTotal, lang, embedded: !!d.clientSecret });
+      if (d.clientSecret) { setPayStage({ kind: 'gift', clientSecret: d.clientSecret, amount: giftTotal }); setGiftPaying(false); return; }
       window.location.href = d.url;
     } catch {
       setGiftError(c.errPay);
@@ -721,6 +845,11 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
   const companionUnit = chosen ? (chosen.invitePrice ?? chosen.price) : 0;
   const total = voucher ? companionUnit * Math.max(0, book.qty - 1) : unitPrice * book.qty;
 
+  // Sessão de pagamento embebida aberta (reserva ou Giftbox). Se os dados mudam, volta ao formulário.
+  const [payStage, setPayStage] = useState<{ kind: 'book' | 'gift'; clientSecret: string; amount: number } | null>(null);
+  useEffect(() => { setPayStage((ps) => (ps?.kind === 'book' ? null : ps)); }, [book.editionId, book.qty, voucher]);
+  const payLabels = { title: c.payTitle, express: c.payExpress, payNow: c.payNow, processing: c.payProcessing, change: c.payChange, note: c.payNoteInline, error: c.errPay };
+
   const pay = async (e: React.FormEvent) => {
     e.preventDefault();
     const missing: string[] = [];
@@ -739,6 +868,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
           editionId: book.editionId, quantity: book.qty, name: book.name, email: book.email, phone: book.phone,
           consent: book.consent, website: book.website, lang, inviteCode: invite ? inviteCode : undefined, utm,
           giftCode: voucher || undefined,
+          embedded: EMBEDDED_PAY,
         }),
       });
       const d = await r.json().catch(() => ({}));
@@ -752,8 +882,9 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
         bookRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         return;
       }
-      if (!r.ok || !d?.url) throw new Error(d?.error || 'failed');
-      track('workshop_checkout_started', { edition: book.editionId, quantity: book.qty, value: total, invited: !!invite, gift: !!voucher, lang });
+      if (!r.ok || !(d?.url || d?.clientSecret)) throw new Error(d?.error || 'failed');
+      track('workshop_checkout_started', { edition: book.editionId, quantity: book.qty, value: total, invited: !!invite, gift: !!voucher, lang, embedded: !!d.clientSecret });
+      if (d.clientSecret) { setPayStage({ kind: 'book', clientSecret: d.clientSecret, amount: total }); setPaying(false); return; }
       window.location.href = d.url;
     } catch {
       setBookError(c.errPay);
@@ -1267,7 +1398,11 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                       <span>{c.gConsent}<a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-bbq-yellow underline">{c.consentLink}</a>.</span>
                     </label>
                     {giftError && <p role="alert" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{giftError}</p>}
-                    <div><Btn type="submit" disabled={giftPaying} style={{ boxShadow: '4px 4px 0 0 #d91a2a' }}>{giftPaying ? c.paying : c.pay(c.money(giftTotal))}</Btn></div>
+                    {payStage?.kind === 'gift' ? (
+                      <EmbeddedPay clientSecret={payStage.clientSecret} amount={c.money(payStage.amount)} lang={lang} labels={payLabels} onChange={() => setPayStage(null)} />
+                    ) : (
+                      <div><Btn type="submit" disabled={giftPaying} style={{ boxShadow: '4px 4px 0 0 #d91a2a' }}>{giftPaying ? c.paying : c.pay(c.money(giftTotal))}</Btn></div>
+                    )}
                     <p className="m-0 text-sm leading-normal text-white/80">{c.gNote}</p>
                   </form>
                 )}
@@ -1419,10 +1554,16 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                   <span>{c.bookConsentBefore}<a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-bbq-yellow underline">{c.consentLink}</a>{c.bookConsentAfter}</span>
                 </label>
                 {bookError && <p role="alert" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{bookError}</p>}
-                <div className="flex flex-wrap items-center gap-4">
-                  <Btn type="submit" disabled={paying} style={{ boxShadow: '4px 4px 0 0 #d91a2a' }}>{paying ? c.paying : total === 0 ? c.payFree : c.bookCta}</Btn>
-                </div>
-                <p className="m-0 text-sm leading-normal text-white/80">{c.payNote}</p>
+                {payStage?.kind === 'book' ? (
+                  <EmbeddedPay clientSecret={payStage.clientSecret} amount={c.money(payStage.amount)} lang={lang} labels={payLabels} onChange={() => setPayStage(null)} />
+                ) : (
+                  <>
+                    <div className="flex flex-wrap items-center gap-4">
+                      <Btn type="submit" disabled={paying} style={{ boxShadow: '4px 4px 0 0 #d91a2a' }}>{paying ? c.paying : total === 0 ? c.payFree : c.bookCta}</Btn>
+                    </div>
+                    {!EMBEDDED_PAY && <p className="m-0 text-sm leading-normal text-white/80">{c.payNote}</p>}
+                  </>
+                )}
               </form>
               </>
             )}
