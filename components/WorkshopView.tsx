@@ -200,8 +200,16 @@ const COPY = {
     paidBody: (q: number, d: string) => `${q === 1 ? '1 lugar' : `${q} lugares`} para ${d}. Enviámos a confirmação para o teu email.`,
     pendingBody: 'Estamos a confirmar o pagamento. Recebes um email assim que estiver confirmado.',
     cancelledNote: 'O pagamento não foi concluído e não te cobrámos nada. O lugar continua disponível enquanto houver vagas.',
-    waitlistH2Alt: 'Não dá esta data?',
-    waitlistPAlt: 'Entra na lista e avisamos-te primeiro quando abrirmos novas datas, com 48 horas de prioridade. Não pagas nada agora.',
+    altLink: 'Nenhuma destas datas dá?',
+    altLinkCta: 'Avisa-me das próximas',
+    altTitle: 'Avisamos-te quando abrir uma data que te sirva.',
+    altCancelTitle: 'Esta data não dá? Avisamos-te da próxima.',
+    altSlot: 'Quando te dá mais jeito?',
+    altSubmit: 'Avisem-me',
+    altDone: (n: string) => `Combinado, ${n}. Avisamos-te quando abrir uma data que te sirva.`,
+    altConsent: 'Autorizo a Lisbon BBQ a guardar estes dados para me avisar de novas datas do workshop, de acordo com a ',
+    groupHint: (p: string) => `Vens acompanhado? A partir de 2 pessoas, cada uma paga ${p}.`,
+    groupApplied: (s: string) => `Desconto de acompanhante aplicado: poupam ${s}.`,
     calBook: 'Reservar',
   },
   en: {
@@ -359,8 +367,16 @@ const COPY = {
     paidBody: (q: number, d: string) => `${q === 1 ? '1 spot' : `${q} spots`} for ${d}. We've sent the confirmation to your email.`,
     pendingBody: "We're confirming your payment. You'll get an email as soon as it's confirmed.",
     cancelledNote: "The payment wasn't completed and you haven't been charged. The spot is still available while there are places left.",
-    waitlistH2Alt: "Can't make this date?",
-    waitlistPAlt: "Join the list and we'll tell you first when we open new dates, with 48 hours' priority. You don't pay anything now.",
+    altLink: "None of these dates work?",
+    altLinkCta: 'Let me know about the next ones',
+    altTitle: "We'll let you know when a date that suits you opens.",
+    altCancelTitle: "Can't make this date? We'll tell you about the next one.",
+    altSlot: 'When suits you best?',
+    altSubmit: 'Let me know',
+    altDone: (n: string) => `Done, ${n}. We'll let you know when a date that suits you opens.`,
+    altConsent: 'I authorise Lisbon BBQ to store this data to tell me about new workshop dates, in accordance with the ',
+    groupHint: (p: string) => `Bringing someone? From 2 people, each pays ${p}.`,
+    groupApplied: (s: string) => `Companion discount applied: you save ${s}.`,
     calBook: 'Book',
   },
 };
@@ -546,7 +562,13 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
   }, [nextEdition, book.editionId]);
   const setB = (k: keyof typeof book) => (v: any) => { setBook((b) => ({ ...b, [k]: v })); setBookError(''); };
   const chosen = openEditions.find((e) => e.id === book.editionId) || null;
-  const unitPrice = chosen ? (invite && chosen.invitePrice ? chosen.invitePrice : chosen.price) : 0;
+  // Preço a dois: a partir de 2 lugares todos pagam o preço de convite. Não
+  // acumula com o convite. A API (createCheckout) aplica a mesma regra.
+  const discounted = (ed: Edition, qty: number) => !!ed.invitePrice && ed.invitePrice < ed.price && (!!invite || qty >= 2);
+  const unitFor = (ed: Edition, qty: number) => (discounted(ed, qty) ? ed.invitePrice! : ed.price);
+  const unitPrice = chosen ? unitFor(chosen, book.qty) : 0;
+  const groupOn = !!chosen && !invite && book.qty >= 2 && discounted(chosen, book.qty);
+  const groupSaving = chosen && groupOn ? (chosen.price - unitPrice) * book.qty : 0;
   const maxQty = chosen ? Math.min(6, chosen.left) : 1;
 
   const pay = async (e: React.FormEvent) => {
@@ -605,6 +627,45 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
   useEffect(() => {
     if (returnState) setTimeout(() => bookRef.current?.scrollIntoView({ block: 'start' }), 300);
   }, [returnState]);
+
+  // ── Lista de espera curta, dentro do bloco de compra ──
+  const [altOpen, setAltOpen] = useState(returnState === 'cancelada');
+  const [quick, setQuick] = useState({ name: '', email: '', slot: '', consent: false, website: '' });
+  const [quickError, setQuickError] = useState('');
+  const [quickSending, setQuickSending] = useState(false);
+  const [quickDone, setQuickDone] = useState('');
+  const setQ = (k: keyof typeof quick) => (v: any) => { setQuick((q) => ({ ...q, [k]: v })); setQuickError(''); };
+  const submitQuick = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const missing: string[] = [];
+    if (!quick.name.trim()) missing.push(c.fName);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(quick.email.trim())) missing.push(c.fEmail);
+    if (!quick.slot) missing.push(c.fSlot);
+    if (missing.length) { setQuickError(c.errMissing(missing.join(', '))); return; }
+    if (!quick.consent) { setQuickError(c.errConsent); return; }
+    setQuickSending(true);
+    try {
+      const r = await fetch('/api/workshop-waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quick: true, name: quick.name, email: quick.email, preferredSlot: quick.slot,
+          consent: quick.consent, website: quick.website, lang,
+          priceVariant: variant, inviteCode: invite ? inviteCode : undefined,
+          utm, landingUrl: window.location.href, referrer: document.referrer || undefined,
+        }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || !d?.ok) throw new Error(d?.error || 'failed');
+      identifyLead({ email: quick.email.trim(), name: quick.name.trim() });
+      track('workshop_waitlist_submitted', { variant, lang, quick: true, from: returnState === 'cancelada' ? 'checkout_cancelled' : 'booking', slot: quick.slot, invited: !!d.invited, duplicate: !!d.duplicate });
+      setQuickDone(d.firstName || quick.name.trim().split(' ')[0]);
+    } catch {
+      setQuickError(c.errSend);
+    } finally {
+      setQuickSending(false);
+    }
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -955,7 +1016,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                   <legend className="font-black text-sm tracking-[0.1em] uppercase mb-2">{c.qDate}</legend>
                   {openEditions.map((ed) => {
                     const on = book.editionId === ed.id;
-                    const p = invite && ed.invitePrice ? ed.invitePrice : ed.price;
+                    const p = unitFor(ed, book.qty);
                     return (
                       <button
                         key={ed.id}
@@ -986,6 +1047,14 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                     <span className="font-bold">× {c.money(unitPrice)} {c.perPerson}</span>
                   </div>
                   {invite && chosen?.invitePrice && <span className="font-bold text-bbq-yellow">{c.inviteApplied}</span>}
+                  {!invite && chosen && !groupOn && chosen.invitePrice && chosen.invitePrice < chosen.price && maxQty >= 2 && (
+                    <span className="font-bold">{c.groupHint(c.money(chosen.invitePrice))}</span>
+                  )}
+                  {groupOn && (
+                    <span className="font-bold text-bbq-yellow">
+                      <s className="text-white/70 mr-2">{c.money(chosen!.price * book.qty)}</s>{c.groupApplied(c.money(groupSaving))}
+                    </span>
+                  )}
                 </fieldset>
 
                 <label className="flex flex-col gap-2">
@@ -1013,17 +1082,65 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                 <p className="m-0 text-sm leading-normal text-white/80">{c.payNote}</p>
               </form>
             )}
+
+            {nextEdition && (
+              <div className={altOpen && returnState === 'cancelada' ? 'border-4 border-bbq-yellow p-6 flex flex-col gap-4' : 'flex flex-col gap-4'}>
+                {!(altOpen && returnState === 'cancelada') && (
+                  <p className="m-0 text-center text-[0.9375rem] text-white/80">
+                    {c.altLink}{' '}
+                    <button type="button" aria-expanded={altOpen} onClick={() => { if (!altOpen) track('workshop_waitlist_link_open', { lang }); setAltOpen(!altOpen); }} className="underline underline-offset-4 text-white font-bold">{c.altLinkCta}</button>
+                  </p>
+                )}
+                {altOpen && (quickDone ? (
+                  <p role="status" className="m-0 font-bold leading-snug">{c.altDone(quickDone)}</p>
+                ) : (
+                  <form onSubmit={submitQuick} noValidate className={`flex flex-col gap-4 ${returnState === 'cancelada' ? '' : 'border-2 border-dashed border-white/50 p-5'}`}>
+                    <p className="m-0 font-black uppercase leading-tight">{returnState === 'cancelada' ? c.altCancelTitle : c.altTitle}</p>
+                    <div aria-hidden="true" className="absolute -left-[9999px] w-px h-px overflow-hidden">
+                      <label>Website<input tabIndex={-1} autoComplete="off" value={quick.website} onChange={(e) => setQ('website')(e.target.value)} /></label>
+                    </div>
+                    <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(13rem, 100%), 1fr))' }}>
+                      <input aria-label={c.lName} className={inputCls} type="text" autoComplete="name" placeholder={c.phName} value={quick.name} onChange={(e) => setQ('name')(e.target.value)} />
+                      <input aria-label={c.lEmail} className={inputCls} type="email" autoComplete="email" inputMode="email" placeholder="nome@email.pt" value={quick.email} onChange={(e) => setQ('email')(e.target.value)} />
+                    </div>
+                    <fieldset className="flex flex-col gap-2 border-0 p-0 m-0">
+                      <legend className="font-black text-sm tracking-[0.1em] uppercase mb-2">{c.altSlot}</legend>
+                      <div className="flex flex-wrap gap-2">
+                        {SLOTS.map((o) => (
+                          <button key={o.value} type="button" aria-pressed={quick.slot === o.value} onClick={() => setQ('slot')(o.value)}
+                            className={`min-h-[44px] px-4 border-2 font-bold ${quick.slot === o.value ? 'bg-bbq-yellow text-bbq-black border-bbq-yellow' : 'border-white text-white'}`}>
+                            {o[lang]}
+                          </button>
+                        ))}
+                      </div>
+                    </fieldset>
+                    <label className="flex gap-3 items-start cursor-pointer leading-normal text-sm">
+                      <input type="checkbox" checked={quick.consent} onChange={(e) => setQ('consent')(e.target.checked)} className="w-5 h-5 m-0 flex-none accent-[#f4b41a]" />
+                      <span>{c.altConsent}<a href="/privacy" className="text-bbq-yellow underline">{c.consentLink}</a>.</span>
+                    </label>
+                    {quickError && <p role="alert" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{quickError}</p>}
+                    <div>
+                      <button type="submit" disabled={quickSending} className="min-h-[48px] px-6 border-4 border-white text-white font-black uppercase tracking-wider text-sm hover:bg-white hover:text-bbq-red transition-colors disabled:opacity-60">
+                        {quickSending ? c.sending : c.altSubmit}
+                      </button>
+                    </div>
+                  </form>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       )}
 
-      {/* WAITING LIST */}
+      {/* WAITING LIST: só quando não há datas à venda. Com datas abertas, a
+          lista vive como link discreto dentro do bloco de compra. */}
+      {editions !== null && !nextEdition && (
       <section id="reserva" ref={formRef} className="border-t-4 border-bbq-black scroll-mt-24">
         <div className="max-w-2xl mx-auto px-5 py-20 flex flex-col gap-8">
           <div className="flex flex-col gap-4">
             <Eyebrow>{c.formEyebrow}</Eyebrow>
-            <H2>{nextEdition ? c.waitlistH2Alt : c.formH2}</H2>
-            <p className="m-0 text-[1.0625rem] leading-normal">{nextEdition ? c.waitlistPAlt : c.formP}</p>
+            <H2>{c.formH2}</H2>
+            <p className="m-0 text-[1.0625rem] leading-normal">{c.formP}</p>
           </div>
 
           {done ? (
@@ -1101,6 +1218,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
           )}
         </div>
       </section>
+      )}
 
       {/* CTA fixo no telemóvel */}
       {!done && !hideSticky && (

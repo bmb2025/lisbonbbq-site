@@ -444,7 +444,10 @@ async function createCheckout(req: any, res: any) {
     waitlistId = wl.id;
     if (wl.locked_price) invitePrice = true;
   }
-  const unit = invitePrice && ed.invite_price_cents ? ed.invite_price_cents : ed.price_cents;
+  // Preço a dois: a partir de 2 lugares todos pagam o preço de convite.
+  // Não acumula com o convite (é o mesmo preço unitário).
+  const groupPrice = quantity >= 2;
+  const unit = (invitePrice || groupPrice) && ed.invite_price_cents ? ed.invite_price_cents : ed.price_cents;
 
   const expiresAt = new Date(Date.now() + CHECKOUT_TTL_MIN * 60 * 1000 + 30 * 1000);
   const { data: booking, error: insErr } = await supabase
@@ -700,13 +703,16 @@ export default async function handler(req: any, res: any) {
   const consent = b.consent === true;
   const lang: Lang = b.lang === "en" ? "en" : "pt";
 
+  // quick: registo curto a partir do bloco de compra ("Nenhuma destas datas
+  // dá?"): só nome, email, horário e consentimento.
+  const quick = b.quick === true;
   const errors: string[] = [];
   if (!name) errors.push("nome");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push("email");
-  if (phone.replace(/\D/g, "").length < 9) errors.push("telemóvel");
+  if (!quick && phone.replace(/\D/g, "").length < 9) errors.push("telemóvel");
   if (!preferred_slot) errors.push("horário");
-  if (!experience) errors.push("experiência");
-  if (!motive) errors.push("motivo");
+  if (!quick && !experience) errors.push("experiência");
+  if (!quick && !motive) errors.push("motivo");
   if (!consent) errors.push("consentimento");
   if (errors.length) return res.status(400).json({ error: "invalid", fields: errors });
 
