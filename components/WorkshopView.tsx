@@ -68,7 +68,7 @@ const COPY = {
       ['3 horas', 'ao vivo, em Lisboa'],
       ['Pitmasters', 'da Lisbon BBQ, com anos de brasa e centenas de eventos'],
       ['Mão na pinça', 'cada técnica é logo posta em prática'],
-      ['16 pessoas', 'no máximo, para acompanhamento personalizado'],
+      ['Grupo pequeno', 'para acompanhamento personalizado'],
     ],
     beerH2: 'Aprender, com cerveja na mão',
     beerP: 'À volta do fogo há sempre trabalho para dividir. Alguém segura a pinça, alguém corta, alguém tem uma opinião sobre o sal. Não há jogos para quebrar o gelo nem rodas de apresentações. Há uma grelha, uma tarefa e uma cerveja. A conversa vem sozinha.',
@@ -100,7 +100,6 @@ const COPY = {
     inclEyebrow: 'O que está incluído',
     inclH2: 'Tudo. Só trazes a fome.',
     included: ['Toda a carne e os acompanhamentos', 'Refeição completa à mesa longa', 'Bebidas: cerveja ou vinho da casa', 'Avental e receita para levar para casa', '1 pitmaster que ensina e acompanha'],
-    spots: ['Lugares:', '16 por sessão. Quem está na lista tem 48 horas de prioridade antes de abrirmos ao público.'],
     priceLabel: 'Workshop · por pessoa',
     priceLabelInvite: 'Workshop · com convite',
     money: (n: number) => `${n}€`,
@@ -127,11 +126,11 @@ const COPY = {
     ],
     calEyebrow: 'Calendário',
     calH2: 'Workshops recentes',
-    calNext: 'Próximos workshops',
+    calNext: 'Próximo workshop',
     calMonths: 'Novembro e dezembro',
     calNextNote: 'Abrem primeiro para a waiting list, com 48 horas de prioridade.',
     soldOut: 'Esgotado',
-    calMeta: '16 lugares · 3 horas',
+    calMeta: '3 horas',
     recent: [
       { d: '20 setembro', s: 'Churrasco tradicional português' },
       { d: '19 setembro', s: 'Churrasco estilo brasileiro' },
@@ -185,7 +184,7 @@ const COPY = {
     bookEyebrow: 'Datas e reserva',
     bookH2: 'Escolhe a data',
     bookP: 'Reservas o lugar aqui e pagas no momento. Recebes a confirmação por email e a morada exata uns dias antes.',
-    spotsLeft: (n: number) => (n === 1 ? 'Último lugar' : `${n} lugares livres`),
+    spotsLeft: (n: number) => (n === 1 ? 'Resta 1 vaga' : `Restam ${n} vagas`),
     qDate: 'Data',
     qQty: 'Quantos lugares?',
     perPerson: 'por pessoa',
@@ -212,7 +211,6 @@ const COPY = {
     altSubmit: 'Avisem-me',
     altDone: (n: string) => `Combinado, ${n}. Avisamos-te quando abrir uma data que te sirva.`,
     altConsent: 'Autorizo a Lisbon BBQ a guardar estes dados para me avisar de novas datas do workshop, de acordo com a ',
-    groupHint: (p: string) => `Vens acompanhado? A partir de 2 pessoas, cada uma paga ${p}.`,
     groupApplied: (s: string) => `Desconto de acompanhante aplicado: poupam ${s}.`,
     calBook: 'Reservar',
     calGiftTag: 'Giftbox',
@@ -263,7 +261,7 @@ const COPY = {
       ['3 hours', 'live, in Lisbon'],
       ['Pitmasters', 'from Lisbon BBQ, with years of embers and hundreds of events'],
       ['Tongs in hand', 'every technique goes straight into practice'],
-      ['16 people', 'maximum, for personal guidance'],
+      ['Small group', 'for personal guidance'],
     ],
     beerH2: 'Learn, beer in hand',
     beerP: "There's always work to share around the fire. Someone holds the tongs, someone cuts, someone has an opinion about the salt. No icebreaker games, no introduction circles. There's a grill, a task and a beer. The conversation takes care of itself.",
@@ -295,7 +293,6 @@ const COPY = {
     inclEyebrow: "What's included",
     inclH2: 'Everything. Just bring your appetite.',
     included: ['All the meat and sides', 'Full meal at the long table', 'Drinks: beer or house wine', 'Apron and recipe to take home', '1 pitmaster who teaches and guides you'],
-    spots: ['Spots:', '16 per session. People on the list get 48 hours of priority before we open to the public.'],
     priceLabel: 'Workshop · per person',
     priceLabelInvite: 'Workshop · with invite',
     money: (n: number) => `€${n}`,
@@ -322,11 +319,11 @@ const COPY = {
     ],
     calEyebrow: 'Calendar',
     calH2: 'Recent workshops',
-    calNext: 'Upcoming workshops',
+    calNext: 'Next workshop',
     calMonths: 'November and December',
     calNextNote: 'They open to the waiting list first, with 48 hours of priority.',
     soldOut: 'Sold out',
-    calMeta: '16 spots · 3 hours',
+    calMeta: '3 hours',
     recent: [
       { d: '20 September', s: 'Traditional Portuguese barbecue' },
       { d: '19 September', s: 'Brazilian-style barbecue' },
@@ -380,7 +377,7 @@ const COPY = {
     bookEyebrow: 'Dates and booking',
     bookH2: 'Pick a date',
     bookP: "Book your spot here and pay right away. You'll get the confirmation by email and the exact address a few days before.",
-    spotsLeft: (n: number) => (n === 1 ? 'Last spot' : `${n} spots left`),
+    spotsLeft: (n: number) => (n === 1 ? 'Only 1 spot left' : `Only ${n} spots left`),
     qDate: 'Date',
     qQty: 'How many spots?',
     perPerson: 'per person',
@@ -407,7 +404,6 @@ const COPY = {
     altSubmit: 'Let me know',
     altDone: (n: string) => `Done, ${n}. We'll let you know when a date that suits you opens.`,
     altConsent: 'I authorise Lisbon BBQ to store this data to tell me about new workshop dates, in accordance with the ',
-    groupHint: (p: string) => `Bringing someone? From 2 people, each pays ${p}.`,
     groupApplied: (s: string) => `Companion discount applied: you save ${s}.`,
     calBook: 'Book',
     calGiftTag: 'Giftbox',
@@ -458,6 +454,12 @@ const hour = (t: string) => { const [h, m] = t.split(':'); return m && m !== '00
 // "29 novembro" / "29 November"
 const edDay = (e: Edition, lang: Lang) => { const [, m, d] = e.date.split('-').map(Number); return `${d} ${MONTHS[lang][m - 1]}`; };
 // "domingo, 29 novembro, 12h–15h"
+// Vagas mostradas: 5 abaixo das reais (16 → 11), nunca abaixo de 5 enquanto
+// houver mais de 5; com 5 ou menos reais, mostra o número real. As 5 de
+// margem ficam para convites, Giftbox e waiting list. A compra fica limitada ao
+// número mostrado (maxQty), para o "Restam X" ser sempre verdade para quem compra.
+const shownLeft = (left: number) => (left > 10 ? left - 5 : Math.min(left, 5));
+
 const edWhen = (e: Edition, lang: Lang) => {
   const [y, m, d] = e.date.split('-').map(Number);
   const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
@@ -473,8 +475,8 @@ const FlameMark: React.FC<{ size?: number; fill?: string; stroke?: string }> = (
 );
 
 type BtnVariant = 'accent' | 'dark';
-const Btn: React.FC<{ variant?: BtnVariant; onClick?: () => void; type?: 'button' | 'submit'; disabled?: boolean; className?: string; children: React.ReactNode }> = ({
-  variant = 'accent', onClick, type = 'button', disabled, className = '', children,
+const Btn: React.FC<{ variant?: BtnVariant; onClick?: () => void; type?: 'button' | 'submit'; disabled?: boolean; className?: string; style?: React.CSSProperties; children: React.ReactNode }> = ({
+  variant = 'accent', onClick, type = 'button', disabled, className = '', style, children,
 }) => {
   const colors = variant === 'accent'
     ? 'bg-bbq-yellow text-bbq-black hover:bg-bbq-cream'
@@ -484,6 +486,7 @@ const Btn: React.FC<{ variant?: BtnVariant; onClick?: () => void; type?: 'button
       type={type}
       onClick={onClick}
       disabled={disabled}
+      style={style}
       className={`${colors} border-4 border-bbq-black shadow-hard active:shadow-none active:translate-x-[2px] active:translate-y-[2px] font-black uppercase tracking-wider text-lg px-8 py-4 min-h-[56px] transition-colors disabled:opacity-60 disabled:cursor-wait ${className}`}
     >
       {children}
@@ -629,7 +632,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
   const unitPrice = chosen ? unitFor(chosen, book.qty) : 0;
   const groupOn = !!chosen && !invite && book.qty >= 2 && discounted(chosen, book.qty);
   const groupSaving = chosen && groupOn ? (chosen.price - unitPrice) * book.qty : 0;
-  const maxQty = chosen ? Math.min(6, chosen.left) : 1;
+  const maxQty = chosen ? Math.min(6, shownLeft(chosen.left)) : 1;
 
   // ── Giftbox ──
   const giftReturn = params.get('giftbox');
@@ -1041,7 +1044,6 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
             ))}
           </ul>
           <div className="flex flex-col gap-2 text-[0.9375rem] leading-normal">
-            <p className="m-0"><strong className="font-black uppercase tracking-wide">{c.spots[0]}</strong> {c.spots[1]}</p>
           </div>
         </div>
         <div className="bg-bbq-yellow text-bbq-black border-4 border-bbq-cream p-8 flex flex-col gap-4" style={{ boxShadow: '8px 8px 0 0 #d91a2a' }}>
@@ -1116,7 +1118,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
             <div className="bg-bbq-red text-white border-4 border-bbq-black shadow-hard p-5 flex flex-col gap-3">
               <span className="font-black text-xs tracking-[0.1em] uppercase">{c.calNext}</span>
               <span className="text-2xl leading-tight font-black uppercase tracking-tight">{nextEdition ? edDay(nextEdition, L) : c.calMonths}</span>
-              <span className="font-bold text-[0.9375rem] leading-snug">{nextEdition ? `${lang === 'en' ? nextEdition.titleEn : nextEdition.titlePt} · ${hour(nextEdition.startTime)}–${hour(nextEdition.endTime)} · ${c.spotsLeft(nextEdition.left)}` : c.calNextNote}</span>
+              <span className="font-bold text-[0.9375rem] leading-snug">{nextEdition ? `${lang === 'en' ? nextEdition.titleEn : nextEdition.titlePt} · ${hour(nextEdition.startTime)}–${hour(nextEdition.endTime)}` : c.calNextNote}</span>
               <button type="button" onClick={() => goForm('calendar')} className="mt-auto self-start bg-bbq-yellow text-bbq-black border-2 border-bbq-black shadow-hard-sm px-4 py-2 min-h-[44px] font-black text-xs tracking-[0.1em] uppercase">{nextEdition ? c.calBook : c.cta}</button>
             </div>
             {c.recent.map((r) => (
@@ -1145,7 +1147,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
 
       {/* DATAS E RESERVA (pagamento Stripe) */}
       {(nextEdition || paid || returnState || mode === 'gift' || giftReturn) && (
-        <section id="datas" ref={bookRef} className="bg-bbq-red text-white border-t-4 border-bbq-black scroll-mt-24">
+        <section id="datas" ref={bookRef} className="bg-bbq-black text-white border-t-4 border-bbq-yellow scroll-mt-24">
           <div className="max-w-2xl mx-auto px-5 py-20 flex flex-col gap-8">
             <div className="flex flex-col gap-4">
               <Eyebrow color="text-bbq-yellow">{c.bookEyebrow}</Eyebrow>
@@ -1154,7 +1156,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
             </div>
 
             {paid && (
-              <div role="status" className="bg-bbq-yellow text-bbq-black border-4 border-bbq-black shadow-hard p-8 flex flex-col gap-3">
+              <div role="status" className="bg-bbq-yellow text-bbq-black border-4 border-bbq-cream p-8 flex flex-col gap-3" style={{ boxShadow: '6px 6px 0 0 #d91a2a' }}>
                 {paid.status === 'paid' ? (
                   <>
                     <span className="text-3xl font-black uppercase tracking-tight">{c.paidTitle(paid.firstName)}</span>
@@ -1170,10 +1172,10 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
             )}
 
             {nextEdition && !paid && (
-              <div role="tablist" className="grid grid-cols-2 border-4 border-bbq-black">
+              <div role="tablist" className="grid grid-cols-2 border-4 border-bbq-cream">
                 {(['book', 'gift'] as const).map((m) => (
                   <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => { setMode(m); if (m === 'gift') track('workshop_giftbox_click', { where: 'tab', lang }); }}
-                    className={`min-h-[52px] px-3 font-black uppercase tracking-wider text-sm ${mode === m ? 'bg-bbq-yellow text-bbq-black' : 'bg-bbq-black text-white hover:text-bbq-yellow'}`}>
+                    className={`min-h-[52px] px-3 font-black uppercase tracking-wider text-sm ${mode === m ? 'bg-bbq-yellow text-bbq-black' : 'bg-transparent text-white hover:text-bbq-yellow'}`}>
                     {m === 'book' ? c.modeBook : c.modeGift}
                   </button>
                 ))}
@@ -1186,7 +1188,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                   <p role="status" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{c.giftCancelled}</p>
                 )}
                 {giftDone ? (
-                  <div role="status" className="bg-bbq-yellow text-bbq-black border-4 border-bbq-black shadow-hard p-8 flex flex-col gap-3">
+                  <div role="status" className="bg-bbq-yellow text-bbq-black border-4 border-bbq-cream p-8 flex flex-col gap-3" style={{ boxShadow: '6px 6px 0 0 #d91a2a' }}>
                     {giftDone.status === 'paid' ? (
                       <>
                         <span className="text-3xl font-black uppercase tracking-tight">{c.giftOkTitle(giftDone.firstName)}</span>
@@ -1231,7 +1233,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                       <span>{c.gConsent}<a href="/privacy" className="text-bbq-yellow underline">{c.consentLink}</a>.</span>
                     </label>
                     {giftError && <p role="alert" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{giftError}</p>}
-                    <div><Btn type="submit" disabled={giftPaying}>{giftPaying ? c.paying : c.pay(c.money(giftTotal))}</Btn></div>
+                    <div><Btn type="submit" disabled={giftPaying} style={{ boxShadow: '4px 4px 0 0 #d91a2a' }}>{giftPaying ? c.paying : c.pay(c.money(giftTotal))}</Btn></div>
                     <p className="m-0 text-sm leading-normal text-white/80">{c.gNote}</p>
                   </form>
                 )}
@@ -1253,8 +1255,8 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                         key={ed.id}
                         type="button"
                         aria-pressed={on}
-                        onClick={() => { setB('editionId')(ed.id); setB('qty')(Math.min(book.qty, Math.min(6, ed.left))); }}
-                        className={`text-left border-4 p-5 flex flex-wrap justify-between gap-3 transition-colors ${on ? 'bg-bbq-yellow text-bbq-black border-bbq-black shadow-hard' : 'bg-transparent text-white border-white hover:border-bbq-yellow'}`}
+                        onClick={() => { setB('editionId')(ed.id); setB('qty')(Math.min(book.qty, Math.min(6, shownLeft(ed.left)))); }}
+                        className={`text-left border-4 p-5 flex flex-wrap justify-between gap-3 transition-colors ${on ? 'bg-bbq-yellow text-bbq-black border-bbq-cream shadow-[5px_5px_0_0_#d91a2a]' : 'bg-transparent text-white border-white/60 hover:border-bbq-yellow'}`}
                       >
                         <span className="flex flex-col gap-1">
                           <span className="text-2xl leading-none font-black uppercase tracking-tight">{edWhen(ed, L)}</span>
@@ -1262,7 +1264,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                         </span>
                         <span className="flex flex-col sm:items-end gap-1">
                           <span className="text-2xl leading-none font-black">{c.money(p)}</span>
-                          <span className="font-black text-xs tracking-[0.08em] uppercase">{c.spotsLeft(ed.left)}</span>
+                          <span className="font-black text-xs tracking-[0.08em] uppercase">{c.spotsLeft(shownLeft(ed.left))}</span>
                         </span>
                       </button>
                     );
@@ -1278,9 +1280,6 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                     {!voucher && <span className="font-bold">× {c.money(unitPrice)} {c.perPerson}</span>}
                   </div>
                   {invite && chosen?.invitePrice && <span className="font-bold text-bbq-yellow">{c.inviteApplied}</span>}
-                  {!voucher && !invite && chosen && !groupOn && chosen.invitePrice && chosen.invitePrice < chosen.price && maxQty >= 2 && (
-                    <span className="font-bold">{c.groupHint(c.money(chosen.invitePrice))}</span>
-                  )}
                   {!voucher && groupOn && (
                     <span className="font-bold text-bbq-yellow">
                       <s className="text-white/70 mr-2">{c.money(chosen!.price * book.qty)}</s>{c.groupApplied(c.money(groupSaving))}
@@ -1299,7 +1298,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                   ) : (
                     <div className="flex flex-wrap gap-3 items-stretch">
                       <input aria-label={c.vLink} className={`${inputCls} !w-auto flex-1 min-w-[12rem] uppercase tracking-widest`} type="text" placeholder="XXXX-XXXX" value={voucherInput} onChange={(e) => { setVoucherInput(e.target.value); setVoucherError(''); }} />
-                      <button type="button" onClick={() => applyVoucher()} className="px-6 border-4 border-white text-white font-black uppercase tracking-wider text-sm hover:bg-white hover:text-bbq-red transition-colors">{c.vApply}</button>
+                      <button type="button" onClick={() => applyVoucher()} className="px-6 border-4 border-white text-white font-black uppercase tracking-wider text-sm hover:bg-white hover:text-bbq-black transition-colors">{c.vApply}</button>
                     </div>
                   )}
                   {voucherError && <p role="alert" className="m-0 font-bold text-bbq-yellow">{voucherError}</p>}
@@ -1325,7 +1324,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                 </label>
                 {bookError && <p role="alert" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{bookError}</p>}
                 <div className="flex flex-wrap items-center gap-4">
-                  <Btn type="submit" disabled={paying}>{paying ? c.paying : total === 0 ? c.payFree : c.pay(c.money(total))}</Btn>
+                  <Btn type="submit" disabled={paying} style={{ boxShadow: '4px 4px 0 0 #d91a2a' }}>{paying ? c.paying : total === 0 ? c.payFree : c.pay(c.money(total))}</Btn>
                 </div>
                 <p className="m-0 text-sm leading-normal text-white/80">{c.payNote}</p>
               </form>
@@ -1368,7 +1367,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                     </label>
                     {quickError && <p role="alert" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{quickError}</p>}
                     <div>
-                      <button type="submit" disabled={quickSending} className="min-h-[48px] px-6 border-4 border-white text-white font-black uppercase tracking-wider text-sm hover:bg-white hover:text-bbq-red transition-colors disabled:opacity-60">
+                      <button type="submit" disabled={quickSending} className="min-h-[48px] px-6 border-4 border-white text-white font-black uppercase tracking-wider text-sm hover:bg-white hover:text-bbq-black transition-colors disabled:opacity-60">
                         {quickSending ? c.sending : c.altSubmit}
                       </button>
                     </div>
