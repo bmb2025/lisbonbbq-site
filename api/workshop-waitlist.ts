@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
-import { randomInt, createHmac, timingSafeEqual } from "crypto";
+import { randomInt, createHmac, createHash, timingSafeEqual } from "crypto";
 
 // Waiting list do workshop de churrasco (lisbonbbq.pt/workshop).
 //
@@ -505,6 +505,62 @@ function siteOrigin(req: any) {
   return SITE;
 }
 
+// ── Meta Conversions API (Purchase pelo servidor) ──
+// Junta ao utm da reserva os dados que a CAPI precisa (consentimento, _fbp/_fbc,
+// IP, user agent, URL). Fica no jsonb utm para não precisar de migração.
+function withCapi(req: any, b: any) {
+  const base = b.utm && typeof b.utm === "object" ? { ...b.utm } : {};
+  const c = b.capi && typeof b.capi === "object" ? b.capi : null;
+  if (!c) return Object.keys(base).length ? base : null;
+  const ip = String(req.headers?.["x-forwarded-for"] || "").split(",")[0].trim() || null;
+  base._capi = {
+    marketing: c.marketing === true,
+    fbp: str(c.fbp, 120) || null, fbc: str(c.fbc, 300) || null,
+    url: str(c.url, 500) || null, ip, ua: str(req.headers?.["user-agent"], 400) || null,
+  };
+  return base;
+}
+const sha256 = (v: string) => createHash("sha256").update(v).digest("hex");
+const capiPhone = (raw: string) => {
+  const d = String(raw || "").replace(/\D/g, "");
+  if (!d) return null;
+  if (d.startsWith("00")) return d.slice(2);
+  if (d.length === 9) return "351" + d;
+  return d;
+};
+// Envia um Purchase à Meta. Só com consentimento de marketing e com token configurado.
+// event_id = ID da reserva/voucher, o mesmo que o browser usa (deduplicação).
+async function sendCapiPurchase(o: { eventId: string; value: number; email?: string | null; phone?: string | null; utm: any; name: string }) {
+  const token = process.env.META_CAPI_TOKEN;
+  const pixel = process.env.META_PIXEL_ID || process.env.VITE_META_PIXEL_ID;
+  const c = o.utm?._capi;
+  if (!token || !pixel || !c?.marketing || !(o.value > 0)) return;
+  const user_data: any = {};
+  if (o.email) user_data.em = [sha256(o.email.trim().toLowerCase())];
+  const ph = capiPhone(o.phone || "");
+  if (ph) user_data.ph = [sha256(ph)];
+  if (c.ip) user_data.client_ip_address = c.ip;
+  if (c.ua) user_data.client_user_agent = c.ua;
+  if (c.fbp) user_data.fbp = c.fbp;
+  if (c.fbc) user_data.fbc = c.fbc;
+  const body = {
+    data: [{
+      event_name: "Purchase", event_time: Math.floor(Date.now() / 1000), event_id: o.eventId,
+      action_source: "website", event_source_url: c.url || `${SITE}/workshop`,
+      user_data, custom_data: { currency: "EUR", value: o.value, content_name: o.name },
+    }],
+    ...(process.env.META_CAPI_TEST_CODE ? { test_event_code: process.env.META_CAPI_TEST_CODE } : {}),
+  };
+  try {
+    const r = await fetch(`https://graph.facebook.com/v21.0/${pixel}/events?access_token=${encodeURIComponent(token)}`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    });
+    if (!r.ok) console.error("[meta-capi] purchase failed:", r.status, (await r.text()).slice(0, 300));
+  } catch (e) {
+    console.error("[meta-capi] purchase error:", e);
+  }
+}
+
 // Pagamento dentro do site (Stripe Elements com Checkout Sessions, ui_mode
 // "elements"): a sessão é a mesma (mesmo webhook, mesmos emails), só muda a UI.
 // Sem embedded, mantém o redirecionamento para a página da Stripe.
@@ -591,7 +647,7 @@ async function createCheckout(req: any, res: any) {
       invite_code: invitePrice ? code : null, waitlist_id: waitlistId, lang,
       consent, consent_at: new Date().toISOString(),
       consent_text: lang === "en" ? BOOKING_CONSENT_TEXT_EN : BOOKING_CONSENT_TEXT,
-      utm: b.utm && typeof b.utm === "object" ? b.utm : null,
+      utm: withCapi(req, b),
       status: "pending", expires_at: expiresAt.toISOString(),
     })
     .select("id")
@@ -710,6 +766,10 @@ async function markBookingPaid(session: any) {
         .update({ status: "redeemed", redeemed_at: new Date().toISOString(), redeemed_booking_id: bk.id })
         .eq("code", bk.gift_code).eq("status", "paid");
     }
+    await sendCapiPurchase({
+      eventId: bk.id, value: (session.amount_total ?? bk.amount_cents) / 100,
+      email: bk.email, phone: bk.phone, utm: bk.utm, name: "workshop_purchase",
+    });
   }
   if (bk.confirmation_sent_at) return; // a Stripe pode repetir o evento
 
@@ -810,7 +870,7 @@ async function createGiftCheckout(req: any, res: any) {
       code: newGiftCode(), buyer_name: buyerName, buyer_email: buyerEmail,
       recipient_name: recipientName || null, message: message || null, amount_cents: amount, lang,
       consent, consent_at: new Date().toISOString(), consent_text: lang === "en" ? GIFT_CONSENT_TEXT_EN : GIFT_CONSENT_TEXT,
-      utm: b.utm && typeof b.utm === "object" ? b.utm : null,
+      utm: withCapi(req, b),
       status: "pending", expires_at: expiresAt.toISOString(),
     }).select("id").single();
     if (data) gift = data;
@@ -914,6 +974,10 @@ async function markGiftPaid(session: any) {
     };
     await supabase.from("workshop_gift_vouchers").update(update).eq("id", g.id);
     row = { ...g, ...update };
+    await sendCapiPurchase({
+      eventId: g.id, value: (update.amount_cents ?? g.amount_cents) / 100,
+      email: g.buyer_email, phone: null, utm: g.utm, name: "workshop_giftbox_purchase",
+    });
   }
   if (row.email_sent_at) return; // a Stripe pode repetir o evento
 
@@ -948,7 +1012,7 @@ async function markGiftPaid(session: any) {
 async function getGift(req: any, res: any) {
   const sessionId = str(req.query?.session_id, 200);
   if (!/^cs_(test|live)_[A-Za-z0-9]+$/.test(sessionId)) return res.status(400).json({ error: "invalid" });
-  const { data: g } = await supabase.from("workshop_gift_vouchers").select("status, buyer_name, valid_until").eq("stripe_session_id", sessionId).maybeSingle();
+  const { data: g } = await supabase.from("workshop_gift_vouchers").select("id, status, buyer_name, valid_until").eq("stripe_session_id", sessionId).maybeSingle();
   if (!g) return res.status(404).json({ error: "not_found" });
   let status = g.status;
   if (status === "pending") {
@@ -960,7 +1024,7 @@ async function getGift(req: any, res: any) {
     }
   }
   res.setHeader("Cache-Control", "no-store");
-  return res.status(200).json({ status, firstName: firstName(g.buyer_name) });
+  return res.status(200).json({ status, giftId: g.id, firstName: firstName(g.buyer_name) });
 }
 
 async function stripeWebhook(req: any, res: any) {
@@ -1041,6 +1105,7 @@ async function getBooking(req: any, res: any) {
   res.setHeader("Cache-Control", "no-store");
   return res.status(200).json({
     status: bk.status,
+    bookingId: bk.id,
     firstName: firstName(bk.name),
     quantity: bk.quantity,
     amount: bk.amount_cents / 100,
