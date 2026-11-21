@@ -26,6 +26,12 @@ const DIET_LABELS: Record<string, string> = {
   alergia: "Tem alergia",
 };
 
+// Títulos de evento podem ter quebras de linha (ex.: "Churrasco de Natal\nEmpresa");
+// o Resend recusa \n no assunto (422). Junta tudo numa linha.
+function oneLine(text: string | undefined | null) {
+  return String(text || "").split(/\s*[\r\n]+\s*/).filter(Boolean).join(" · ").trim();
+}
+
 function escapeHtml(text: string | undefined | null) {
   if (!text) return "";
   return text
@@ -121,7 +127,7 @@ function confirmationDietEmail(
 </style></head>
 <body>
 <div class="card">
-  <h1>🔥 Anotado — ${escapeHtml(event.title)}</h1>
+  <h1>🔥 Anotado — ${escapeHtml(oneLine(event.title))}</h1>
   <p>Os pitmasters já sabem.</p>
   <div class="highlight">
     <strong>${escapeHtml(DIET_LABELS[diet] || diet)}</strong>
@@ -308,7 +314,7 @@ async function handleDieta(req: any, res: any, slug: string) {
       resend.emails.send({
         from: FROM,
         to: NOTIFY_EMAIL,
-        subject: `🌱 Dieta — ${event.title} — ${normalizedEmail}`,
+        subject: `🌱 Dieta — ${oneLine(event.title)} — ${normalizedEmail}`,
         html: internalDietEmail(
           event, diet, detail, normalizedEmail, normalizedName,
           normalizedHasChildren, normalizedChildrenCount, normalizedChildrenDietDetail
@@ -317,7 +323,7 @@ async function handleDieta(req: any, res: any, slug: string) {
       resend.emails.send({
         from: FROM,
         to: normalizedEmail,
-        subject: `Anotado 🔥 — ${event.title}`,
+        subject: `Anotado 🔥 — ${oneLine(event.title)}`,
         html: confirmationDietEmail(
           event, diet, detail,
           normalizedHasChildren, normalizedChildrenCount, normalizedChildrenDietDetail
@@ -381,7 +387,7 @@ async function handleCodigo(req: any, res: any, slug: string) {
     await resend.emails.send({
       from: FROM,
       to: normalizedEmail,
-      subject: `O teu código de desconto — ${event.title}`,
+      subject: `O teu código de desconto — ${oneLine(event.title)}`,
       html: codeEmail(event, code),
     });
   } catch (err) {
