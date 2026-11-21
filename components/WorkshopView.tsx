@@ -550,9 +550,9 @@ const EmbeddedPay: React.FC<{
           },
         });
         const express = checkout.createExpressCheckoutElement({
-          buttonHeight: 48, buttonTheme: { applePay: 'white' }, layout: { maxColumns: 1, maxRows: 1 },
-          // Só Apple Pay nos botões rápidos (sem Google Pay nem Link)
-          paymentMethods: { applePay: 'always', googlePay: 'never', link: 'never', amazonPay: 'never', klarna: 'never', paypal: 'never' },
+          buttonHeight: 48, buttonTheme: { applePay: 'white', googlePay: 'white' }, layout: { maxColumns: 2, maxRows: 1 },
+          // Botões rápidos: Apple Pay e Google Pay lado a lado (sem Link)
+          paymentMethods: { applePay: 'always', googlePay: 'always', link: 'never', amazonPay: 'never', klarna: 'never', paypal: 'never' },
         } as any);
         express.on('ready', (e: any) => { if (!cancelled) setHasExpress(!!e?.availablePaymentMethods && Object.values(e.availablePaymentMethods).some(Boolean)); });
         express.on('confirm', async (event: any) => {
@@ -563,8 +563,9 @@ const EmbeddedPay: React.FC<{
         });
         const payment = checkout.createPaymentElement({
           layout: { type: 'accordion', defaultCollapsed: false, radios: 'always', spacedAccordionItems: true },
-          paymentMethodOrder: ['mb_way', 'apple_pay', 'card', 'klarna', 'revolut_pay'],
-          wallets: { applePay: 'auto', googlePay: 'never', link: 'never' },
+          paymentMethodOrder: ['mb_way', 'card', 'klarna', 'revolut_pay'],
+          // Carteiras só nos botões rápidos do topo, para não aparecerem duas vezes
+          wallets: { applePay: 'never', googlePay: 'never', link: 'never' },
         } as any);
         if (expressRef.current) express.mount(expressRef.current);
         if (paymentRef.current) payment.mount(paymentRef.current);
