@@ -329,8 +329,6 @@ function announceEmail(row: any, editions: any[]) {
     <div style="${F}font-size:22px;line-height:26px;font-weight:900;letter-spacing:-0.5px;color:#F9F7F2;">${t.boxTitle}</div>
     <div style="height:6px;line-height:6px;font-size:1px;">&nbsp;</div>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${dates}</table>
-    <div style="height:14px;line-height:14px;font-size:1px;">&nbsp;</div>
-    <div style="${F}font-size:14px;line-height:21px;color:#cfcabd;">${t.price}</div>
     <div style="height:20px;line-height:20px;font-size:1px;">&nbsp;</div>
     <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
       <td bgcolor="#F4B41A" style="background-color:#F4B41A;padding:15px 30px;"><a href="${link}" target="_blank" style="${F}font-size:15px;line-height:18px;font-weight:900;color:#1A1A1A;text-decoration:none;">${t.cta}</a></td>
