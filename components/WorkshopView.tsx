@@ -72,16 +72,16 @@ const COPY = {
     beerAlt: 'Dois homens à grelha: um deita sal grosso na carne, o outro aponta e dá palpite com uma cerveja na mão',
     learnEyebrow: 'O que vais dominar',
     learnH2: 'Oito coisas que deixas de errar',
-    learnP: 'Carvão vegetal, brasa e os cortes que se comem cá. Nada de smoker nem molho barbecue.',
+    learnP: 'Carvão vegetal, brasa e os cortes que se comem em Portugal. Nada de smoker nem molho barbecue.',
     learn: [
-      { t: 'A churrasqueira', d: 'Que grelhador e que utensílios valem o dinheiro, e como preparar a grelha antes de acender.' },
-      { t: 'Brasa', d: 'Acendes o carvão à primeira, montas zona quente e zona fria e manténs a brasa viva até à última peça.' },
-      { t: 'Escolher as melhores carnes', d: 'Picanha, maminha, fraldinha. Escolhes a peça certa no talho e cortas no sentido certo. É muito acerto.' },
+      { t: 'O grelhador', d: 'O que faz um bom grelhador e que utensílios valem o dinheiro. Como preparar a grelha antes de acender as brasas.' },
+      { t: 'Cuidar do lume', d: 'Acender o carvão à primeira, montar zona quente e zona fria e como manter a brasa viva até à última peça.' },
+      { t: 'Escolher as melhores carnes', d: 'Picanha, maminha, fraldinha. Como identificar cada peça, saber o que escolher no talho e cortar no sentido certo.' },
       { t: 'Tempero', d: 'Sal grosso, flor de sal ou marinada? Sabes o que pôr em cada carne e em que momento.' },
       { t: 'Reação de Maillard', d: 'Percebes porque é que a carne ganha crosta e como a consegues sem passar o interior. É a diferença entre grelhar e cozer na grelha.' },
-      { t: 'O ponto', d: 'Acertas no ponto sem abrir a carne para espreitar.' },
-      { t: 'Entremeada e linguiça', d: 'Tostadas por fora, suculentas por dentro. Sem secar nem queimar.' },
+      { t: 'O ponto', d: 'Acertar no ponto sem abrir a carne para espreitar. Como fazer a carne suculenta por dentro e com textura por fora.' },
       { t: 'Descanso e corte', d: 'Deixas a carne descansar o tempo certo e cortas à mesa, para servir quente.' },
+      { t: 'Empratar', d: 'Como servir a carne, acertos e temperos finais.' },
     ],
     flowEyebrow: 'Como corre a tarde',
     flowH2: 'Do carvão à mesa',
@@ -96,8 +96,6 @@ const COPY = {
     inclEyebrow: 'O que está incluído',
     inclH2: 'Tudo. Só trazes a fome.',
     included: ['Toda a carne e os acompanhamentos', 'Refeição completa à mesa longa', 'Bebidas: cerveja ou vinho da casa', 'Avental e receita para levar para casa', '1 pitmaster que ensina e acompanha'],
-    when: ['Quando:', 'próximas sessões em novembro e dezembro de 2026, sexta ao fim da tarde, sábado ou domingo.'],
-    where: ['Onde:', 'espaço Lisbon BBQ, em Lisboa. O local exato vai na confirmação.'],
     spots: ['Lugares:', '16 por sessão. Quem está na lista tem 48 horas de prioridade antes de abrirmos ao público.'],
     priceLabel: 'Workshop · por pessoa',
     priceLabelInvite: 'Workshop · com convite',
@@ -180,7 +178,6 @@ const COPY = {
     fMotive: 'o que te traz',
     ctaBook: 'Reservar lugar',
     ctaBookNote: 'Pagamento seguro com cartão, MB Way ou Apple Pay.',
-    whenOpen: (d: string) => `${d}. Mais datas em breve.`,
     bookEyebrow: 'Datas e reserva',
     bookH2: 'Escolhe a data',
     bookP: 'Reservas o lugar aqui e pagas no momento. Recebes a confirmação por email e a morada exata uns dias antes.',
@@ -234,16 +231,16 @@ const COPY = {
     beerAlt: 'Two men at the grill: one sprinkles coarse salt on the meat while the other points and gives his opinion, beer in hand',
     learnEyebrow: "What you'll master",
     learnH2: "Eight things you'll stop getting wrong",
-    learnP: 'Charcoal, embers and the cuts people eat here. No smoker, no barbecue sauce.',
+    learnP: 'Charcoal, embers and the cuts people eat in Portugal. No smoker, no barbecue sauce.',
     learn: [
-      { t: 'The grill', d: 'Which grill and tools are worth the money, and how to prepare the grate before you light up.' },
-      { t: 'Embers', d: 'You light the charcoal first time, set up a hot zone and a cold zone, and keep the embers alive until the last piece.' },
-      { t: 'Choosing the best cuts', d: 'Picanha, maminha, fraldinha. You pick the right piece at the butcher and cut it against the grain. Small details make a big difference.' },
+      { t: 'The grill', d: 'What makes a good grill and which tools are worth the money. How to prepare the grate before lighting the coals.' },
+      { t: 'Tending the fire', d: 'Lighting the charcoal first time, setting up a hot zone and a cold zone, and how to keep the embers alive until the last piece.' },
+      { t: 'Choosing the best cuts', d: 'Picanha, maminha, fraldinha. How to recognise each cut, know what to pick at the butcher and cut it against the grain.' },
       { t: 'Seasoning', d: 'Coarse salt, flor de sal or marinade? You know what goes on each meat, and when.' },
       { t: 'The Maillard reaction', d: "You understand why meat gets a crust and how to get one without overcooking the inside. It's the difference between grilling and steaming on the grill." },
-      { t: 'Doneness', d: 'You nail the doneness without cutting the meat open to peek.' },
-      { t: 'Pork belly and linguiça', d: 'Crisp outside, juicy inside. No drying out, no burning.' },
+      { t: 'Doneness', d: 'Nailing the doneness without cutting the meat open to peek. How to keep the meat juicy inside with texture outside.' },
       { t: 'Resting and carving', d: 'You let the meat rest for the right time and carve at the table, so it goes out hot.' },
+      { t: 'Plating', d: 'How to serve the meat, with final touches and seasoning.' },
     ],
     flowEyebrow: 'How the afternoon goes',
     flowH2: 'From charcoal to table',
@@ -258,8 +255,6 @@ const COPY = {
     inclEyebrow: "What's included",
     inclH2: 'Everything. Just bring your appetite.',
     included: ['All the meat and sides', 'Full meal at the long table', 'Drinks: beer or house wine', 'Apron and recipe to take home', '1 pitmaster who teaches and guides you'],
-    when: ['When:', 'upcoming sessions in November and December 2026, Friday early evening, Saturday or Sunday.'],
-    where: ['Where:', 'Lisbon BBQ venue, in Lisbon. The exact location comes with your confirmation.'],
     spots: ['Spots:', '16 per session. People on the list get 48 hours of priority before we open to the public.'],
     priceLabel: 'Workshop · per person',
     priceLabelInvite: 'Workshop · with invite',
@@ -342,7 +337,6 @@ const COPY = {
     fMotive: 'what brings you',
     ctaBook: 'Book your spot',
     ctaBookNote: 'Secure payment by card, MB Way or Apple Pay.',
-    whenOpen: (d: string) => `${d}. More dates coming soon.`,
     bookEyebrow: 'Dates and booking',
     bookH2: 'Pick a date',
     bookP: "Book your spot here and pay right away. You'll get the confirmation by email and the exact address a few days before.",
@@ -746,7 +740,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
           <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(13rem, 1fr))' }}>
             {c.stats.map(([t, d]) => (
               <div key={t} className="bg-bbq-black text-bbq-cream border-4 border-bbq-black p-6 flex flex-col gap-2" style={{ boxShadow: '6px 6px 0 0 #d91a2a' }}>
-                <span className="text-4xl leading-none font-black tracking-tight uppercase text-bbq-yellow">{t}</span>
+                <span className="text-2xl leading-none font-black tracking-tight uppercase text-bbq-yellow">{t}</span>
                 <span className="font-bold leading-snug">{d}</span>
               </div>
             ))}
@@ -834,8 +828,6 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
             ))}
           </ul>
           <div className="flex flex-col gap-2 text-[0.9375rem] leading-normal">
-            <p className="m-0"><strong className="font-black uppercase tracking-wide">{c.when[0]}</strong> {nextEdition ? c.whenOpen(edWhen(nextEdition, L)) : c.when[1]}</p>
-            <p className="m-0"><strong className="font-black uppercase tracking-wide">{c.where[0]}</strong> {c.where[1]}</p>
             <p className="m-0"><strong className="font-black uppercase tracking-wide">{c.spots[0]}</strong> {c.spots[1]}</p>
           </div>
         </div>
