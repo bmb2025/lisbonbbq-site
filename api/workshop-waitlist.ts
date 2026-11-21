@@ -42,6 +42,13 @@ const CONSENT_TEXT =
 const CONSENT_TEXT_EN =
   "I authorise Lisbon BBQ to store this data to contact me about the Lisbon BBQ barbecue workshop, in accordance with the GDPR. I can ask for it to be deleted at any time at pitmasters@lisbonbbq.pt.";
 
+// Registo curto (box «Datas futuras» / checkout cancelado): é este o texto que a
+// pessoa vê na página, por isso é este que fica guardado.
+const QUICK_CONSENT_TEXT =
+  "Autorizo a Lisbon BBQ a guardar estes dados para me avisar de novas datas do workshop, de acordo com a política de privacidade.";
+const QUICK_CONSENT_TEXT_EN =
+  "I authorise Lisbon BBQ to store this data to tell me about new workshop dates, in accordance with the privacy policy.";
+
 const supabase = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -169,14 +176,15 @@ function inviterJoinedEmail(inviter: any, invitee: any, p: { public: number; inv
   );
 }
 
-function internalEmail(row: any, inviter: any | null) {
+function internalEmail(row: any, inviter: any | null, quick = false) {
   const rows: [string, string][] = [
+    ["Origem", quick ? "Registo curto (bloco de compra: «Datas futuras» / checkout cancelado)" : "Formulário completo da waiting list"],
     ["Nome", row.name],
     ["Email", row.email],
-    ["Telemóvel", row.phone],
-    ["Horário", row.preferred_slot],
-    ["Já grelha?", row.experience],
-    ["O que o traz", row.motive],
+    ["Telemóvel", row.phone || "—"],
+    ["Horário", row.preferred_slot || "—"],
+    ["Já grelha?", row.experience || "—"],
+    ["O que o traz", row.motive || "—"],
     ["Como soube", row.heard_from || "—"],
     ["Convidado por", inviter ? `${inviter.name} (${inviter.email})` : "—"],
     ["Preço", `${row.locked_price ?? row.public_price}€ (variante ${row.price_variant})`],
@@ -222,11 +230,108 @@ function reminderEmail(row: any) {
 }
 
 
+// ── Anúncio «Abriram novas datas» à waiting list ──
+// Só sai para edições que o Bruno aprovou (workshop_editions.announce_at <= agora)
+// e ainda não anunciadas (announced_at null). Cada pessoa recebe no máximo uma vez
+// por edição (workshop_waitlist_notified). Corre no cron diário (runReminders).
+function announceEmail(row: any, editions: any[]) {
+  const en = row.lang === "en";
+  const fn = escapeHtml(firstName(row.name));
+  const link = `${SITE}/workshop?utm_source=waitlist&utm_medium=email&utm_campaign=novas-datas${en ? "&lang=en" : ""}#datas`;
+  const items = editions.map((e) => {
+    const when = escapeHtml(editionWhen(e, en ? "en" : "pt"));
+    const title = escapeHtml(String((en ? e.title_en : e.title_pt) || "").split(/\s*[\r\n]+\s*/).join(" · "));
+    return `<p style="margin:0 0 10px"><strong>${when}</strong><br>${title}</p>`;
+  }).join("");
+  const pub = Math.round((editions[0]?.price_cents ?? 11000) / 100);
+  const inv = Math.round((editions[0]?.invite_price_cents ?? editions[0]?.price_cents ?? 9000) / 100);
+  const locked = row.locked_price != null;
+  if (en) {
+    return layout(
+      "New dates are open",
+      `<p>${fn}, you're on the waiting list, so you hear it first: new barbecue workshop dates are open.</p>
+       <div class="box">${items}</div>
+       <p>${locked ? `Your invite still counts: your spot is <strong>€${inv}</strong>.` : `<strong>€${pub}</strong> per person, or <strong>€${inv} each</strong> if you bring someone.`} Small groups, so spots go fast.</p>
+       <p style="margin:24px 0"><a class="btn" href="${link}">Pick your date</a></p>
+       <p>For the next 48 hours this is just for the list. After that we open it to everyone.</p>
+       <p>See you at the embers,<br><strong>LisbonBBQ team</strong></p>`,
+      "en"
+    );
+  }
+  return layout(
+    "Abriram datas novas",
+    `<p>${fn}, estás na waiting list, por isso és dos primeiros a saber: abrimos novas datas do workshop de churrasco.</p>
+     <div class="box">${items}</div>
+     <p>${locked ? `O teu convite continua a valer: o teu lugar fica a <strong>${inv}€</strong>.` : `<strong>${pub}€</strong> por pessoa, ou <strong>${inv}€ cada</strong> se vieres acompanhado.`} Os grupos são pequenos e as vagas vão depressa.</p>
+     <p style="margin:24px 0"><a class="btn" href="${link}">Escolher a data</a></p>
+     <p>Durante as próximas 48 horas isto é só para a lista. Depois abrimos a toda a gente.</p>
+     <p>Até à brasa,<br><strong>Equipa LisbonBBQ</strong></p>`
+  );
+}
+
+async function runAnnouncements() {
+  const nowIso = new Date().toISOString();
+  const { data: eds, error } = await supabase
+    .from("workshop_editions_with_status")
+    .select("*")
+    .lte("announce_at", nowIso)
+    .is("announced_at", null)
+    .eq("effective_status", "available")
+    .order("date");
+  if (error) { console.error("[workshop-announce] editions query failed:", error); return { error: "editions_query_failed" }; }
+  if (!eds || !eds.length) return { editions: 0, sent: 0 };
+
+  const ids = eds.map((e: any) => e.id);
+  const { data: people, error: wlErr } = await supabase
+    .from("workshop_waitlist")
+    .select("id, name, email, lang, locked_price")
+    .eq("status", "waitlist")
+    .limit(1000);
+  if (wlErr) { console.error("[workshop-announce] waitlist query failed:", wlErr); return { error: "waitlist_query_failed" }; }
+  const { data: done } = await supabase.from("workshop_waitlist_notified").select("waitlist_id, edition_id").in("edition_id", ids);
+  const seen = new Set((done || []).map((d: any) => `${d.waitlist_id}:${d.edition_id}`));
+
+  const queue = (people || [])
+    .map((p: any) => ({ p, todo: eds.filter((e: any) => !seen.has(`${p.id}:${e.id}`)) }))
+    .filter((x: any) => x.todo.length);
+
+  let sent = 0, failed = 0;
+  for (let i = 0; i < queue.length; i += 50) {
+    const chunk = queue.slice(i, i + 50);
+    try {
+      const { error: sendError } = await (resend as any).batch.send(chunk.map(({ p, todo }: any) => ({
+        from: FROM, to: p.email, replyTo: REPLY_TO,
+        subject: p.lang === "en" ? "New workshop dates: 48h priority for the list" : "Abriram datas novas: 48h de prioridade para a lista",
+        html: announceEmail(p, todo),
+      })));
+      if (sendError) throw sendError;
+      const rows = chunk.flatMap(({ p, todo }: any) => todo.map((e: any) => ({ waitlist_id: p.id, edition_id: e.id, sent_at: new Date().toISOString() })));
+      await supabase.from("workshop_waitlist_notified").upsert(rows, { onConflict: "waitlist_id,edition_id" });
+      sent += chunk.length;
+    } catch (e) {
+      failed += chunk.length;
+      console.error("[workshop-announce] batch failed:", e);
+    }
+  }
+  // Só fecha as edições se não houve falhas (as falhas voltam a tentar no dia seguinte).
+  if (!failed) await supabase.from("workshop_editions").update({ announced_at: new Date().toISOString() }).in("id", ids);
+  try {
+    await resend.emails.send({
+      from: FROM, to: NOTIFY_EMAIL,
+      subject: `📣 Anúncio de datas enviado: ${sent} pessoas${failed ? ` (${failed} falharam)` : ""}`,
+      html: `<p style="font-family:Arial,sans-serif">Edições: ${ids.map(escapeHtml).join(", ")}<br>Enviados: ${sent}<br>Falhados: ${failed}</p>`,
+    });
+  } catch (e) { console.error("[workshop-announce] internal email failed:", e); }
+  return { editions: ids.length, sent, failed };
+}
+
 async function runReminders(req: any, res: any) {
   const secret = process.env.CRON_SECRET;
   if (!secret || req.headers?.authorization !== `Bearer ${secret}`) {
     return res.status(401).json({ error: "unauthorized" });
   }
+
+  const announce = await runAnnouncements();
 
   const cutoff = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
   const { data: due, error } = await supabase
@@ -266,7 +371,7 @@ async function runReminders(req: any, res: any) {
     await supabase.from("workshop_waitlist").update({ reminder_sent_at: new Date().toISOString() }).eq("id", row.id);
   }
 
-  return res.status(200).json({ checked: (due || []).length, sent });
+  return res.status(200).json({ checked: (due || []).length, sent, announce });
 }
 
 // ───────────────────────── Datas e pagamentos (Stripe) ─────────────────────────
@@ -1033,7 +1138,8 @@ export default async function handler(req: any, res: any) {
       .from("workshop_waitlist")
       .insert({
         name, email, phone, preferred_slot, experience, motive, heard_from,
-        consent, consent_at: new Date().toISOString(), consent_text: lang === "en" ? CONSENT_TEXT_EN : CONSENT_TEXT,
+        consent, consent_at: new Date().toISOString(),
+        consent_text: quick ? (lang === "en" ? QUICK_CONSENT_TEXT_EN : QUICK_CONSENT_TEXT) : (lang === "en" ? CONSENT_TEXT_EN : CONSENT_TEXT),
         lang,
         invite_code: newCode(),
         invited_by: inviter?.id ?? null,
@@ -1090,8 +1196,8 @@ export default async function handler(req: any, res: any) {
   try {
     await resend.emails.send({
       from: FROM, to: NOTIFY_EMAIL,
-      subject: `🔥 Waiting list workshop: ${row.name}${inviter ? " (convite)" : ""}`,
-      html: internalEmail(row, inviter),
+      subject: `🔥 Waiting list workshop: ${row.name}${inviter ? " (convite)" : ""}${quick ? " (registo curto)" : ""}`,
+      html: internalEmail(row, inviter, quick),
     });
   } catch (e) {
     console.error("[workshop] internal email failed:", e);
