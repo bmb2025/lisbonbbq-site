@@ -1256,15 +1256,24 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                         type="button"
                         aria-pressed={on}
                         onClick={() => { setB('editionId')(ed.id); setB('qty')(Math.min(book.qty, Math.min(6, shownLeft(ed.left)))); }}
-                        className={`text-left border-4 p-5 flex flex-wrap justify-between gap-3 transition-colors ${on ? 'bg-bbq-yellow text-bbq-black border-bbq-cream shadow-[5px_5px_0_0_#d91a2a]' : 'bg-transparent text-white border-white/60 hover:border-bbq-yellow'}`}
+                        className={`text-left border-4 p-5 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center transition-colors ${on ? 'bg-bbq-yellow text-bbq-black border-bbq-cream shadow-[5px_5px_0_0_#d91a2a]' : 'bg-transparent text-white border-white/60 hover:border-bbq-yellow'}`}
                       >
-                        <span className="flex flex-col gap-1">
+                        <span className="flex flex-col gap-2 min-w-0">
+                          {/* Urgência: selo vermelho com ponto a pulsar */}
+                          <span className="self-start inline-flex items-center gap-2 bg-bbq-red text-white px-3 py-1 font-black text-xs tracking-[0.1em] uppercase">
+                            <span className="relative flex h-2 w-2" aria-hidden="true">
+                              <span className="absolute inline-flex h-full w-full rounded-full bg-white opacity-75 animate-ping" />
+                              <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
+                            </span>
+                            {c.spotsLeft(shownLeft(ed.left))}
+                          </span>
                           <span className="text-2xl leading-none font-black uppercase tracking-tight">{edWhen(ed, L)}</span>
-                          <span className="font-bold">{lang === 'en' ? ed.titleEn : ed.titlePt} · {ed.location}</span>
+                          <span className="font-bold leading-snug">{lang === 'en' ? ed.titleEn : ed.titlePt}</span>
+                          <span className={`text-sm font-bold ${on ? 'text-bbq-black/70' : 'text-white/70'}`}>{ed.location}</span>
                         </span>
-                        <span className="flex flex-col sm:items-end gap-1">
-                          <span className="text-2xl leading-none font-black">{c.money(p)}</span>
-                          <span className="font-black text-xs tracking-[0.08em] uppercase">{c.spotsLeft(shownLeft(ed.left))}</span>
+                        <span className="flex items-baseline gap-2 sm:flex-col sm:items-end sm:gap-1 sm:pl-4">
+                          <span className="text-4xl leading-none font-black tracking-tight">{c.money(p)}</span>
+                          <span className={`text-xs font-black tracking-[0.08em] uppercase ${on ? 'text-bbq-black/70' : 'text-white/70'}`}>{c.perPerson}</span>
                         </span>
                       </button>
                     );
