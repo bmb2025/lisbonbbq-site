@@ -1137,7 +1137,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                 <span className="text-2xl leading-none font-black uppercase tracking-tight text-bbq-yellow">{c.calGiftTag}</span>
                 <span className="flex-none text-2xl leading-none font-black">{c.money(GIFT_PRICE)}</span>
               </div>
-              <div className="bg-white border-2 border-bbq-cream p-3 flex justify-center"><img src={GIFT_IMG} alt={c.giftAlt} width={600} height={633} loading="lazy" className="h-44 w-auto object-contain" /></div>
+              <div className="flex justify-center"><img src={GIFT_IMG} alt={c.giftAlt} width={600} height={625} loading="lazy" className="h-48 w-auto object-contain" /></div>
               <span className="font-black uppercase leading-tight">{c.calGiftTitle}</span>
               <span className="font-bold text-sm text-gray-300 leading-snug">{c.calGiftNote}</span>
               <button type="button" onClick={() => openGift('calendar')} className="mt-auto self-start bg-bbq-yellow text-bbq-black border-2 border-bbq-cream px-4 py-2 min-h-[44px] font-black text-xs tracking-[0.1em] uppercase">{c.calGiftCta} · {c.money(GIFT_PRICE)}</button>
@@ -1202,7 +1202,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                 ) : (
                   <form onSubmit={payGift} noValidate className="flex flex-col gap-6">
                     <div className="flex gap-5 items-center flex-wrap">
-                      <div className="bg-white border-4 border-bbq-black p-2 flex-none"><img src={GIFT_IMG} alt={c.giftAlt} width={600} height={633} loading="lazy" className="w-28 h-auto block" /></div>
+                      <img src={GIFT_IMG} alt={c.giftAlt} width={600} height={625} loading="lazy" className="w-32 h-auto block flex-none" />
                       <div className="flex flex-col gap-2 flex-1 min-w-[14rem]">
                         <span className="text-2xl leading-tight font-black uppercase tracking-tight">{c.giftH}</span>
                         <p className="m-0 leading-normal font-medium">{c.giftP}</p>
