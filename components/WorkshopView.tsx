@@ -551,8 +551,9 @@ const EmbeddedPay: React.FC<{
         const res = await checkout.loadActions();
         if (cancelled) return;
         if (res.type === 'success') { actionsRef.current = res.actions; setReady(true); }
-        else setErr(labels.error);
-      } catch {
+        else { console.error('[workshop-pay] loadActions', res.error); setErr(labels.error); }
+      } catch (e) {
+        console.error('[workshop-pay] init', e);
         if (!cancelled) setErr(labels.error);
       }
     })();
