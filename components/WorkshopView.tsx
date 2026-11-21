@@ -501,11 +501,23 @@ const getStripe = () => {
   return stripePromise;
 };
 
+// Telemóvel em formato internacional para a Stripe (MB Way e afins): 912 345 678 → +351912345678.
+const toE164 = (raw: string) => {
+  const t = (raw || '').trim();
+  if (!t) return undefined;
+  if (t.startsWith('+')) return '+' + t.slice(1).replace(/\D/g, '');
+  const d = t.replace(/\D/g, '');
+  if (d.startsWith('00')) return '+' + d.slice(2);
+  if (d.length === 9) return '+351' + d;
+  if (d.startsWith('351') && d.length === 12) return '+' + d;
+  return undefined;
+};
+
 const EmbeddedPay: React.FC<{
-  clientSecret: string; amount: string; lang: 'pt' | 'en';
+  clientSecret: string; amount: string; lang: 'pt' | 'en'; email?: string; phone?: string;
   labels: { title: string; express: string; payNow: (v: string) => string; processing: string; change: string; note: string; error: string };
   onChange: () => void;
-}> = ({ clientSecret, amount, lang, labels, onChange }) => {
+}> = ({ clientSecret, amount, lang, email, phone, labels, onChange }) => {
   const expressRef = useRef<HTMLDivElement>(null);
   const paymentRef = useRef<HTMLDivElement>(null);
   const actionsRef = useRef<any>(null);
@@ -521,8 +533,12 @@ const EmbeddedPay: React.FC<{
       try {
         const stripe = await getStripe();
         if (cancelled || !stripe) return;
+        const phoneNumber = toE164(phone || '');
         const checkout = stripe.initCheckoutElementsSdk({
           clientSecret,
+          // Telemóvel já pedido no nosso formulário vai pré-preenchido (ex.: MB Way). O email
+          // já segue na sessão (customer_email); a Stripe não deixa voltar a defini-lo aqui.
+          ...(phoneNumber ? { defaultValues: { phoneNumber } } : {}),
           elementsOptions: {
             appearance: {
               theme: 'night',
@@ -535,9 +551,9 @@ const EmbeddedPay: React.FC<{
           },
         });
         const express = checkout.createExpressCheckoutElement({
-          buttonHeight: 48, buttonTheme: { applePay: 'white' }, layout: { maxColumns: 1, maxRows: 1 },
-          // Só Apple Pay nos botões rápidos (sem Google Pay nem Link)
-          paymentMethods: { applePay: 'always', googlePay: 'never', link: 'never', amazonPay: 'never', klarna: 'never', paypal: 'never' },
+          buttonHeight: 48, buttonTheme: { applePay: 'white', googlePay: 'white' }, layout: { maxColumns: 2, maxRows: 1 },
+          // Botões rápidos: Apple Pay e Google Pay lado a lado (sem Link)
+          paymentMethods: { applePay: 'always', googlePay: 'always', link: 'never', amazonPay: 'never', klarna: 'never', paypal: 'never' },
         } as any);
         express.on('ready', (e: any) => { if (!cancelled) setHasExpress(!!e?.availablePaymentMethods && Object.values(e.availablePaymentMethods).some(Boolean)); });
         express.on('confirm', async (event: any) => {
@@ -548,8 +564,9 @@ const EmbeddedPay: React.FC<{
         });
         const payment = checkout.createPaymentElement({
           layout: { type: 'accordion', defaultCollapsed: false, radios: 'always', spacedAccordionItems: true },
-          paymentMethodOrder: ['mb_way', 'apple_pay', 'card', 'klarna', 'revolut_pay'],
-          wallets: { applePay: 'auto', googlePay: 'never', link: 'never' },
+          paymentMethodOrder: ['mb_way', 'card', 'klarna', 'revolut_pay'],
+          // Carteiras só nos botões rápidos do topo, para não aparecerem duas vezes
+          wallets: { applePay: 'never', googlePay: 'never', link: 'never' },
         } as any);
         if (expressRef.current) express.mount(expressRef.current);
         if (paymentRef.current) payment.mount(paymentRef.current);
@@ -1399,7 +1416,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                     </label>
                     {giftError && <p role="alert" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{giftError}</p>}
                     {payStage?.kind === 'gift' ? (
-                      <EmbeddedPay clientSecret={payStage.clientSecret} amount={c.money(payStage.amount)} lang={lang} labels={payLabels} onChange={() => setPayStage(null)} />
+                      <EmbeddedPay clientSecret={payStage.clientSecret} amount={c.money(payStage.amount)} lang={lang} email={gift.buyerEmail.trim()} labels={payLabels} onChange={() => setPayStage(null)} />
                     ) : (
                       <div><Btn type="submit" disabled={giftPaying} style={{ boxShadow: '4px 4px 0 0 #d91a2a' }}>{giftPaying ? c.paying : c.pay(c.money(giftTotal))}</Btn></div>
                     )}
@@ -1555,7 +1572,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                 </label>
                 {bookError && <p role="alert" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{bookError}</p>}
                 {payStage?.kind === 'book' ? (
-                  <EmbeddedPay clientSecret={payStage.clientSecret} amount={c.money(payStage.amount)} lang={lang} labels={payLabels} onChange={() => setPayStage(null)} />
+                  <EmbeddedPay clientSecret={payStage.clientSecret} amount={c.money(payStage.amount)} lang={lang} email={book.email.trim()} phone={book.phone} labels={payLabels} onChange={() => setPayStage(null)} />
                 ) : (
                   <>
                     <div className="flex flex-wrap items-center gap-4">
