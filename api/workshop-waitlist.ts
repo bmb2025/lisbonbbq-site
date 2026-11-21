@@ -411,6 +411,7 @@ async function createCheckout(req: any, res: any) {
   const quantity = Math.floor(Number(b.quantity) || 0);
   const consent = b.consent === true;
   const lang: Lang = b.lang === "en" ? "en" : "pt";
+  const giftCode = cleanGift(b.giftCode);
 
   const errors: string[] = [];
   if (!editionId) errors.push("data");
@@ -447,14 +448,25 @@ async function createCheckout(req: any, res: any) {
   // Preço a dois: a partir de 2 lugares todos pagam o preço de convite.
   // Não acumula com o convite (é o mesmo preço unitário).
   const groupPrice = quantity >= 2;
-  const unit = (invitePrice || groupPrice) && ed.invite_price_cents ? ed.invite_price_cents : ed.price_cents;
+  let unit = (invitePrice || groupPrice) && ed.invite_price_cents ? ed.invite_price_cents : ed.price_cents;
+  let paidSeats = quantity;
+
+  // Voucher Giftbox: cobre 1 lugar; os restantes pagam o preço de acompanhante.
+  if (giftCode) {
+    const check = await giftStatus(giftCode);
+    if (!check.valid) return res.status(409).json({ error: "gift_invalid", reason: check.reason });
+    unit = ed.invite_price_cents ?? ed.price_cents;
+    paidSeats = quantity - 1;
+    invitePrice = false;
+  }
+  const amount = unit * paidSeats;
 
   const expiresAt = new Date(Date.now() + CHECKOUT_TTL_MIN * 60 * 1000 + 30 * 1000);
   const { data: booking, error: insErr } = await supabase
     .from("workshop_bookings")
     .insert({
       edition_id: ed.id, name, email, phone, quantity,
-      unit_price_cents: unit, amount_cents: unit * quantity,
+      unit_price_cents: unit, amount_cents: amount, gift_code: giftCode,
       invite_code: invitePrice ? code : null, waitlist_id: waitlistId, lang,
       consent, consent_at: new Date().toISOString(),
       consent_text: lang === "en" ? BOOKING_CONSENT_TEXT_EN : BOOKING_CONSENT_TEXT,
@@ -468,6 +480,15 @@ async function createCheckout(req: any, res: any) {
     return res.status(500).json({ error: "save_failed" });
   }
 
+  // Voucher que cobre tudo (1 lugar): não passa pela Stripe.
+  if (giftCode && amount === 0) {
+    await markBookingPaid({ id: null, metadata: { booking_id: booking.id }, amount_total: 0, payment_intent: null });
+    return res.status(200).json({
+      ok: true, free: true,
+      booking: { status: "paid", firstName: firstName(name), quantity, amount: 0, edition: publicEdition(ed) },
+    });
+  }
+
   const origin = siteOrigin(req);
   const when = editionWhen(ed, lang);
   const productName = lang === "en" ? `Barbecue workshop · ${when}` : `Workshop de churrasco · ${when}`;
@@ -479,13 +500,15 @@ async function createCheckout(req: any, res: any) {
       client_reference_id: booking.id,
       expires_at: Math.floor(expiresAt.getTime() / 1000) - 30,
       line_items: [{
-        quantity,
+        quantity: paidSeats,
         price_data: {
           currency: "eur",
           unit_amount: unit,
           product_data: {
             name: productName,
-            description: `${lang === "en" ? ed.title_en : ed.title_pt} · ${ed.location}`,
+            description: giftCode
+              ? (lang === "en" ? `Giftbox voucher covers 1 spot · ${ed.location}` : `Voucher Giftbox cobre 1 lugar · ${ed.location}`)
+              : `${lang === "en" ? ed.title_en : ed.title_pt} · ${ed.location}`,
           },
         },
       }],
@@ -519,7 +542,7 @@ function bookingConfirmationEmail(bk: any, ed: any) {
          <p><strong>${when}</strong></p>
          <p>${escapeHtml(ed.title_en)}</p>
          <p>${escapeHtml(ed.location)}. We'll send the exact address a few days before.</p>
-         <p style="margin:0">${bk.quantity} ${bk.quantity === 1 ? "spot" : "spots"} · €${total}</p>
+         <p style="margin:0">${bk.quantity} ${bk.quantity === 1 ? "spot" : "spots"} · €${total}${bk.gift_code ? " · 1 spot with Giftbox" : ""}</p>
        </div>
        <p>Just bring your appetite. If you can't make it, your spot can be transferred to someone else or to another date: reply to this email.</p>
        <p>See you at the embers,<br><strong>LisbonBBQ team</strong></p>`,
@@ -533,7 +556,7 @@ function bookingConfirmationEmail(bk: any, ed: any) {
        <p><strong>${when}</strong></p>
        <p>${escapeHtml(ed.title_pt)}</p>
        <p>${escapeHtml(ed.location)}. Enviamos a morada exata uns dias antes.</p>
-       <p style="margin:0">${bk.quantity} ${bk.quantity === 1 ? "lugar" : "lugares"} · ${total}€</p>
+       <p style="margin:0">${bk.quantity} ${bk.quantity === 1 ? "lugar" : "lugares"} · ${total}€${bk.gift_code ? " · 1 lugar com Giftbox" : ""}</p>
      </div>
      <p>Só trazes a fome. Se não puderes vir, o teu lugar é transferível para outra pessoa ou para outra data: basta responderes a este email.</p>
      <p>Até à brasa,<br><strong>Equipa LisbonBBQ</strong></p>`
@@ -555,6 +578,11 @@ async function markBookingPaid(session: any) {
       amount_cents: session.amount_total ?? bk.amount_cents,
     }).eq("id", bk.id);
     if (bk.waitlist_id) await supabase.from("workshop_waitlist").update({ status: "booked" }).eq("id", bk.waitlist_id);
+    if (bk.gift_code) {
+      await supabase.from("workshop_gift_vouchers")
+        .update({ status: "redeemed", redeemed_at: new Date().toISOString(), redeemed_booking_id: bk.id })
+        .eq("code", bk.gift_code).eq("status", "paid");
+    }
   }
   if (bk.confirmation_sent_at) return; // a Stripe pode repetir o evento
 
@@ -578,13 +606,249 @@ async function markBookingPaid(session: any) {
       html: `<table style="font-family:Arial,sans-serif;font-size:14px">${([
         ["Data", editionWhen(ed, "pt")], ["Nome", bk.name], ["Email", bk.email], ["Telemóvel", bk.phone],
         ["Lugares", String(bk.quantity)], ["Total", `${((session.amount_total ?? bk.amount_cents) / 100).toFixed(2)}€`],
-        ["Convite", bk.invite_code || (bk.unit_price_cents < ed.price_cents ? "preço de convite (waiting list)" : "—")],
+        ["Convite", bk.invite_code || (bk.unit_price_cents < ed.price_cents ? "preço de convite / acompanhante" : "—")],
+        ["Giftbox", bk.gift_code ? fmtGift(bk.gift_code) : "—"],
         ["Ocupação", `${ed.taken || 0}/${ed.max_attendees}`], ["Sessão Stripe", session.id],
       ] as [string, string][]).map(([k, v]) => `<tr><td style="padding:6px 12px;font-weight:bold;color:#555">${k}</td><td style="padding:6px 12px">${escapeHtml(v)}</td></tr>`).join("")}</table>`,
     });
   } catch (e) {
     console.error("[workshop-webhook] internal email failed:", e);
   }
+}
+
+// ── Giftbox ──
+// Voucher de 1 lugar no workshop, válido 12 meses. Caixa física opcional
+// (+15€, envio CTT; morada recolhida no Checkout). Resgate: código no checkout
+// do workshop (createCheckout); lugares extra pagam o preço de acompanhante.
+const GIFT_PRICE_CENTS = 11000;
+const GIFT_BOX_CENTS = 1500;
+const GIFT_VALID_MONTHS = 12;
+const GIFT_CONSENT_TEXT =
+  "Autorizo a Lisbon BBQ a guardar estes dados para processar a compra da Giftbox e enviar o voucher, de acordo com o RGPD. Posso pedir para os apagar a qualquer momento em pitmasters@lisbonbbq.pt.";
+const GIFT_CONSENT_TEXT_EN =
+  "I authorise Lisbon BBQ to store this data to process the Giftbox purchase and send the voucher, in accordance with the GDPR. I can ask for it to be deleted at any time at pitmasters@lisbonbbq.pt.";
+
+function newGiftCode() {
+  let c = "";
+  for (let i = 0; i < 8; i++) c += CODE_ALPHABET[randomInt(CODE_ALPHABET.length)];
+  return c;
+}
+function cleanGift(raw: unknown) {
+  const c = String(raw || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  return c.length === 8 ? c : null;
+}
+const fmtGift = (c: string) => `${c.slice(0, 4)}-${c.slice(4)}`;
+const lisbonToday = () => new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Lisbon" });
+
+async function giftStatus(code: string): Promise<{ valid: boolean; reason?: string; validUntil?: string }> {
+  const { data: g } = await supabase.from("workshop_gift_vouchers").select("status, valid_until").eq("code", code).maybeSingle();
+  if (!g) return { valid: false, reason: "not_found" };
+  if (g.status === "redeemed") return { valid: false, reason: "redeemed" };
+  if (g.status !== "paid") return { valid: false, reason: "not_paid" };
+  if (g.valid_until && g.valid_until < lisbonToday()) return { valid: false, reason: "expired" };
+  // Reserva com este voucher à espera de pagamento: fica preso até expirar.
+  const { data: pend } = await supabase.from("workshop_bookings").select("id")
+    .eq("gift_code", code).eq("status", "pending").gt("expires_at", new Date().toISOString()).limit(1);
+  if (pend && pend.length) return { valid: false, reason: "in_use" };
+  return { valid: true, validUntil: g.valid_until };
+}
+
+async function checkGift(req: any, res: any) {
+  const code = cleanGift(req.query?.code);
+  res.setHeader("Cache-Control", "no-store");
+  if (!code) return res.status(200).json({ valid: false, reason: "not_found" });
+  return res.status(200).json(await giftStatus(code));
+}
+
+async function createGiftCheckout(req: any, res: any) {
+  const b = await readJsonBody(req);
+  if (str(b.website)) return res.status(200).json({ ok: true });
+
+  const buyerName = str(b.buyerName, 120);
+  const buyerEmail = str(b.buyerEmail, 200).toLowerCase();
+  const recipientName = str(b.recipientName, 80);
+  const message = str(b.message, 300);
+  const physical = b.physical === true;
+  const consent = b.consent === true;
+  const lang: Lang = b.lang === "en" ? "en" : "pt";
+
+  const errors: string[] = [];
+  if (!buyerName) errors.push("nome");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyerEmail)) errors.push("email");
+  if (!consent) errors.push("consentimento");
+  if (errors.length) return res.status(400).json({ error: "invalid", fields: errors });
+
+  const amount = GIFT_PRICE_CENTS + (physical ? GIFT_BOX_CENTS : 0);
+  const expiresAt = new Date(Date.now() + CHECKOUT_TTL_MIN * 60 * 1000 + 30 * 1000);
+  let gift: any = null;
+  for (let attempt = 0; attempt < 5 && !gift; attempt++) {
+    const { data, error } = await supabase.from("workshop_gift_vouchers").insert({
+      code: newGiftCode(), buyer_name: buyerName, buyer_email: buyerEmail,
+      recipient_name: recipientName || null, message: message || null, physical, amount_cents: amount, lang,
+      consent, consent_at: new Date().toISOString(), consent_text: lang === "en" ? GIFT_CONSENT_TEXT_EN : GIFT_CONSENT_TEXT,
+      utm: b.utm && typeof b.utm === "object" ? b.utm : null,
+      status: "pending", expires_at: expiresAt.toISOString(),
+    }).select("id").single();
+    if (data) gift = data;
+    else if (error && error.code !== "23505") {
+      console.error("[workshop-gift] insert failed:", error);
+      return res.status(500).json({ error: "save_failed" });
+    }
+  }
+  if (!gift) return res.status(500).json({ error: "save_failed" });
+
+  const origin = siteOrigin(req);
+  const en = lang === "en";
+  const line_items: any[] = [{
+    quantity: 1,
+    price_data: {
+      currency: "eur", unit_amount: GIFT_PRICE_CENTS,
+      product_data: {
+        name: en ? "Giftbox · Barbecue workshop" : "Giftbox · Workshop de churrasco",
+        description: en ? "Voucher for 1 spot, valid for 12 months. Includes the meal and an apron." : "Voucher de 1 lugar, válido 12 meses. Inclui a refeição e o avental.",
+      },
+    },
+  }];
+  if (physical) {
+    line_items.push({
+      quantity: 1,
+      price_data: {
+        currency: "eur", unit_amount: GIFT_BOX_CENTS,
+        product_data: { name: en ? "Physical box + CTT delivery" : "Caixa física + envio CTT", description: en ? "Mainland Portugal, 3–5 working days." : "Portugal continental, 3–5 dias úteis." },
+      },
+    });
+  }
+  try {
+    const session = await stripe("POST", "/checkout/sessions", {
+      mode: "payment",
+      locale: en ? "en" : "pt",
+      customer_email: buyerEmail,
+      client_reference_id: gift.id,
+      expires_at: Math.floor(expiresAt.getTime() / 1000) - 30,
+      line_items,
+      ...(physical ? { shipping_address_collection: { allowed_countries: ["PT"] }, phone_number_collection: { enabled: true } } : {}),
+      metadata: { gift_id: gift.id, kind: "workshop" },
+      payment_intent_data: { description: "Giftbox workshop", metadata: { gift_id: gift.id, kind: "workshop" } },
+      success_url: `${origin}/workshop?giftbox=ok&session_id={CHECKOUT_SESSION_ID}${en ? "&lang=en" : ""}`,
+      cancel_url: `${origin}/workshop?giftbox=cancelada${en ? "&lang=en" : ""}#datas`,
+    });
+    await supabase.from("workshop_gift_vouchers").update({ stripe_session_id: session.id }).eq("id", gift.id);
+    return res.status(200).json({ ok: true, url: session.url });
+  } catch (e: any) {
+    console.error("[workshop-gift] stripe failed:", e?.message || e);
+    return res.status(502).json({ error: "payment_unavailable" });
+  }
+}
+
+function giftEmail(g: any) {
+  const en = g.lang === "en";
+  const fn = escapeHtml(firstName(g.buyer_name));
+  const code = fmtGift(g.code);
+  const link = `${SITE}/workshop?gift=${g.code}${en ? "&lang=en" : ""}`;
+  const until = g.valid_until ? new Date(`${g.valid_until}T12:00:00Z`) : null;
+  const untilTxt = until ? (en ? `${until.getUTCDate()} ${MONTHS_EN[until.getUTCMonth()]} ${until.getUTCFullYear()}` : `${until.getUTCDate()} de ${MONTHS_PT[until.getUTCMonth()]} de ${until.getUTCFullYear()}`) : "";
+  const forWho = g.recipient_name ? escapeHtml(g.recipient_name) : "";
+  if (en) {
+    return layout(
+      "Your Giftbox is ready",
+      `<p>${fn}, payment received. Here's the voucher${forWho ? ` for <strong>${forWho}</strong>` : ""}.</p>
+       <div class="box">
+         <p style="font-size:24px;letter-spacing:2px"><strong>${code}</strong></p>
+         <p>1 spot at the Lisbon BBQ barbecue workshop: 3 hours in Lisbon, the meal at the long table and an apron to take home.</p>
+         <p style="margin:0">Valid until ${untilTxt}.</p>
+       </div>
+       <p><strong>How to use it:</strong> open <a href="${link}">${link}</a>, pick a date and the code is applied at checkout. Bringing someone? Each extra spot is €90.</p>
+       ${g.physical ? "<p>The physical box ships by CTT in 3–5 working days to the address you gave us.</p>" : "<p>You can forward this email or print it and give it as a gift.</p>"}
+       <p>See you at the embers,<br><strong>LisbonBBQ team</strong></p>`,
+      "en"
+    );
+  }
+  return layout(
+    "A tua Giftbox está pronta",
+    `<p>${fn}, recebemos o pagamento. Aqui está o voucher${forWho ? ` para <strong>${forWho}</strong>` : ""}.</p>
+     <div class="box">
+       <p style="font-size:24px;letter-spacing:2px"><strong>${code}</strong></p>
+       <p>1 lugar no workshop de churrasco da Lisbon BBQ: 3 horas em Lisboa, a refeição à mesa longa e um avental para levar para casa.</p>
+       <p style="margin:0">Válido até ${untilTxt}.</p>
+     </div>
+     <p><strong>Como usar:</strong> abre <a href="${link}">${link}</a>, escolhe a data e o código fica aplicado no pagamento. Quer levar alguém? Cada lugar extra fica a 90€.</p>
+     ${g.physical ? "<p>A caixa física segue por CTT em 3–5 dias úteis para a morada que indicaste.</p>" : "<p>Podes reencaminhar este email ou imprimi-lo e oferecê-lo.</p>"}
+     <p>Até à brasa,<br><strong>Equipa LisbonBBQ</strong></p>`
+  );
+}
+
+async function markGiftPaid(session: any) {
+  const giftId = session.metadata?.gift_id || session.client_reference_id;
+  if (!giftId) return;
+  const { data: g } = await supabase.from("workshop_gift_vouchers").select("*").eq("id", giftId).maybeSingle();
+  if (!g) return console.error("[workshop-gift] voucher not found:", giftId);
+
+  let row = g;
+  if (g.status === "pending" || g.status === "expired") {
+    const until = new Date();
+    until.setMonth(until.getMonth() + GIFT_VALID_MONTHS);
+    const ship = session.shipping_details || session.collected_information?.shipping_details || null;
+    const update = {
+      status: "paid",
+      paid_at: new Date().toISOString(),
+      valid_until: until.toLocaleDateString("en-CA", { timeZone: "Europe/Lisbon" }),
+      stripe_session_id: session.id,
+      stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
+      amount_cents: session.amount_total ?? g.amount_cents,
+      shipping: g.physical && ship ? { ...ship, phone: session.customer_details?.phone || null } : null,
+    };
+    await supabase.from("workshop_gift_vouchers").update(update).eq("id", g.id);
+    row = { ...g, ...update };
+  }
+  if (row.email_sent_at) return; // a Stripe pode repetir o evento
+
+  try {
+    const { error: sendError } = await resend.emails.send({
+      from: FROM, to: row.buyer_email, replyTo: REPLY_TO,
+      subject: row.lang === "en" ? "Your Lisbon BBQ Giftbox" : "A tua Giftbox Lisbon BBQ",
+      html: giftEmail(row),
+    });
+    if (sendError) throw sendError;
+    await supabase.from("workshop_gift_vouchers").update({ email_sent_at: new Date().toISOString() }).eq("id", row.id);
+  } catch (e) {
+    console.error("[workshop-gift] voucher email failed:", e);
+  }
+  const addr = row.shipping?.address;
+  try {
+    await resend.emails.send({
+      from: FROM, to: NOTIFY_EMAIL,
+      subject: `🎁 Giftbox paga: ${row.buyer_name}${row.physical ? " · ENVIAR CAIXA" : ""}`,
+      html: `<table style="font-family:Arial,sans-serif;font-size:14px">${([
+        ["Código", fmtGift(row.code)], ["Comprador", row.buyer_name], ["Email", row.buyer_email],
+        ["Para", row.recipient_name || "—"], ["Mensagem", row.message || "—"],
+        ["Total", `${(row.amount_cents / 100).toFixed(2)}€`], ["Válido até", row.valid_until || "—"],
+        ["Caixa física", row.physical ? "SIM, enviar por CTT" : "não"],
+        ["Morada", addr ? [row.shipping?.name, addr.line1, addr.line2, `${addr.postal_code || ""} ${addr.city || ""}`, addr.country].filter(Boolean).join(", ") : "—"],
+        ["Telefone", row.shipping?.phone || "—"], ["Sessão Stripe", session.id],
+      ] as [string, string][]).map(([k, v]) => `<tr><td style="padding:6px 12px;font-weight:bold;color:#555">${k}</td><td style="padding:6px 12px">${escapeHtml(v)}</td></tr>`).join("")}</table>`,
+    });
+  } catch (e) {
+    console.error("[workshop-gift] internal email failed:", e);
+  }
+}
+
+// Regresso do Checkout da Giftbox: estado sem expor o código (vai por email).
+async function getGift(req: any, res: any) {
+  const sessionId = str(req.query?.session_id, 200);
+  if (!/^cs_(test|live)_[A-Za-z0-9]+$/.test(sessionId)) return res.status(400).json({ error: "invalid" });
+  const { data: g } = await supabase.from("workshop_gift_vouchers").select("status, buyer_name, physical, valid_until").eq("stripe_session_id", sessionId).maybeSingle();
+  if (!g) return res.status(404).json({ error: "not_found" });
+  let status = g.status;
+  if (status === "pending") {
+    try {
+      const s = await stripe("GET", `/checkout/sessions/${sessionId}`);
+      if (s.payment_status === "paid") { await markGiftPaid(s); status = "paid"; }
+    } catch (e) {
+      console.error("[workshop-gift] stripe lookup failed:", e);
+    }
+  }
+  res.setHeader("Cache-Control", "no-store");
+  return res.status(200).json({ status, firstName: firstName(g.buyer_name), physical: g.physical });
 }
 
 async function stripeWebhook(req: any, res: any) {
@@ -604,18 +868,28 @@ async function stripeWebhook(req: any, res: any) {
     switch (event.type) {
       case "checkout.session.completed":
       case "checkout.session.async_payment_succeeded":
-        if (isWorkshop(obj) && obj.payment_status === "paid") await markBookingPaid(obj);
+        if (isWorkshop(obj) && obj.payment_status === "paid") {
+          if (obj.metadata?.gift_id) await markGiftPaid(obj);
+          else await markBookingPaid(obj);
+        }
         break;
       case "checkout.session.async_payment_failed":
       case "checkout.session.expired": {
         if (!isWorkshop(obj)) break;
+        if (obj.metadata?.gift_id) {
+          await supabase.from("workshop_gift_vouchers").update({ status: event.type.endsWith("expired") ? "expired" : "cancelled" }).eq("id", obj.metadata.gift_id).eq("status", "pending");
+          break;
+        }
         const id = obj.metadata?.booking_id || obj.client_reference_id;
         if (id) await supabase.from("workshop_bookings").update({ status: event.type.endsWith("expired") ? "expired" : "cancelled" }).eq("id", id).eq("status", "pending");
         break;
       }
       case "charge.refunded": {
         const pi = typeof obj.payment_intent === "string" ? obj.payment_intent : null;
-        if (pi && obj.refunded) await supabase.from("workshop_bookings").update({ status: "refunded" }).eq("stripe_payment_intent_id", pi);
+        if (pi && obj.refunded) {
+          await supabase.from("workshop_bookings").update({ status: "refunded" }).eq("stripe_payment_intent_id", pi);
+          await supabase.from("workshop_gift_vouchers").update({ status: "refunded" }).eq("stripe_payment_intent_id", pi);
+        }
         break;
       }
       default:
@@ -668,6 +942,9 @@ export default async function handler(req: any, res: any) {
   if (req.method === "POST" && task === "checkout") return createCheckout(req, res);
   if (req.method === "GET" && task === "editions") return getEditions(res);
   if (req.method === "GET" && task === "booking") return getBooking(req, res);
+  if (req.method === "POST" && task === "gift-checkout") return createGiftCheckout(req, res);
+  if (req.method === "GET" && task === "gift") return getGift(req, res);
+  if (req.method === "GET" && task === "gift-check") return checkGift(req, res);
 
   // Cron diário (vercel.json → crons): lembrete aos 3 dias. Vive neste ficheiro
   // porque o plano Hobby da Vercel limita o deploy a 12 funções em api/.

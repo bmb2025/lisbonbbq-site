@@ -8,6 +8,11 @@ import { track, identifyLead } from '../services/analytics';
 // Preços: têm de ficar iguais a PRICES em api/workshop-waitlist.ts, que é quem
 // decide o preço de facto. A variante vem do link do anúncio (?v=b) para o teste
 // de preço; sem parâmetro é a variante "a".
+// Giftbox: têm de ficar iguais a GIFT_PRICE_CENTS / GIFT_BOX_CENTS em api/workshop-waitlist.ts.
+const GIFT_PRICE = 110;
+const GIFT_BOX = 15;
+const GIFT_IMG = '/images/workshop/giftbox.webp';
+
 export const WORKSHOP_PRICES: Record<string, { public: number; invite: number }> = {
   a: { public: 110, invite: 90 },
   b: { public: 95, invite: 80 },
@@ -211,6 +216,35 @@ const COPY = {
     groupHint: (p: string) => `Vens acompanhado? A partir de 2 pessoas, cada uma paga ${p}.`,
     groupApplied: (s: string) => `Desconto de acompanhante aplicado: poupam ${s}.`,
     calBook: 'Reservar',
+    calGiftTag: 'Giftbox',
+    calGiftTitle: 'Oferece um workshop',
+    calGiftNote: 'Voucher de 1 lugar, válido 12 meses. Quem recebe escolhe a data.',
+    calGiftCta: 'Oferecer',
+    giftAlt: 'Caixa Giftbox do workshop de churrasco da Lisbon Barbecue & Churrasco',
+    modeBook: 'Reservar lugar',
+    modeGift: 'Oferecer Giftbox',
+    giftH: 'Giftbox: oferece um workshop',
+    giftP: 'Voucher de 1 lugar, válido 12 meses. Quem recebe escolhe a data. Inclui o workshop de 3 horas, a refeição à mesa longa e o avental.',
+    gRecipient: 'Para quem é? (opcional)',
+    gRecipientPh: 'Nome de quem recebe',
+    gMessage: 'Mensagem (opcional)',
+    gMessagePh: 'Parabéns! Vemo-nos na brasa.',
+    gPhysical: (p: string) => `Quero a caixa física (+${p}, envio CTT em 3–5 dias úteis)`,
+    gBuyer: 'O teu nome',
+    gBuyerEmail: 'O teu email (o voucher chega aqui)',
+    gConsent: 'Autorizo a Lisbon BBQ a guardar estes dados para processar a compra e enviar o voucher, de acordo com a ',
+    gNote: 'O voucher chega por email logo após o pagamento, pronto a reencaminhar ou imprimir. A morada para a caixa física é pedida na página da Stripe.',
+    giftOkTitle: (n: string) => `Obrigado, ${n}!`,
+    giftOkBody: (phys: boolean) => `Enviámos o voucher para o teu email.${phys ? ' A caixa física segue por CTT em 3–5 dias úteis.' : ''}`,
+    giftPending: 'Estamos a confirmar o pagamento. O voucher chega por email dentro de minutos.',
+    giftCancelled: 'O pagamento da Giftbox não foi concluído e não te cobrámos nada.',
+    vLink: 'Tens um voucher Giftbox?',
+    vApply: 'Aplicar',
+    vRemove: 'Remover',
+    vApplied: (code: string) => `Voucher ${code} aplicado: 1 lugar oferecido.`,
+    vExtra: (p: string) => `Os lugares extra ficam a ${p} cada.`,
+    vErr: { not_found: 'Não encontrámos este código.', redeemed: 'Este voucher já foi usado.', expired: 'Este voucher expirou.', not_paid: 'Este voucher ainda não está ativo.', in_use: 'Este voucher está a ser usado numa reserva em curso. Tenta daqui a 30 minutos.' } as Record<string, string>,
+    payFree: 'Confirmar reserva',
   },
   en: {
     heroBadge: 'BBQ workshop · Lisbon',
@@ -378,6 +412,35 @@ const COPY = {
     groupHint: (p: string) => `Bringing someone? From 2 people, each pays ${p}.`,
     groupApplied: (s: string) => `Companion discount applied: you save ${s}.`,
     calBook: 'Book',
+    calGiftTag: 'Giftbox',
+    calGiftTitle: 'Give a workshop',
+    calGiftNote: 'Voucher for 1 spot, valid for 12 months. They pick the date.',
+    calGiftCta: 'Give it',
+    giftAlt: 'Lisbon Barbecue & Churrasco barbecue workshop Giftbox',
+    modeBook: 'Book a spot',
+    modeGift: 'Give a Giftbox',
+    giftH: 'Giftbox: give a workshop',
+    giftP: 'Voucher for 1 spot, valid for 12 months. They pick the date. Includes the 3-hour workshop, the meal at the long table and the apron.',
+    gRecipient: "Who's it for? (optional)",
+    gRecipientPh: "Recipient's name",
+    gMessage: 'Message (optional)',
+    gMessagePh: 'Happy birthday! See you at the embers.',
+    gPhysical: (p: string) => `I want the physical box (+${p}, CTT delivery in 3–5 working days)`,
+    gBuyer: 'Your name',
+    gBuyerEmail: 'Your email (the voucher goes here)',
+    gConsent: 'I authorise Lisbon BBQ to store this data to process the purchase and send the voucher, in accordance with the ',
+    gNote: "The voucher arrives by email right after payment, ready to forward or print. The address for the physical box is asked on Stripe's page.",
+    giftOkTitle: (n: string) => `Thank you, ${n}!`,
+    giftOkBody: (phys: boolean) => `We've sent the voucher to your email.${phys ? ' The physical box ships by CTT in 3–5 working days.' : ''}`,
+    giftPending: "We're confirming the payment. The voucher will arrive by email in a few minutes.",
+    giftCancelled: "The Giftbox payment wasn't completed and you haven't been charged.",
+    vLink: 'Have a Giftbox voucher?',
+    vApply: 'Apply',
+    vRemove: 'Remove',
+    vApplied: (code: string) => `Voucher ${code} applied: 1 spot covered.`,
+    vExtra: (p: string) => `Extra spots are ${p} each.`,
+    vErr: { not_found: "We couldn't find this code.", redeemed: 'This voucher has already been used.', expired: 'This voucher has expired.', not_paid: "This voucher isn't active yet.", in_use: 'This voucher is being used in a booking in progress. Try again in 30 minutes.' } as Record<string, string>,
+    payFree: 'Confirm booking',
   },
 };
 
@@ -571,6 +634,89 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
   const groupSaving = chosen && groupOn ? (chosen.price - unitPrice) * book.qty : 0;
   const maxQty = chosen ? Math.min(6, chosen.left) : 1;
 
+  // ── Giftbox ──
+  const giftReturn = params.get('giftbox');
+  const [mode, setMode] = useState<'book' | 'gift'>(giftReturn ? 'gift' : 'book');
+  const [gift, setGift] = useState({ buyerName: '', buyerEmail: '', recipientName: '', message: '', physical: false, consent: false, website: '' });
+  const [giftError, setGiftError] = useState('');
+  const [giftPaying, setGiftPaying] = useState(false);
+  const [giftDone, setGiftDone] = useState<{ status: string; firstName: string; physical: boolean } | null>(null);
+  const setG = (k: keyof typeof gift) => (v: any) => { setGift((g) => ({ ...g, [k]: v })); setGiftError(''); };
+  const giftTotal = (GIFT_PRICE + (gift.physical ? GIFT_BOX : 0));
+  const openGift = (where: string) => {
+    track('workshop_giftbox_click', { where, lang });
+    setMode('gift');
+    setTimeout(() => bookRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+  };
+  useEffect(() => {
+    const sid = params.get('session_id');
+    if (giftReturn !== 'ok' || !sid) return;
+    let cancelled = false;
+    fetch(`/api/workshop-waitlist?task=gift&session_id=${encodeURIComponent(sid)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (cancelled || !d) return;
+        setGiftDone(d);
+        if (d.status === 'paid') {
+          const key = `workshop_gift_${sid}`;
+          let seen = false;
+          try { seen = !!sessionStorage.getItem(key); sessionStorage.setItem(key, '1'); } catch { /* sem storage */ }
+          if (!seen) track('workshop_giftbox_purchase', { physical: d.physical, value: GIFT_PRICE + (d.physical ? GIFT_BOX : 0), currency: 'EUR', lang });
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [params, giftReturn, lang]);
+  useEffect(() => {
+    if (giftReturn) setTimeout(() => bookRef.current?.scrollIntoView({ block: 'start' }), 300);
+  }, [giftReturn]);
+  const payGift = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const missing: string[] = [];
+    if (!gift.buyerName.trim()) missing.push(c.fName);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(gift.buyerEmail.trim())) missing.push(c.fEmail);
+    if (missing.length) { setGiftError(c.errMissing(missing.join(', '))); return; }
+    if (!gift.consent) { setGiftError(c.errBookConsent); return; }
+    setGiftPaying(true);
+    try {
+      const r = await fetch('/api/workshop-waitlist?task=gift-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...gift, lang, utm }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || !d?.url) throw new Error(d?.error || 'failed');
+      identifyLead({ email: gift.buyerEmail.trim(), name: gift.buyerName.trim() });
+      track('workshop_giftbox_checkout_started', { physical: gift.physical, value: giftTotal, lang });
+      window.location.href = d.url;
+    } catch {
+      setGiftError(c.errPay);
+      setGiftPaying(false);
+    }
+  };
+
+  // Voucher Giftbox na reserva: cobre 1 lugar; os extra pagam o preço de acompanhante.
+  const [voucherOpen, setVoucherOpen] = useState(!!params.get('gift'));
+  const [voucherInput, setVoucherInput] = useState((params.get('gift') || '').toUpperCase());
+  const [voucher, setVoucher] = useState<string | null>(null);
+  const [voucherError, setVoucherError] = useState('');
+  const fmtGift = (code: string) => `${code.slice(0, 4)}-${code.slice(4)}`;
+  const applyVoucher = async (raw?: string) => {
+    const code = (raw ?? voucherInput).toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (code.length !== 8) { setVoucherError(c.vErr.not_found); return; }
+    try {
+      const r = await fetch(`/api/workshop-waitlist?task=gift-check&code=${code}`);
+      const d = await r.json().catch(() => ({}));
+      if (d?.valid) { setVoucher(code); setVoucherError(''); track('workshop_giftbox_voucher_applied', { lang }); }
+      else setVoucherError(c.vErr[d?.reason] || c.vErr.not_found);
+    } catch {
+      setVoucherError(c.errPay);
+    }
+  };
+  useEffect(() => { if (params.get('gift')) applyVoucher(params.get('gift')!); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const companionUnit = chosen ? (chosen.invitePrice ?? chosen.price) : 0;
+  const total = voucher ? companionUnit * Math.max(0, book.qty - 1) : unitPrice * book.qty;
+
   const pay = async (e: React.FormEvent) => {
     e.preventDefault();
     const missing: string[] = [];
@@ -588,13 +734,22 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
         body: JSON.stringify({
           editionId: book.editionId, quantity: book.qty, name: book.name, email: book.email, phone: book.phone,
           consent: book.consent, website: book.website, lang, inviteCode: invite ? inviteCode : undefined, utm,
+          giftCode: voucher || undefined,
         }),
       });
       const d = await r.json().catch(() => ({}));
+      if (r.status === 409 && d?.error === 'gift_invalid') { setVoucher(null); setVoucherError(c.vErr[d.reason] || c.vErr.not_found); setBookError(c.vErr[d.reason] || c.vErr.not_found); setPaying(false); return; }
       if (r.status === 409) { setBookError(c.errSoldOut); setPaying(false); return; }
-      if (!r.ok || !d?.url) throw new Error(d?.error || 'failed');
       identifyLead({ email: book.email.trim(), name: book.name.trim(), phone: book.phone.trim() });
-      track('workshop_checkout_started', { edition: book.editionId, quantity: book.qty, value: unitPrice * book.qty, invited: !!invite, lang });
+      if (r.ok && d?.free && d.booking) {
+        track('workshop_purchase', { edition: book.editionId, quantity: book.qty, value: 0, currency: 'EUR', gift: true, lang });
+        setPaid(d.booking);
+        setPaying(false);
+        bookRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      if (!r.ok || !d?.url) throw new Error(d?.error || 'failed');
+      track('workshop_checkout_started', { edition: book.editionId, quantity: book.qty, value: total, invited: !!invite, gift: !!voucher, lang });
       window.location.href = d.url;
     } catch {
       setBookError(c.errPay);
@@ -977,12 +1132,22 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                 <span className="font-bold text-sm text-gray-600">{c.calMeta}</span>
               </div>
             ))}
+            <div className="bg-bbq-black text-bbq-cream border-4 border-bbq-black shadow-hard p-5 flex flex-col gap-3">
+              <div className="flex justify-between items-start gap-3">
+                <span className="text-2xl leading-none font-black uppercase tracking-tight text-bbq-yellow">{c.calGiftTag}</span>
+                <span className="flex-none text-2xl leading-none font-black">{c.money(GIFT_PRICE)}</span>
+              </div>
+              <img src={GIFT_IMG} alt={c.giftAlt} width={240} height={240} loading="lazy" className="w-full h-36 object-contain" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+              <span className="font-black uppercase leading-tight">{c.calGiftTitle}</span>
+              <span className="font-bold text-sm text-gray-300 leading-snug">{c.calGiftNote}</span>
+              <button type="button" onClick={() => openGift('calendar')} className="mt-auto self-start bg-bbq-yellow text-bbq-black border-2 border-bbq-cream px-4 py-2 min-h-[44px] font-black text-xs tracking-[0.1em] uppercase">{c.calGiftCta} · {c.money(GIFT_PRICE)}</button>
+            </div>
           </div>
         </div>
       </section>
 
       {/* DATAS E RESERVA (pagamento Stripe) */}
-      {(nextEdition || paid || returnState) && (
+      {(nextEdition || paid || returnState || mode === 'gift' || giftReturn) && (
         <section id="datas" ref={bookRef} className="bg-bbq-red text-white border-t-4 border-bbq-black scroll-mt-24">
           <div className="max-w-2xl mx-auto px-5 py-20 flex flex-col gap-8">
             <div className="flex flex-col gap-4">
@@ -1007,7 +1172,80 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
               <p role="status" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{c.cancelledNote}</p>
             )}
 
-            {nextEdition && (
+            {nextEdition && !paid && (
+              <div role="tablist" className="grid grid-cols-2 border-4 border-bbq-black">
+                {(['book', 'gift'] as const).map((m) => (
+                  <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => { setMode(m); if (m === 'gift') track('workshop_giftbox_click', { where: 'tab', lang }); }}
+                    className={`min-h-[52px] px-3 font-black uppercase tracking-wider text-sm ${mode === m ? 'bg-bbq-yellow text-bbq-black' : 'bg-bbq-black text-white hover:text-bbq-yellow'}`}>
+                    {m === 'book' ? c.modeBook : c.modeGift}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {mode === 'gift' && (
+              <div className="flex flex-col gap-6">
+                {giftReturn === 'cancelada' && !giftDone && (
+                  <p role="status" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{c.giftCancelled}</p>
+                )}
+                {giftDone ? (
+                  <div role="status" className="bg-bbq-yellow text-bbq-black border-4 border-bbq-black shadow-hard p-8 flex flex-col gap-3">
+                    {giftDone.status === 'paid' ? (
+                      <>
+                        <span className="text-3xl font-black uppercase tracking-tight">{c.giftOkTitle(giftDone.firstName)}</span>
+                        <p className="m-0 text-lg leading-normal font-bold">{c.giftOkBody(giftDone.physical)}</p>
+                      </>
+                    ) : (
+                      <p className="m-0 text-lg leading-normal font-bold">{c.giftPending}</p>
+                    )}
+                  </div>
+                ) : (
+                  <form onSubmit={payGift} noValidate className="flex flex-col gap-6">
+                    <div className="flex gap-5 items-center flex-wrap">
+                      <img src={GIFT_IMG} alt={c.giftAlt} width={160} height={160} loading="lazy" className="w-32 h-32 object-contain flex-none" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                      <div className="flex flex-col gap-2 flex-1 min-w-[14rem]">
+                        <span className="text-2xl leading-tight font-black uppercase tracking-tight">{c.giftH}</span>
+                        <p className="m-0 leading-normal font-medium">{c.giftP}</p>
+                      </div>
+                    </div>
+                    <div aria-hidden="true" className="absolute -left-[9999px] w-px h-px overflow-hidden">
+                      <label>Website<input tabIndex={-1} autoComplete="off" value={gift.website} onChange={(e) => setG('website')(e.target.value)} /></label>
+                    </div>
+                    <label className="flex flex-col gap-2">
+                      <span className="font-black text-sm tracking-[0.1em] uppercase">{c.gRecipient}</span>
+                      <input className={inputCls} type="text" placeholder={c.gRecipientPh} value={gift.recipientName} onChange={(e) => setG('recipientName')(e.target.value)} />
+                    </label>
+                    <label className="flex flex-col gap-2">
+                      <span className="font-black text-sm tracking-[0.1em] uppercase">{c.gMessage}</span>
+                      <textarea className={`${inputCls} min-h-[96px] text-lg`} maxLength={300} placeholder={c.gMessagePh} value={gift.message} onChange={(e) => setG('message')(e.target.value)} />
+                    </label>
+                    <label className="flex gap-3 items-start cursor-pointer leading-normal font-bold">
+                      <input type="checkbox" checked={gift.physical} onChange={(e) => setG('physical')(e.target.checked)} className="w-6 h-6 m-0 flex-none accent-[#f4b41a]" />
+                      <span>{c.gPhysical(c.money(GIFT_BOX))}</span>
+                    </label>
+                    <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(15rem, 100%), 1fr))' }}>
+                      <label className="flex flex-col gap-2">
+                        <span className="font-black text-sm tracking-[0.1em] uppercase">{c.gBuyer}</span>
+                        <input className={inputCls} type="text" autoComplete="name" placeholder={c.phName} value={gift.buyerName} onChange={(e) => setG('buyerName')(e.target.value)} />
+                      </label>
+                      <label className="flex flex-col gap-2">
+                        <span className="font-black text-sm tracking-[0.1em] uppercase">{c.gBuyerEmail}</span>
+                        <input className={inputCls} type="email" autoComplete="email" inputMode="email" placeholder="nome@email.pt" value={gift.buyerEmail} onChange={(e) => setG('buyerEmail')(e.target.value)} />
+                      </label>
+                    </div>
+                    <label className="flex gap-3 items-start cursor-pointer leading-normal text-[0.9375rem]">
+                      <input type="checkbox" checked={gift.consent} onChange={(e) => setG('consent')(e.target.checked)} className="w-6 h-6 m-0 flex-none accent-[#f4b41a]" />
+                      <span>{c.gConsent}<a href="/privacy" className="text-bbq-yellow underline">{c.consentLink}</a>.</span>
+                    </label>
+                    {giftError && <p role="alert" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{giftError}</p>}
+                    <div><Btn type="submit" disabled={giftPaying}>{giftPaying ? c.paying : c.pay(c.money(giftTotal))}</Btn></div>
+                    <p className="m-0 text-sm leading-normal text-white/80">{c.gNote}</p>
+                  </form>
+                )}
+              </div>
+            )}
+
+            {nextEdition && mode === 'book' && (
               <form onSubmit={pay} noValidate className="flex flex-col gap-6">
                 <div aria-hidden="true" className="absolute -left-[9999px] w-px h-px overflow-hidden">
                   <label>Website<input tabIndex={-1} autoComplete="off" value={book.website} onChange={(e) => setB('website')(e.target.value)} /></label>
@@ -1044,18 +1282,35 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                     <button type="button" aria-label="-" onClick={() => setB('qty')(Math.max(1, book.qty - 1))} disabled={book.qty <= 1} className="w-14 h-14 border-4 border-white font-black text-2xl disabled:opacity-40">−</button>
                     <span aria-live="polite" className="min-w-[3rem] text-center text-4xl font-black">{book.qty}</span>
                     <button type="button" aria-label="+" onClick={() => setB('qty')(Math.min(maxQty, book.qty + 1))} disabled={book.qty >= maxQty} className="w-14 h-14 border-4 border-white font-black text-2xl disabled:opacity-40">+</button>
-                    <span className="font-bold">× {c.money(unitPrice)} {c.perPerson}</span>
+                    {!voucher && <span className="font-bold">× {c.money(unitPrice)} {c.perPerson}</span>}
                   </div>
                   {invite && chosen?.invitePrice && <span className="font-bold text-bbq-yellow">{c.inviteApplied}</span>}
-                  {!invite && chosen && !groupOn && chosen.invitePrice && chosen.invitePrice < chosen.price && maxQty >= 2 && (
+                  {!voucher && !invite && chosen && !groupOn && chosen.invitePrice && chosen.invitePrice < chosen.price && maxQty >= 2 && (
                     <span className="font-bold">{c.groupHint(c.money(chosen.invitePrice))}</span>
                   )}
-                  {groupOn && (
+                  {!voucher && groupOn && (
                     <span className="font-bold text-bbq-yellow">
                       <s className="text-white/70 mr-2">{c.money(chosen!.price * book.qty)}</s>{c.groupApplied(c.money(groupSaving))}
                     </span>
                   )}
                 </fieldset>
+
+                <div className="flex flex-col gap-3">
+                  {voucher ? (
+                    <p className="m-0 font-bold text-bbq-yellow">
+                      {c.vApplied(fmtGift(voucher))} {book.qty > 1 && c.vExtra(c.money(companionUnit))}{' '}
+                      <button type="button" onClick={() => setVoucher(null)} className="underline underline-offset-4 text-white font-bold">{c.vRemove}</button>
+                    </p>
+                  ) : !voucherOpen ? (
+                    <button type="button" onClick={() => setVoucherOpen(true)} className="self-start underline underline-offset-4 font-bold text-white/90">{c.vLink}</button>
+                  ) : (
+                    <div className="flex flex-wrap gap-3 items-stretch">
+                      <input aria-label={c.vLink} className={`${inputCls} !w-auto flex-1 min-w-[12rem] uppercase tracking-widest`} type="text" placeholder="XXXX-XXXX" value={voucherInput} onChange={(e) => { setVoucherInput(e.target.value); setVoucherError(''); }} />
+                      <button type="button" onClick={() => applyVoucher()} className="px-6 border-4 border-white text-white font-black uppercase tracking-wider text-sm hover:bg-white hover:text-bbq-red transition-colors">{c.vApply}</button>
+                    </div>
+                  )}
+                  {voucherError && <p role="alert" className="m-0 font-bold text-bbq-yellow">{voucherError}</p>}
+                </div>
 
                 <label className="flex flex-col gap-2">
                   <span className="font-black text-sm tracking-[0.1em] uppercase">{c.lName}</span>
@@ -1077,13 +1332,13 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                 </label>
                 {bookError && <p role="alert" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{bookError}</p>}
                 <div className="flex flex-wrap items-center gap-4">
-                  <Btn type="submit" disabled={paying}>{paying ? c.paying : c.pay(c.money(unitPrice * book.qty))}</Btn>
+                  <Btn type="submit" disabled={paying}>{paying ? c.paying : total === 0 ? c.payFree : c.pay(c.money(total))}</Btn>
                 </div>
                 <p className="m-0 text-sm leading-normal text-white/80">{c.payNote}</p>
               </form>
             )}
 
-            {nextEdition && (
+            {nextEdition && mode === 'book' && (
               <div className={altOpen && returnState === 'cancelada' ? 'border-4 border-bbq-yellow p-6 flex flex-col gap-4' : 'flex flex-col gap-4'}>
                 {!(altOpen && returnState === 'cancelada') && (
                   <p className="m-0 text-center text-[0.9375rem] text-white/80">
