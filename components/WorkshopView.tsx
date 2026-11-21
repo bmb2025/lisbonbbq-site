@@ -535,7 +535,9 @@ const EmbeddedPay: React.FC<{
           },
         });
         const express = checkout.createExpressCheckoutElement({
-          buttonHeight: 48, buttonTheme: { applePay: 'white', googlePay: 'white' }, layout: { maxColumns: 2, maxRows: 2 },
+          buttonHeight: 48, buttonTheme: { applePay: 'white' }, layout: { maxColumns: 1, maxRows: 1 },
+          // Só Apple Pay nos botões rápidos (sem Google Pay nem Link)
+          paymentMethods: { applePay: 'always', googlePay: 'never', link: 'never', amazonPay: 'never', klarna: 'never', paypal: 'never' },
         } as any);
         express.on('ready', (e: any) => { if (!cancelled) setHasExpress(!!e?.availablePaymentMethods && Object.values(e.availablePaymentMethods).some(Boolean)); });
         express.on('confirm', async (event: any) => {
@@ -544,7 +546,11 @@ const EmbeddedPay: React.FC<{
           const r = await a.confirm({ expressCheckoutConfirmEvent: event });
           if (r?.type === 'error') setErr(r.error?.message || labels.error);
         });
-        const payment = checkout.createPaymentElement({ layout: { type: 'accordion', defaultCollapsed: false, radios: 'always', spacedAccordionItems: true } } as any);
+        const payment = checkout.createPaymentElement({
+          layout: { type: 'accordion', defaultCollapsed: false, radios: 'always', spacedAccordionItems: true },
+          paymentMethodOrder: ['mb_way', 'apple_pay', 'card', 'klarna', 'revolut_pay'],
+          wallets: { applePay: 'auto', googlePay: 'never', link: 'never' },
+        } as any);
         if (expressRef.current) express.mount(expressRef.current);
         if (paymentRef.current) payment.mount(paymentRef.current);
         els = [express, payment];

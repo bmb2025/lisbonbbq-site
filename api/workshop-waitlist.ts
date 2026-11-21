@@ -403,10 +403,14 @@ function siteOrigin(req: any) {
 // Pagamento dentro do site (Stripe Elements com Checkout Sessions, ui_mode
 // "elements"): a sessão é a mesma (mesmo webhook, mesmos emails), só muda a UI.
 // Sem embedded, mantém o redirecionamento para a página da Stripe.
+// Métodos aceites (decisão do Bruno, 21/11): cartão (inclui Apple Pay), MB Way,
+// Klarna e Revolut Pay. Sem Link, Bancontact, etc.
+const PAYMENT_METHODS = ["card", "mb_way", "klarna", "revolut_pay"];
+
 function sessionUi(embedded: boolean, successUrl: string, cancelUrl: string) {
   return embedded
-    ? { ui_mode: "elements", return_url: successUrl }
-    : { success_url: successUrl, cancel_url: cancelUrl };
+    ? { ui_mode: "elements", return_url: successUrl, payment_method_types: PAYMENT_METHODS }
+    : { success_url: successUrl, cancel_url: cancelUrl, payment_method_types: PAYMENT_METHODS };
 }
 function sessionReply(embedded: boolean, session: any) {
   return embedded ? { ok: true, clientSecret: session.client_secret } : { ok: true, url: session.url };
