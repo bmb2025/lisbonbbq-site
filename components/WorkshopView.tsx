@@ -1133,14 +1133,15 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                 <span className="font-bold text-sm text-gray-600">{c.calMeta}</span>
               </div>
             ))}
-            <div className="bg-bbq-black text-bbq-cream border-4 border-bbq-black shadow-hard p-5 flex flex-col gap-3">
-              <div className="flex justify-between items-start gap-3">
+            {/* Giftbox: ocupa duas colunas a partir de md, imagem à esquerda e texto à direita */}
+            <div className="md:col-span-2 bg-bbq-black text-bbq-cream border-4 border-bbq-black shadow-hard p-5 flex flex-col sm:flex-row items-center gap-5">
+              <img src={GIFT_IMG} alt={c.giftAlt} width={600} height={625} loading="lazy" className="h-44 sm:h-48 w-auto object-contain flex-none" />
+              <div className="flex flex-col gap-3 self-stretch justify-center flex-1 min-w-0">
                 <span className="text-2xl leading-none font-black uppercase tracking-tight text-bbq-yellow">{c.calGiftTag}</span>
+                <span className="text-xl font-black uppercase leading-tight">{c.calGiftTitle}</span>
+                <span className="font-bold text-sm text-gray-300 leading-snug">{c.calGiftNote}</span>
+                <button type="button" onClick={() => openGift('calendar')} className="mt-2 self-start bg-bbq-yellow text-bbq-black border-2 border-bbq-cream px-5 py-2 min-h-[44px] font-black text-xs tracking-[0.1em] uppercase">{c.calGiftCta}</button>
               </div>
-              <div className="flex justify-center"><img src={GIFT_IMG} alt={c.giftAlt} width={600} height={625} loading="lazy" className="h-48 w-auto object-contain" /></div>
-              <span className="font-black uppercase leading-tight">{c.calGiftTitle}</span>
-              <span className="font-bold text-sm text-gray-300 leading-snug">{c.calGiftNote}</span>
-              <button type="button" onClick={() => openGift('calendar')} className="mt-auto self-start bg-bbq-yellow text-bbq-black border-2 border-bbq-cream px-4 py-2 min-h-[44px] font-black text-xs tracking-[0.1em] uppercase">{c.calGiftCta}</button>
             </div>
           </div>
         </div>
