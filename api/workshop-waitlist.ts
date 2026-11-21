@@ -400,6 +400,18 @@ function siteOrigin(req: any) {
   return SITE;
 }
 
+// Pagamento dentro do site (Stripe Elements com Checkout Sessions, ui_mode
+// "elements"): a sessão é a mesma (mesmo webhook, mesmos emails), só muda a UI.
+// Sem embedded, mantém o redirecionamento para a página da Stripe.
+function sessionUi(embedded: boolean, successUrl: string, cancelUrl: string) {
+  return embedded
+    ? { ui_mode: "elements", return_url: successUrl }
+    : { success_url: successUrl, cancel_url: cancelUrl };
+}
+function sessionReply(embedded: boolean, session: any) {
+  return embedded ? { ok: true, clientSecret: session.client_secret } : { ok: true, url: session.url };
+}
+
 async function createCheckout(req: any, res: any) {
   const b = await readJsonBody(req);
   if (str(b.website)) return res.status(200).json({ ok: true });
@@ -517,11 +529,14 @@ async function createCheckout(req: any, res: any) {
         description: productName,
         metadata: { booking_id: booking.id, edition_id: ed.id, kind: "workshop" },
       },
-      success_url: `${origin}/workshop?reserva=ok&session_id={CHECKOUT_SESSION_ID}${lang === "en" ? "&lang=en" : ""}`,
-      cancel_url: `${origin}/workshop?reserva=cancelada${lang === "en" ? "&lang=en" : ""}#datas`,
+      ...sessionUi(
+        b.embedded === true,
+        `${origin}/workshop?reserva=ok&session_id={CHECKOUT_SESSION_ID}${lang === "en" ? "&lang=en" : ""}`,
+        `${origin}/workshop?reserva=cancelada${lang === "en" ? "&lang=en" : ""}#datas`,
+      ),
     });
     await supabase.from("workshop_bookings").update({ stripe_session_id: session.id }).eq("id", booking.id);
-    return res.status(200).json({ ok: true, url: session.url });
+    return res.status(200).json(sessionReply(b.embedded === true, session));
   } catch (e: any) {
     console.error("[workshop-checkout] stripe failed:", e?.message || e);
     await supabase.from("workshop_bookings").update({ status: "cancelled" }).eq("id", booking.id);
@@ -716,11 +731,14 @@ async function createGiftCheckout(req: any, res: any) {
       line_items,
       metadata: { gift_id: gift.id, kind: "workshop" },
       payment_intent_data: { description: "Giftbox workshop", metadata: { gift_id: gift.id, kind: "workshop" } },
-      success_url: `${origin}/workshop?giftbox=ok&session_id={CHECKOUT_SESSION_ID}${en ? "&lang=en" : ""}`,
-      cancel_url: `${origin}/workshop?giftbox=cancelada${en ? "&lang=en" : ""}#datas`,
+      ...sessionUi(
+        b.embedded === true,
+        `${origin}/workshop?giftbox=ok&session_id={CHECKOUT_SESSION_ID}${en ? "&lang=en" : ""}`,
+        `${origin}/workshop?giftbox=cancelada${en ? "&lang=en" : ""}#datas`,
+      ),
     });
     await supabase.from("workshop_gift_vouchers").update({ stripe_session_id: session.id }).eq("id", gift.id);
-    return res.status(200).json({ ok: true, url: session.url });
+    return res.status(200).json(sessionReply(b.embedded === true, session));
   } catch (e: any) {
     console.error("[workshop-gift] stripe failed:", e?.message || e);
     return res.status(502).json({ error: "payment_unavailable" });
