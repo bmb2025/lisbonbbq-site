@@ -202,9 +202,11 @@ const COPY = {
     paidBody: (q: number, d: string) => `${q === 1 ? '1 lugar' : `${q} lugares`} para ${d}. Enviámos a confirmação para o teu email.`,
     pendingBody: 'Estamos a confirmar o pagamento. Recebes um email assim que estiver confirmado.',
     cancelledNote: 'O pagamento não foi concluído e não te cobrámos nada. O lugar continua disponível enquanto houver vagas.',
-    altLink: 'Nenhuma destas datas dá?',
-    altLinkCta: 'Avisa-me das próximas',
-    altTitle: 'Avisamos-te quando abrir uma data que te sirva.',
+    futureTag: 'Prioridade exclusiva',
+    futureTitle: 'Datas futuras',
+    futureText: 'Nenhuma destas datas dá? Entra na lista e compras as próximas antes de as divulgarmos ao público.',
+    futureCta: 'Quero prioridade',
+    altTitle: 'Diz-nos quando te dá jeito. Avisamos-te primeiro, antes de abrirmos ao público.',
     altCancelTitle: 'Esta data não dá? Avisamos-te da próxima.',
     altSlot: 'Quando te dá mais jeito?',
     altSubmit: 'Avisem-me',
@@ -394,9 +396,11 @@ const COPY = {
     paidBody: (q: number, d: string) => `${q === 1 ? '1 spot' : `${q} spots`} for ${d}. We've sent the confirmation to your email.`,
     pendingBody: "We're confirming your payment. You'll get an email as soon as it's confirmed.",
     cancelledNote: "The payment wasn't completed and you haven't been charged. The spot is still available while there are places left.",
-    altLink: "None of these dates work?",
-    altLinkCta: 'Let me know about the next ones',
-    altTitle: "We'll let you know when a date that suits you opens.",
+    futureTag: 'Exclusive priority',
+    futureTitle: 'Future dates',
+    futureText: "None of these dates work? Join the list and book the next ones before we announce them to the public.",
+    futureCta: 'I want priority',
+    altTitle: "Tell us when suits you. We'll tell you first, before we open to the public.",
     altCancelTitle: "Can't make this date? We'll tell you about the next one.",
     altSlot: 'When suits you best?',
     altSubmit: 'Let me know',
@@ -813,6 +817,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
       identifyLead({ email: quick.email.trim(), name: quick.name.trim() });
       track('workshop_waitlist_submitted', { variant, lang, quick: true, from: returnState === 'cancelada' ? 'checkout_cancelled' : 'booking', slot: quick.slot, invited: !!d.invited, duplicate: !!d.duplicate });
       setQuickDone(d.firstName || quick.name.trim().split(' ')[0]);
+      setDone({ firstName: d.firstName || quick.name.trim().split(' ')[0], duplicate: d.duplicate, inviteCode: d.inviteCode, invitePrice: d.invitePrice, publicPrice: d.publicPrice });
     } catch {
       setQuickError(c.errSend);
     } finally {
@@ -885,6 +890,33 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
   // O Instagram não tem endereço de partilha para páginas web: no telemóvel abre-se
   // a folha de partilha do sistema (onde o Instagram aparece), no computador
   // copia-se o link e abre-se a caixa de mensagens.
+  // Caixa de partilha do convite (lista completa e registo curto no bloco de compra).
+  const renderShare = () => canShare ? (
+    <div className="border-4 border-bbq-yellow p-6 flex flex-col gap-4">
+                  <p className="m-0 font-black uppercase text-xl leading-tight text-bbq-yellow">{c.inviteBoxTitle}</p>
+                  <p className="m-0 leading-normal">{c.inviteBoxText(done.invitePrice!, done.publicPrice!)}</p>
+                  <p className="m-0 leading-normal">{c.inviteBoxMore(done.invitePrice!)}</p>
+                  <span className="font-black text-sm tracking-[0.1em] uppercase">{c.shareLabel}</span>
+                  <div className="flex flex-wrap gap-2">
+                    {shareChannels.map((ch) => (
+                      <a
+                        key={ch.id}
+                        href={ch.href}
+                        target={ch.id === 'email' ? undefined : '_blank'}
+                        rel="noopener noreferrer"
+                        onClick={() => track('workshop_invite_shared', { channel: ch.id, lang, variant })}
+                        className={shareBtn}
+                      >
+                        {ch.label}
+                      </a>
+                    ))}
+                    <button type="button" onClick={shareInstagram} className={shareBtn}>Instagram</button>
+                    <button type="button" onClick={shareCopy} className={shareBtn}>{c.shareCopy}</button>
+                  </div>
+                  <p role="status" className="m-0 text-sm font-bold break-all min-h-[1.25rem]">{shareNote}</p>
+                </div>
+  ) : null;
+
   const shareInstagram = async () => {
     track('workshop_invite_shared', { channel: 'instagram', lang, variant });
     if (typeof navigator.share === 'function' && window.matchMedia('(pointer: coarse)').matches) {
@@ -1241,10 +1273,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
             )}
 
             {nextEdition && mode === 'book' && (
-              <form onSubmit={pay} noValidate className="flex flex-col gap-6">
-                <div aria-hidden="true" className="absolute -left-[9999px] w-px h-px overflow-hidden">
-                  <label>Website<input tabIndex={-1} autoComplete="off" value={book.website} onChange={(e) => setB('website')(e.target.value)} /></label>
-                </div>
+              <>
                 <fieldset className="flex flex-col gap-3 border-0 p-0 m-0">
                   <legend className="font-black text-sm tracking-[0.1em] uppercase mb-2">{c.qDate}</legend>
                   {openEditions.map((ed) => {
@@ -1279,6 +1308,62 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                     );
                   })}
                 </fieldset>
+                <div className="flex flex-col gap-3">
+                  {/* Datas futuras: waiting list com prioridade exclusiva (registo curto, mesmos emails e convites) */}
+                  <button
+                    type="button"
+                    aria-expanded={altOpen}
+                    onClick={() => { if (!altOpen) track('workshop_waitlist_link_open', { lang, where: 'future_box' }); setAltOpen(!altOpen); }}
+                    className={`text-left border-4 border-dashed p-5 flex flex-col gap-2 transition-colors ${altOpen ? 'border-bbq-yellow' : 'border-white/40 hover:border-bbq-yellow'}`}
+                  >
+                    <span className="self-start bg-bbq-yellow text-bbq-black px-3 py-1 font-black text-xs tracking-[0.1em] uppercase">{c.futureTag}</span>
+                    <span className="text-2xl leading-none font-black uppercase tracking-tight">{c.futureTitle}</span>
+                    <span className="font-bold leading-snug text-white/80">{c.futureText}</span>
+                    {!altOpen && <span className="font-black text-sm tracking-[0.1em] uppercase text-bbq-yellow underline underline-offset-4">{c.futureCta} →</span>}
+                  </button>
+                  {altOpen && (quickDone ? (
+                  <div className="flex flex-col gap-4">
+                    <p role="status" className="m-0 font-bold leading-snug">{c.altDone(quickDone)}</p>
+                    {renderShare()}
+                  </div>
+                ) : (
+                  <form onSubmit={submitQuick} noValidate className="flex flex-col gap-4 border-4 border-bbq-yellow p-5">
+                    <p className="m-0 font-black uppercase leading-tight">{returnState === 'cancelada' ? c.altCancelTitle : c.altTitle}</p>
+                    <div aria-hidden="true" className="absolute -left-[9999px] w-px h-px overflow-hidden">
+                      <label>Website<input tabIndex={-1} autoComplete="off" value={quick.website} onChange={(e) => setQ('website')(e.target.value)} /></label>
+                    </div>
+                    <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(13rem, 100%), 1fr))' }}>
+                      <input aria-label={c.lName} className={inputCls} type="text" autoComplete="name" placeholder={c.phName} value={quick.name} onChange={(e) => setQ('name')(e.target.value)} />
+                      <input aria-label={c.lEmail} className={inputCls} type="email" autoComplete="email" inputMode="email" placeholder="nome@email.pt" value={quick.email} onChange={(e) => setQ('email')(e.target.value)} />
+                    </div>
+                    <fieldset className="flex flex-col gap-2 border-0 p-0 m-0">
+                      <legend className="font-black text-sm tracking-[0.1em] uppercase mb-2">{c.altSlot}</legend>
+                      <div className="flex flex-wrap gap-2">
+                        {SLOTS.map((o) => (
+                          <button key={o.value} type="button" aria-pressed={quick.slot === o.value} onClick={() => setQ('slot')(o.value)}
+                            className={`min-h-[44px] px-4 border-2 font-bold ${quick.slot === o.value ? 'bg-bbq-yellow text-bbq-black border-bbq-yellow' : 'border-white text-white'}`}>
+                            {o[lang]}
+                          </button>
+                        ))}
+                      </div>
+                    </fieldset>
+                    <label className="flex gap-3 items-start cursor-pointer leading-normal text-sm">
+                      <input type="checkbox" checked={quick.consent} onChange={(e) => setQ('consent')(e.target.checked)} className="w-5 h-5 m-0 flex-none accent-[#f4b41a]" />
+                      <span>{c.altConsent}<a href="/privacy" className="text-bbq-yellow underline">{c.consentLink}</a>.</span>
+                    </label>
+                    {quickError && <p role="alert" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{quickError}</p>}
+                    <div>
+                      <button type="submit" disabled={quickSending} className="min-h-[48px] px-6 border-4 border-white text-white font-black uppercase tracking-wider text-sm hover:bg-white hover:text-bbq-black transition-colors disabled:opacity-60">
+                        {quickSending ? c.sending : c.altSubmit}
+                      </button>
+                    </div>
+                  </form>
+                ))}
+                </div>
+              <form onSubmit={pay} noValidate className="flex flex-col gap-6">
+                <div aria-hidden="true" className="absolute -left-[9999px] w-px h-px overflow-hidden">
+                  <label>Website<input tabIndex={-1} autoComplete="off" value={book.website} onChange={(e) => setB('website')(e.target.value)} /></label>
+                </div>
 
                 <fieldset className="flex flex-col gap-2 border-0 p-0 m-0">
                   <legend className="font-black text-sm tracking-[0.1em] uppercase mb-2">{c.qQty}</legend>
@@ -1337,53 +1422,9 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                 </div>
                 <p className="m-0 text-sm leading-normal text-white/80">{c.payNote}</p>
               </form>
+              </>
             )}
 
-            {nextEdition && mode === 'book' && (
-              <div className={altOpen && returnState === 'cancelada' ? 'border-4 border-bbq-yellow p-6 flex flex-col gap-4' : 'flex flex-col gap-4'}>
-                {!(altOpen && returnState === 'cancelada') && (
-                  <p className="m-0 text-center text-[0.9375rem] text-white/80">
-                    {c.altLink}{' '}
-                    <button type="button" aria-expanded={altOpen} onClick={() => { if (!altOpen) track('workshop_waitlist_link_open', { lang }); setAltOpen(!altOpen); }} className="underline underline-offset-4 text-white font-bold">{c.altLinkCta}</button>
-                  </p>
-                )}
-                {altOpen && (quickDone ? (
-                  <p role="status" className="m-0 font-bold leading-snug">{c.altDone(quickDone)}</p>
-                ) : (
-                  <form onSubmit={submitQuick} noValidate className={`flex flex-col gap-4 ${returnState === 'cancelada' ? '' : 'border-2 border-dashed border-white/50 p-5'}`}>
-                    <p className="m-0 font-black uppercase leading-tight">{returnState === 'cancelada' ? c.altCancelTitle : c.altTitle}</p>
-                    <div aria-hidden="true" className="absolute -left-[9999px] w-px h-px overflow-hidden">
-                      <label>Website<input tabIndex={-1} autoComplete="off" value={quick.website} onChange={(e) => setQ('website')(e.target.value)} /></label>
-                    </div>
-                    <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(13rem, 100%), 1fr))' }}>
-                      <input aria-label={c.lName} className={inputCls} type="text" autoComplete="name" placeholder={c.phName} value={quick.name} onChange={(e) => setQ('name')(e.target.value)} />
-                      <input aria-label={c.lEmail} className={inputCls} type="email" autoComplete="email" inputMode="email" placeholder="nome@email.pt" value={quick.email} onChange={(e) => setQ('email')(e.target.value)} />
-                    </div>
-                    <fieldset className="flex flex-col gap-2 border-0 p-0 m-0">
-                      <legend className="font-black text-sm tracking-[0.1em] uppercase mb-2">{c.altSlot}</legend>
-                      <div className="flex flex-wrap gap-2">
-                        {SLOTS.map((o) => (
-                          <button key={o.value} type="button" aria-pressed={quick.slot === o.value} onClick={() => setQ('slot')(o.value)}
-                            className={`min-h-[44px] px-4 border-2 font-bold ${quick.slot === o.value ? 'bg-bbq-yellow text-bbq-black border-bbq-yellow' : 'border-white text-white'}`}>
-                            {o[lang]}
-                          </button>
-                        ))}
-                      </div>
-                    </fieldset>
-                    <label className="flex gap-3 items-start cursor-pointer leading-normal text-sm">
-                      <input type="checkbox" checked={quick.consent} onChange={(e) => setQ('consent')(e.target.checked)} className="w-5 h-5 m-0 flex-none accent-[#f4b41a]" />
-                      <span>{c.altConsent}<a href="/privacy" className="text-bbq-yellow underline">{c.consentLink}</a>.</span>
-                    </label>
-                    {quickError && <p role="alert" className="m-0 px-4 py-3 border-4 border-bbq-yellow font-bold leading-snug">{quickError}</p>}
-                    <div>
-                      <button type="submit" disabled={quickSending} className="min-h-[48px] px-6 border-4 border-white text-white font-black uppercase tracking-wider text-sm hover:bg-white hover:text-bbq-black transition-colors disabled:opacity-60">
-                        {quickSending ? c.sending : c.altSubmit}
-                      </button>
-                    </div>
-                  </form>
-                ))}
-              </div>
-            )}
           </div>
         </section>
       )}
@@ -1407,31 +1448,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
                   {done.duplicate ? c.doneDup : c.doneNew}
                 </p>
               </div>
-              {canShare && (
-                <div className="border-4 border-bbq-yellow p-6 flex flex-col gap-4">
-                  <p className="m-0 font-black uppercase text-xl leading-tight text-bbq-yellow">{c.inviteBoxTitle}</p>
-                  <p className="m-0 leading-normal">{c.inviteBoxText(done.invitePrice!, done.publicPrice!)}</p>
-                  <p className="m-0 leading-normal">{c.inviteBoxMore(done.invitePrice!)}</p>
-                  <span className="font-black text-sm tracking-[0.1em] uppercase">{c.shareLabel}</span>
-                  <div className="flex flex-wrap gap-2">
-                    {shareChannels.map((ch) => (
-                      <a
-                        key={ch.id}
-                        href={ch.href}
-                        target={ch.id === 'email' ? undefined : '_blank'}
-                        rel="noopener noreferrer"
-                        onClick={() => track('workshop_invite_shared', { channel: ch.id, lang, variant })}
-                        className={shareBtn}
-                      >
-                        {ch.label}
-                      </a>
-                    ))}
-                    <button type="button" onClick={shareInstagram} className={shareBtn}>Instagram</button>
-                    <button type="button" onClick={shareCopy} className={shareBtn}>{c.shareCopy}</button>
-                  </div>
-                  <p role="status" className="m-0 text-sm font-bold break-all min-h-[1.25rem]">{shareNote}</p>
-                </div>
-              )}
+              {renderShare()}
             </>
           ) : (
             <form onSubmit={submit} noValidate className="flex flex-col gap-6">
