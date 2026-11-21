@@ -234,8 +234,11 @@ function reminderEmail(row: any) {
 // Só sai para edições que o Bruno aprovou (workshop_editions.announce_at <= agora)
 // e ainda não anunciadas (announced_at null). Cada pessoa recebe no máximo uma vez
 // por edição (workshop_waitlist_notified). Corre no cron diário (runReminders).
+// A frase das 48h só aparece quando todas as datas anunciadas ainda são exclusivas
+// da lista (workshop_editions.list_only = true). Datas já públicas no site não a levam.
 function announceEmail(row: any, editions: any[]) {
   const en = row.lang === "en";
+  const listOnly = editions.length > 0 && editions.every((e) => e.list_only === true);
   const fn = escapeHtml(firstName(row.name));
   const link = `${SITE}/workshop?utm_source=waitlist&utm_medium=email&utm_campaign=novas-datas${en ? "&lang=en" : ""}#datas`;
   const items = editions.map((e) => {
@@ -253,7 +256,7 @@ function announceEmail(row: any, editions: any[]) {
        <div class="box">${items}</div>
        <p>${locked ? `Your invite still counts: your spot is <strong>€${inv}</strong>.` : `<strong>€${pub}</strong> per person, or <strong>€${inv} each</strong> if you bring someone.`} Small groups, so spots go fast.</p>
        <p style="margin:24px 0"><a class="btn" href="${link}">Pick your date</a></p>
-       <p>For the next 48 hours this is just for the list. After that we open it to everyone.</p>
+       <p>${listOnly ? "For the next 48 hours this is just for the list. After that we open it to everyone." : "Spots are limited, so if you want one, book now."}</p>
        <p>See you at the embers,<br><strong>LisbonBBQ team</strong></p>`,
       "en"
     );
@@ -264,7 +267,7 @@ function announceEmail(row: any, editions: any[]) {
      <div class="box">${items}</div>
      <p>${locked ? `O teu convite continua a valer: o teu lugar fica a <strong>${inv}€</strong>.` : `<strong>${pub}€</strong> por pessoa, ou <strong>${inv}€ cada</strong> se vieres acompanhado.`} Os grupos são pequenos e as vagas vão depressa.</p>
      <p style="margin:24px 0"><a class="btn" href="${link}">Escolher a data</a></p>
-     <p>Durante as próximas 48 horas isto é só para a lista. Depois abrimos a toda a gente.</p>
+     <p>${listOnly ? "Durante as próximas 48 horas isto é só para a lista. Depois abrimos a toda a gente." : "As vagas são poucas: se queres lugar, reserva já."}</p>
      <p>Até à brasa,<br><strong>Equipa LisbonBBQ</strong></p>`
   );
 }
@@ -301,7 +304,9 @@ async function runAnnouncements() {
     try {
       const { error: sendError } = await (resend as any).batch.send(chunk.map(({ p, todo }: any) => ({
         from: FROM, to: p.email, replyTo: REPLY_TO,
-        subject: p.lang === "en" ? "New workshop dates: 48h priority for the list" : "Abriram datas novas: 48h de prioridade para a lista",
+        subject: todo.every((e: any) => e.list_only === true)
+          ? (p.lang === "en" ? "New workshop dates: 48h priority for the list" : "Abriram datas novas: 48h de prioridade para a lista")
+          : (p.lang === "en" ? "New barbecue workshop dates are open" : "Abriram datas novas do workshop de churrasco"),
         html: announceEmail(p, todo),
       })));
       if (sendError) throw sendError;
