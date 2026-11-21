@@ -99,7 +99,12 @@ function layout(title: string, body: string, lang: Lang = "pt") {
   .btn { display: inline-block; background: #1A1A1A; color: #F4B41A !important; text-decoration: none; font-weight: bold; text-transform: uppercase; padding: 14px 22px; letter-spacing: 1px; }
   .link { font-size: 13px; word-break: break-all; color: #1A1A1A; }
   .footer { margin-top: 32px; font-size: 13px; color: #6B7280; border-top: 1px solid #eee; padding-top: 16px; }
-</style></head><body><div class="card">
+  .brand { max-width: 672px; margin: 0 auto; background: #1A1A1A; border: 4px solid #1A1A1A; border-bottom: 0; padding: 14px 32px; box-sizing: border-box; }
+  .brand a { color: #F9F7F2 !important; text-decoration: none; font-family: 'Arial Black', Arial, sans-serif; font-weight: 900; font-size: 16px; letter-spacing: 1px; text-transform: uppercase; }
+  .hero { display: block; width: 100%; height: auto; border: 3px solid #1A1A1A; margin: 0 0 24px; }
+</style></head><body>
+<div class="brand"><a href="${SITE}">🔥 Lisbon Barbecue &amp; Churrasco</a></div>
+<div class="card">
   <h1>${title}</h1>
   ${body}
   <div class="footer">Lisbon Barbecue &amp; Churrasco · Lisboa · <a href="${SITE}" style="color:#6B7280">lisbonbbq.pt</a><br>
@@ -209,24 +214,14 @@ function reminderEmail(row: any) {
       "en"
     );
   }
-  return `<!DOCTYPE html>
-<html lang="pt-PT"><head><meta charset="utf-8"><style>
-  body { font-family: Arial, sans-serif; background: #F9F7F2; margin: 0; padding: 24px; color: #1A1A1A; }
-  .card { background: #fff; border: 4px solid #1A1A1A; max-width: 600px; margin: 0 auto; padding: 32px; }
-  h1 { background: #D91A2A; color: #fff; margin: -32px -32px 24px; padding: 20px 32px; font-size: 22px; text-transform: uppercase; border-bottom: 4px solid #1A1A1A; }
-  p { font-size: 16px; line-height: 1.6; margin: 0 0 16px; }
-  .btn { display: inline-block; background: #1A1A1A; color: #F4B41A !important; text-decoration: none; font-weight: bold; text-transform: uppercase; padding: 14px 22px; letter-spacing: 1px; }
-  .footer { margin-top: 32px; font-size: 13px; color: #6B7280; border-top: 1px solid #eee; padding-top: 16px; }
-</style></head><body><div class="card">
-  <h1>O teu camarada ainda vai a tempo</h1>
-  <p>${escapeHtml(firstName(row.name))}, o teu lugar na waiting list está guardado.</p>
-  <p>O teu convite continua de pé: quem se inscrever com o teu link fica na tua estação de grelha, e os dois pagam <strong>${row.invite_price}€ em vez de ${row.public_price}€</strong>.</p>
-  <p><a class="btn" href="${link}">Partilhar o meu convite</a></p>
-  <p style="font-size:13px;word-break:break-all">${link}</p>
-  <p>Até à brasa,<br><strong>Equipa LisbonBBQ</strong></p>
-  <div class="footer">Lisbon Barbecue &amp; Churrasco · Lisboa · <a href="${SITE}" style="color:#6B7280">lisbonbbq.pt</a><br>
-  Recebes este email porque entraste na waiting list do workshop. Para deixares de receber, responde com "sair".</div>
-</div></body></html>`;
+  return layout(
+    "O teu camarada ainda vai a tempo",
+    `<p>${escapeHtml(firstName(row.name))}, o teu lugar na waiting list está guardado.</p>
+     <p>O teu convite continua de pé: quem se inscrever com o teu link fica na tua estação de grelha, e os dois pagam <strong>${row.invite_price}€ em vez de ${row.public_price}€</strong>.</p>
+     <p><a class="btn" href="${link}">Partilhar o meu convite</a></p>
+     <p style="font-size:13px;word-break:break-all">${link}</p>
+     <p>Até à brasa,<br><strong>Equipa LisbonBBQ</strong></p>`
+  );
 }
 
 
@@ -249,25 +244,26 @@ function announceEmail(row: any, editions: any[]) {
   const pub = Math.round((editions[0]?.price_cents ?? 11000) / 100);
   const inv = Math.round((editions[0]?.invite_price_cents ?? editions[0]?.price_cents ?? 9000) / 100);
   const locked = row.locked_price != null;
+  const hero = `<a href="${link}"><img class="hero" src="${SITE}/images/email/workshop.jpg" width="530" alt="${en ? "Barbecue workshop at Lisbon BBQ: four people at the charcoal grill" : "Workshop de churrasco da Lisbon BBQ: quatro pessoas à volta da grelha a carvão"}"></a>`;
   if (en) {
     return layout(
       "New dates are open",
-      `<p>${fn}, you're on the waiting list, so you hear it first: new barbecue workshop dates are open.</p>
+      `${hero}<p>${fn}, you're on the waiting list, so you hear it first: new barbecue workshop dates are open.</p>
        <div class="box">${items}</div>
        <p>${locked ? `Your invite still counts: your spot is <strong>€${inv}</strong>.` : `<strong>€${pub}</strong> per person, or <strong>€${inv} each</strong> if you bring someone.`} Small groups, so spots go fast.</p>
        <p style="margin:24px 0"><a class="btn" href="${link}">Pick your date</a></p>
-       <p>${listOnly ? "For the next 48 hours this is just for the list. After that we open it to everyone." : "Spots are limited, so if you want one, book now."}</p>
+       ${listOnly ? "<p>For the next 48 hours this is just for the list. After that we open it to everyone.</p>" : ""}
        <p>See you at the embers,<br><strong>LisbonBBQ team</strong></p>`,
       "en"
     );
   }
   return layout(
     "Abriram datas novas",
-    `<p>${fn}, estás na waiting list, por isso és dos primeiros a saber: abrimos novas datas do workshop de churrasco.</p>
+    `${hero}<p>${fn}, estás na waiting list, por isso és dos primeiros a saber: abrimos novas datas do workshop de churrasco.</p>
      <div class="box">${items}</div>
      <p>${locked ? `O teu convite continua a valer: o teu lugar fica a <strong>${inv}€</strong>.` : `<strong>${pub}€</strong> por pessoa, ou <strong>${inv}€ cada</strong> se vieres acompanhado.`} Os grupos são pequenos e as vagas vão depressa.</p>
      <p style="margin:24px 0"><a class="btn" href="${link}">Escolher a data</a></p>
-     <p>${listOnly ? "Durante as próximas 48 horas isto é só para a lista. Depois abrimos a toda a gente." : "As vagas são poucas: se queres lugar, reserva já."}</p>
+     ${listOnly ? "<p>Durante as próximas 48 horas isto é só para a lista. Depois abrimos a toda a gente.</p>" : ""}
      <p>Até à brasa,<br><strong>Equipa LisbonBBQ</strong></p>`
   );
 }
