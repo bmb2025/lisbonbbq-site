@@ -87,7 +87,9 @@ function inviteLink(code: string) {
   return `${SITE}/workshop?c=${code}`;
 }
 
-function layout(title: string, body: string, lang: Lang = "pt") {
+// why: motivo do envio no rodapé. Por defeito é o da waiting list; reservas e
+// outros emails transacionais passam o seu próprio texto.
+function layout(title: string, body: string, lang: Lang = "pt", why?: string) {
   return `<!DOCTYPE html>
 <html lang="${lang === "en" ? "en" : "pt-PT"}"><head><meta charset="utf-8"><style>
   body { font-family: Arial, sans-serif; background: #F9F7F2; margin: 0; padding: 24px; color: #1A1A1A; }
@@ -108,9 +110,9 @@ function layout(title: string, body: string, lang: Lang = "pt") {
   <h1>${title}</h1>
   ${body}
   <div class="footer">Lisbon Barbecue &amp; Churrasco · Lisboa · <a href="${SITE}" style="color:#6B7280">lisbonbbq.pt</a><br>
-  ${lang === "en"
+  ${why ?? (lang === "en"
     ? `You are receiving this email because you joined the workshop waiting list. To stop receiving them, reply with "unsubscribe".`
-    : `Recebes este email porque entraste na waiting list do workshop. Para deixares de receber, responde com "sair".`}</div>
+    : `Recebes este email porque entraste na waiting list do workshop. Para deixares de receber, responde com "sair".`)}</div>
 </div></body></html>`;
 }
 
@@ -824,7 +826,8 @@ function bookingConfirmationEmail(bk: any, ed: any) {
        </div>
        <p>Just bring your appetite. If you can't make it, your spot can be transferred to someone else or to another date: reply to this email.</p>
        <p>See you at the embers,<br><strong>LisbonBBQ team</strong></p>`,
-      "en"
+      "en",
+      "You are receiving this email because you booked a spot at the Lisbon BBQ barbecue workshop."
     );
   }
   return layout(
@@ -837,7 +840,9 @@ function bookingConfirmationEmail(bk: any, ed: any) {
        <p style="margin:0">${bk.quantity} ${bk.quantity === 1 ? "lugar" : "lugares"} · ${total}€${bk.gift_code ? " · 1 lugar com Giftbox" : ""}</p>
      </div>
      <p>Só trazes a fome. Se não puderes vir, o teu lugar é transferível para outra pessoa ou para outra data: basta responderes a este email.</p>
-     <p>Até à brasa,<br><strong>Equipa LisbonBBQ</strong></p>`
+     <p>Até à brasa,<br><strong>Equipa LisbonBBQ</strong></p>`,
+    "pt",
+    "Recebes este email porque reservaste um lugar no workshop de churrasco da Lisbon BBQ."
   );
 }
 
@@ -1020,33 +1025,140 @@ function giftEmail(g: any) {
   const until = g.valid_until ? new Date(`${g.valid_until}T12:00:00Z`) : null;
   const untilTxt = until ? (en ? `${until.getUTCDate()} ${MONTHS_EN[until.getUTCMonth()]} ${until.getUTCFullYear()}` : `${until.getUTCDate()} de ${MONTHS_PT[until.getUTCMonth()]} de ${until.getUTCFullYear()}`) : "";
   const forWho = g.recipient_name ? escapeHtml(g.recipient_name) : "";
-  if (en) {
-    return layout(
-      "Your Giftbox is ready",
-      `<p>${fn}, payment received. Here's the voucher${forWho ? ` for <strong>${forWho}</strong>` : ""}.</p>
-       <div class="box">
-         <p style="font-size:24px;letter-spacing:2px"><strong>${code}</strong></p>
-         <p>1 spot at the Lisbon BBQ barbecue workshop: 3 hours in Lisbon, the meal at the long table and an apron to take home.</p>
-         <p style="margin:0">Valid until ${untilTxt}.</p>
-       </div>
-       <p><strong>How to use it:</strong> open <a href="${link}">${link}</a>, pick a date and the code is applied at checkout. Bringing someone? Each extra spot is €90.</p>
-       <p>You can forward this email or print it and give it as a gift.</p>
-       <p>See you at the embers,<br><strong>LisbonBBQ team</strong></p>`,
-      "en"
-    );
-  }
-  return layout(
-    "A tua Giftbox está pronta",
-    `<p>${fn}, recebemos o pagamento. Aqui está o voucher${forWho ? ` para <strong>${forWho}</strong>` : ""}.</p>
-     <div class="box">
-       <p style="font-size:24px;letter-spacing:2px"><strong>${code}</strong></p>
-       <p>1 lugar no workshop de churrasco da Lisbon BBQ: 3 horas em Lisboa, a refeição à mesa longa e um avental para levar para casa.</p>
-       <p style="margin:0">Válido até ${untilTxt}.</p>
-     </div>
-     <p><strong>Como usar:</strong> abre <a href="${link}">${link}</a>, escolhe a data e o código fica aplicado no pagamento. Quer levar alguém? Cada lugar extra fica a 90€.</p>
-     <p>Podes reencaminhar este email ou imprimi-lo e oferecê-lo.</p>
-     <p>Até à brasa,<br><strong>Equipa LisbonBBQ</strong></p>`
-  );
+  const message = g.message ? escapeHtml(g.message).replace(/\n/g, "<br>") : "";
+  const F = "font-family:Arial,Helvetica,sans-serif;";
+  const LOGO = "https://mlqdpjiolbyewcumvajn.supabase.co/storage/v1/object/public/lisbonbbq-media/Fotos/Newsletters/chaves-05-set-logo-badge.png";
+  const IG = "https://www.instagram.com/lisbonbbq/";
+
+  // Pensado para ser reencaminhado ou impresso: a parte do «cartão» fala para quem
+  // recebe; a nota para quem comprou vai no topo, curta.
+  const t = en ? {
+    title: "Your Lisbon BBQ Giftbox",
+    pre: `Your barbecue workshop voucher is ready: ${code}`,
+    tag: "GIFTBOX &middot; BARBECUE WORKSHOP",
+    h1: "YOUR GIFTBOX IS READY &#127873;",
+    note: `${fn}, payment received. Here is the voucher${forWho ? ` for <strong>${forWho}</strong>` : ""}. Forward this email or print it and give it away.`,
+    badge: "&#127873; GIFTBOX",
+    cardTitle: forWho ? `A BARBECUE WORKSHOP FOR ${forWho.toUpperCase()}` : "A BARBECUE WORKSHOP FOR YOU",
+    codeLabel: "VOUCHER CODE",
+    valid: `Valid until ${untilTxt}`,
+    fromLabel: `A message from ${fn}`,
+    includes: "Three hours around the fire in Lisbon, a pitmaster by your side, the meal at the long table and an apron to take home.",
+    cta: "USE THE VOUCHER",
+    how: "Open the button above, pick a date and the code is applied automatically. Bringing someone? Each extra spot is &euro;90.",
+    after: `Questions? Reply to this email or find us on Instagram <a href="${IG}" target="_blank" style="color:#D91A2A;font-weight:700;text-decoration:none;">@lisbonbbq</a>.`,
+    why: "You are receiving this email because you bought a Lisbon BBQ Giftbox.",
+    alt: "Barbecue workshop at Lisbon BBQ: four people at the charcoal grill",
+  } : {
+    title: "A tua Giftbox Lisbon BBQ",
+    pre: `O voucher do workshop de churrasco está pronto: ${code}`,
+    tag: "GIFTBOX &middot; WORKSHOP DE CHURRASCO",
+    h1: "A TUA GIFTBOX ESTÁ PRONTA &#127873;",
+    note: `${fn}, recebemos o pagamento. Aqui está o voucher${forWho ? ` para <strong>${forWho}</strong>` : ""}. Reencaminha este email ou imprime-o e oferece.`,
+    badge: "&#127873; GIFTBOX",
+    cardTitle: forWho ? `UM WORKSHOP DE CHURRASCO PARA ${forWho.toUpperCase()}` : "UM WORKSHOP DE CHURRASCO PARA TI",
+    codeLabel: "CÓDIGO DO VOUCHER",
+    valid: `Válido até ${untilTxt}`,
+    fromLabel: `Uma mensagem de ${fn}`,
+    includes: "Três horas à volta do fogo em Lisboa, um pitmaster ao teu lado, a refeição à mesa longa e um avental para levar para casa.",
+    cta: "USAR O VOUCHER",
+    how: "Carrega no botão, escolhe a data e o código fica aplicado sozinho. Queres levar alguém? Cada lugar extra fica a 90&euro;.",
+    after: `Dúvidas? Responde a este email ou fala connosco no Instagram <a href="${IG}" target="_blank" style="color:#D91A2A;font-weight:700;text-decoration:none;">@lisbonbbq</a>.`,
+    why: "Recebes este email porque compraste uma Giftbox da Lisbon BBQ.",
+    alt: "Workshop de churrasco da Lisbon BBQ: quatro pessoas à volta da grelha a carvão",
+  };
+
+  return `<!DOCTYPE html>
+<html lang="${en ? "en" : "pt-PT"}">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<title>${t.title}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#E8E4D8;">
+<div style="display:none;visibility:hidden;opacity:0;height:0;width:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;max-height:0;max-width:0;">${t.pre}</div>
+<!--[if mso]><table role="presentation" width="600" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#E8E4D8" style="background-color:#E8E4D8;">
+<tr><td align="center" style="padding:28px 12px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F9F7F2" style="background-color:#F9F7F2;max-width:600px;">
+
+<tr><td bgcolor="#1A1A1A" align="left" style="background-color:#1A1A1A;padding:14px 24px;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="left"><tr>
+    <td valign="middle" style="padding-right:8px;"><a href="${SITE}" target="_blank"><img src="${LOGO}" width="26" height="26" alt="Lisbon Barbecue &amp; Churrasco" style="display:block;border:0;" /></a></td>
+    <td valign="middle" style="${F}font-size:22px;line-height:26px;font-weight:900;letter-spacing:-0.5px;color:#F9F7F2;">LISBON BARBECUE &amp; CHURRASCO</td>
+  </tr></table>
+</td></tr>
+
+<tr><td><a href="${link}" target="_blank"><img src="${SITE}/images/email/workshop.jpg" width="600" height="320" alt="${t.alt}" style="display:block;width:100%;max-width:600px;height:auto;border:0;" /></a></td></tr>
+
+<tr><td bgcolor="#1A1A1A" style="background-color:#1A1A1A;padding:0 24px 14px;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+    <td bgcolor="#D91A2A" style="background-color:#D91A2A;padding:8px 14px;${F}font-size:12px;line-height:14px;font-weight:900;color:#ffffff;">${t.tag}</td>
+  </tr></table>
+</td></tr>
+
+<tr><td style="padding:32px 28px 8px;">
+  <h1 style="margin:0 0 16px;${F}font-size:30px;line-height:32px;font-weight:900;letter-spacing:-0.5px;color:#1A1A1A;">${t.h1}</h1>
+  <p style="margin:0;${F}font-size:16px;line-height:24px;color:#1A1A1A;">${t.note}</p>
+</td></tr>
+
+<tr><td style="padding:16px 28px 28px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1A1A1A" style="background-color:#1A1A1A;">
+  <tr><td style="padding:26px 24px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+      <td bgcolor="#F4B41A" style="background-color:#F4B41A;padding:5px 10px;${F}font-size:11px;line-height:13px;font-weight:900;color:#1A1A1A;">${t.badge}</td>
+    </tr></table>
+    <div style="height:14px;line-height:14px;font-size:1px;">&nbsp;</div>
+    <div style="${F}font-size:22px;line-height:26px;font-weight:900;letter-spacing:-0.5px;color:#F9F7F2;">${t.cardTitle}</div>
+    <div style="height:10px;line-height:10px;font-size:1px;">&nbsp;</div>
+    <div style="${F}font-size:14px;line-height:21px;color:#cfcabd;">${t.includes}</div>
+    <div style="height:20px;line-height:20px;font-size:1px;">&nbsp;</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+      <td align="center" style="border:2px dashed #F4B41A;padding:18px 12px;">
+        <div style="${F}font-size:11px;line-height:13px;font-weight:900;letter-spacing:1px;color:#cfcabd;">${t.codeLabel}</div>
+        <div style="height:6px;line-height:6px;font-size:1px;">&nbsp;</div>
+        <div style="${F}font-size:32px;line-height:36px;font-weight:900;letter-spacing:4px;color:#F4B41A;">${code}</div>
+        <div style="height:6px;line-height:6px;font-size:1px;">&nbsp;</div>
+        <div style="${F}font-size:12px;line-height:16px;color:#cfcabd;">${t.valid}</div>
+      </td>
+    </tr></table>
+    ${message ? `<div style="height:18px;line-height:18px;font-size:1px;">&nbsp;</div>
+    <div style="${F}font-size:11px;line-height:13px;font-weight:900;letter-spacing:1px;color:#F4B41A;">${t.fromLabel.toUpperCase()}</div>
+    <div style="height:6px;line-height:6px;font-size:1px;">&nbsp;</div>
+    <div style="${F}font-size:16px;line-height:24px;font-style:italic;color:#F9F7F2;">&ldquo;${message}&rdquo;</div>` : ""}
+    <div style="height:22px;line-height:22px;font-size:1px;">&nbsp;</div>
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+      <td bgcolor="#F4B41A" style="background-color:#F4B41A;padding:15px 30px;"><a href="${link}" target="_blank" style="${F}font-size:15px;line-height:18px;font-weight:900;color:#1A1A1A;text-decoration:none;">${t.cta}</a></td>
+    </tr></table>
+    <div style="height:14px;line-height:14px;font-size:1px;">&nbsp;</div>
+    <div style="${F}font-size:13px;line-height:19px;color:#cfcabd;">${t.how}</div>
+  </td></tr>
+  </table>
+</td></tr>
+
+<tr><td style="padding:4px 28px 32px;">
+  <p style="margin:0;${F}font-size:14px;line-height:21px;color:#55524a;">${t.after}</p>
+</td></tr>
+
+<tr><td bgcolor="#1A1A1A" align="center" style="background-color:#1A1A1A;padding:26px 24px;">
+  <div style="${F}font-size:13px;line-height:16px;font-weight:900;color:#F9F7F2;margin-bottom:10px;">LISBON BARBECUE &amp; CHURRASCO</div>
+  <div style="${F}font-size:12px;line-height:18px;">
+    <a href="${IG}" style="color:#F4B41A;font-weight:700;text-decoration:none;">Instagram</a>&nbsp;&nbsp;
+    <a href="https://www.linkedin.com/company/lisbon-barbecue-churrasco/" style="color:#F4B41A;font-weight:700;text-decoration:none;">LinkedIn</a>&nbsp;&nbsp;
+    <a href="https://x.com/Lisbonbbq" style="color:#F4B41A;font-weight:700;text-decoration:none;">X</a>&nbsp;&nbsp;
+    <a href="https://wa.me/351961058571" style="color:#F4B41A;font-weight:700;text-decoration:none;">WhatsApp</a>
+  </div>
+  <div style="${F}font-size:12px;line-height:18px;color:#cfcabd;margin-top:14px;">Lisboa, Portugal &middot; lisbonbbq.pt</div>
+  <div style="${F}font-size:11px;line-height:16px;color:#7d7a70;margin-top:14px;">${t.why}</div>
+</td></tr>
+
+</table>
+</td></tr>
+</table>
+<!--[if mso]></td></tr></table><![endif]-->
+</body>
+</html>`;
 }
 
 async function markGiftPaid(session: any) {
