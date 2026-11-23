@@ -2,7 +2,7 @@
 //
 // Duas categorias opcionais, ambas desligadas até a pessoa escolher:
 //  - analytics: Google Analytics 4 e PostHog (estatística de utilização)
-//  - marketing: Google Ads e Meta Pixel (medição de anúncios)
+//  - marketing: Google Ads, Meta Pixel e Reddit Pixel (medição de anúncios)
 //
 // O Google Consent Mode v2 arranca em "denied" no <head> de index.html, antes de
 // qualquer tag da Google; aqui só fazemos o "update". O PostHog e o Meta Pixel

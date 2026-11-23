@@ -49,8 +49,8 @@ export const LegalView: React.FC<LegalViewProps> = ({ type, lang, onBack }) => {
         {
           h: lang === 'pt' ? 'Cookies e Tecnologias Semelhantes' : 'Cookies and Similar Technologies',
           p: lang === 'pt'
-            ? 'Usamos cookies e armazenamento local do navegador em três categorias. Essenciais: guardam a sua escolha de cookies e dados necessários ao funcionamento do site (por exemplo, a variante de preço de uma campanha); estão sempre ativos. Estatística, só com o seu consentimento: Google Analytics (Google Ireland Limited) e PostHog (alojado na União Europeia), para medir a utilização do site. Marketing, só com o seu consentimento: Google Ads e Meta Pixel (Meta Platforms Ireland Limited), para medir que anúncios geram pedidos. Sem consentimento, as ferramentas da Google funcionam em modo de consentimento recusado, sem guardar cookies de estatística ou publicidade. Pode alterar ou retirar o consentimento a qualquer momento através da ligação «Cookies» no rodapé do site.'
-            : 'We use cookies and browser local storage in three categories. Essential: they store your cookie choice and data the site needs to work (for example, a campaign price variant); always active. Statistics, only with your consent: Google Analytics (Google Ireland Limited) and PostHog (hosted in the European Union), to measure site usage. Marketing, only with your consent: Google Ads and Meta Pixel (Meta Platforms Ireland Limited), to measure which ads generate requests. Without consent, Google tools run in consent-denied mode, without storing analytics or advertising cookies. You can change or withdraw consent at any time through the "Cookies" link in the site footer.'
+            ? 'Usamos cookies e armazenamento local do navegador em três categorias. Essenciais: guardam a sua escolha de cookies e dados necessários ao funcionamento do site (por exemplo, a variante de preço de uma campanha); estão sempre ativos. Estatística, só com o seu consentimento: Google Analytics (Google Ireland Limited) e PostHog (alojado na União Europeia), para medir a utilização do site. Marketing, só com o seu consentimento: Google Ads, Meta Pixel (Meta Platforms Ireland Limited) e Reddit Pixel (Reddit, Inc.), para medir que anúncios geram pedidos. Sem consentimento, as ferramentas da Google funcionam em modo de consentimento recusado, sem guardar cookies de estatística ou publicidade. Pode alterar ou retirar o consentimento a qualquer momento através da ligação «Cookies» no rodapé do site.'
+            : 'We use cookies and browser local storage in three categories. Essential: they store your cookie choice and data the site needs to work (for example, a campaign price variant); always active. Statistics, only with your consent: Google Analytics (Google Ireland Limited) and PostHog (hosted in the European Union), to measure site usage. Marketing, only with your consent: Google Ads, Meta Pixel (Meta Platforms Ireland Limited) and Reddit Pixel (Reddit, Inc.), to measure which ads generate requests. Without consent, Google tools run in consent-denied mode, without storing analytics or advertising cookies. You can change or withdraw consent at any time through the "Cookies" link in the site footer.'
         },
         {
           h: lang === 'pt' ? '5. Seus Direitos' : '5. Your Rights',
@@ -164,7 +164,7 @@ export const LegalView: React.FC<LegalViewProps> = ({ type, lang, onBack }) => {
 
             <div className="mt-24 pt-12 border-t-4 border-bbq-black/5 flex flex-col md:flex-row justify-between items-center gap-8">
               <div className="text-[10px] font-black uppercase text-gray-400 tracking-widest">
-                Última Atualização: 2026-10-22
+                Última Atualização: 2026-11-24
               </div>
               <div className="flex gap-4">
                  <div className="w-8 h-8 rounded-full bg-bbq-red"></div>
