@@ -179,7 +179,6 @@ const COPY = {
     fExp: 'experiência a grelhar',
     fMotive: 'o que te traz',
     ctaBook: 'Reservar lugar',
-    ctaBookNote: 'Pagamento seguro com cartão, MB Way ou Apple Pay.',
     bookEyebrow: 'Datas e reserva',
     bookH2: 'Escolhe a data',
     bookP: 'Reservas o lugar aqui e pagas no momento. Recebes a confirmação por email e a morada exata uns dias antes.',
@@ -380,7 +379,6 @@ const COPY = {
     fExp: 'grilling experience',
     fMotive: 'what brings you',
     ctaBook: 'Book your spot',
-    ctaBookNote: 'Secure payment by card, MB Way or Apple Pay.',
     bookEyebrow: 'Dates and booking',
     bookH2: 'Pick a date',
     bookP: "Book your spot here and pay right away. You'll get the confirmation by email and the exact address a few days before.",
@@ -1119,7 +1117,7 @@ export const WorkshopView: React.FC<{ lang?: Lang }> = ({ lang = 'pt' }) => {
             )}
             <div className="flex flex-wrap items-center gap-4">
               <Btn onClick={() => goForm('hero')}>{ctaLabel}</Btn>
-              <span className="text-sm font-bold text-gray-400">{nextEdition ? c.ctaBookNote : c.ctaNote}</span>
+              {!nextEdition && <span className="text-sm font-bold text-gray-400">{c.ctaNote}</span>}
             </div>
           </div>
         </div>
