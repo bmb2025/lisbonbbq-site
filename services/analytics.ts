@@ -44,7 +44,7 @@ const REDDIT_PIXEL_ID = (import.meta.env.VITE_REDDIT_PIXEL_ID as string) || 'p2_
 // disso o aviso de cookies não mencionava o Reddit, e quem aceitou nessa altura
 // não aceitou o Reddit. Evita pedir outra vez o consentimento a toda a gente
 // (mudar CONSENT_KEY) só por causa de uma ferramenta nova.
-const REDDIT_CONSENT_SINCE = '2026-11-24T00:00:00.000Z';
+const REDDIT_CONSENT_SINCE = '2026-11-23T23:30:00.000Z';
 // Eventos do site que seguem para o Reddit, e com que evento padrão. Mesma lógica
 // da Meta: a waiting list do workshop vai como SignUp, separada dos pedidos de
 // orçamento (Lead), para as campanhas do workshop otimizarem para inscrições.
