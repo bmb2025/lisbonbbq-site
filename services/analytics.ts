@@ -37,9 +37,30 @@ const META_EVENTS: Record<string, string> = {
   workshop_giftbox_purchase: 'Purchase',
 };
 
+// Reddit Pixel (Events Manager do Reddit Ads). O ID é público por natureza, tal como
+// o do Google Ads; a variável de ambiente só serve para o trocar sem mexer no código.
+const REDDIT_PIXEL_ID = (import.meta.env.VITE_REDDIT_PIXEL_ID as string) || 'p2_15zhkds44yyt2';
+// Só carrega para quem deu consentimento de marketing a partir desta data: antes
+// disso o aviso de cookies não mencionava o Reddit, e quem aceitou nessa altura
+// não aceitou o Reddit. Evita pedir outra vez o consentimento a toda a gente
+// (mudar CONSENT_KEY) só por causa de uma ferramenta nova.
+const REDDIT_CONSENT_SINCE = '2026-11-23T23:30:00.000Z';
+// Eventos do site que seguem para o Reddit, e com que evento padrão. Mesma lógica
+// da Meta: a waiting list do workshop vai como SignUp, separada dos pedidos de
+// orçamento (Lead), para as campanhas do workshop otimizarem para inscrições.
+const REDDIT_EVENTS: Record<string, string> = {
+  quote_request_submitted: 'Lead',
+  corporate_form_submitted: 'Lead',
+  workshop_waitlist_submitted: 'SignUp',
+  workshop_purchase: 'Purchase',
+  workshop_giftbox_purchase: 'Purchase',
+};
+
 let prod = false;      // domínio de produção: só aqui se mede alguma coisa
 let enabled = false;   // PostHog ativo (consentimento de estatística)
 let pixelLoaded = false;
+let redditLoaded = false;
+let redditOn = false;   // consentimento atual permite o Reddit
 
 export function getPostHogInstance() {
   return posthog;
@@ -80,13 +101,39 @@ function loadMetaPixel() {
   pixelLoaded = true;
 }
 
-function applyConsent(c: Pick<Consent, 'analytics' | 'marketing'> | null) {
+function loadRedditPixel() {
+  if (redditLoaded || !REDDIT_PIXEL_ID) return;
+  /* eslint-disable */
+  // Snippet oficial do Reddit (pixel.js), sem a tag <noscript>.
+  (function (w: any, d: any) {
+    if (w.rdt) return;
+    const p: any = (w.rdt = function () { p.sendEvent ? p.sendEvent.apply(p, arguments) : p.callQueue.push(arguments); });
+    p.callQueue = [];
+    const t = d.createElement('script'); t.src = 'https://www.redditstatic.com/ads/pixel.js'; t.async = true;
+    const s = d.getElementsByTagName('script')[0]; s.parentNode.insertBefore(t, s);
+  })(window, document);
+  /* eslint-enable */
+  (window as any).rdt('init', REDDIT_PIXEL_ID);
+  (window as any).rdt('track', 'PageVisit');
+  redditLoaded = true;
+}
+
+function redditAllowed(c: Pick<Consent, 'marketing'> & { ts?: string } | null) {
+  return !!c?.marketing && !!c.ts && c.ts >= REDDIT_CONSENT_SINCE;
+}
+
+function applyConsent(c: (Pick<Consent, 'analytics' | 'marketing'> & { ts?: string }) | null) {
   if (!prod) return;
   if (c?.analytics) startPostHog();
   else if (enabled) posthog.opt_out_capturing();
 
   if (c?.marketing) loadMetaPixel();
   else if (pixelLoaded) (window as any).fbq?.('consent', 'revoke');
+
+  // O pixel do Reddit não tem revogação: se o consentimento for retirado deixa de
+  // receber eventos (track() verifica-o) e não volta a carregar na próxima visita.
+  if (redditAllowed(c)) loadRedditPixel();
+  redditOn = redditAllowed(c);
 }
 
 export function initAnalytics() {
@@ -107,6 +154,16 @@ export function track(event: string, properties?: Record<string, any>) {
     // event_id = o mesmo ID que o servidor envia à Conversions API (deduplicação).
     const opts = properties?.event_id ? { eventID: String(properties.event_id) } : undefined;
     (window as any).fbq?.('track', metaEvent, { content_name: event, ...extra }, opts);
+  }
+
+  const redditEvent = REDDIT_EVENTS[event];
+  if (redditLoaded && redditOn && redditEvent) {
+    const data: Record<string, any> = {};
+    if (typeof properties?.value === 'number') { data.value = properties.value; data.currency = properties.currency || 'EUR'; }
+    if (typeof properties?.quantity === 'number') data.itemCount = properties.quantity;
+    // conversionId deduplica com uma futura Conversions API do Reddit.
+    if (properties?.event_id) data.conversionId = String(properties.event_id);
+    (window as any).rdt?.('track', redditEvent, data);
   }
 
   // Mirror conversion events to GA4 (gtag already on the page) so they can be
