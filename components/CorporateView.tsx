@@ -265,7 +265,7 @@ export const CorporateView: React.FC<CorporateViewProps> = ({ lang, onSubmit, is
   const carnideImages = venueImages('carnide_local');
   const miniVenues = [
     { images: [...carnideImages.slice(-1), ...carnideImages.slice(0, -1)], cover: 0, name: 'Carnide' },
-    { images: venueImages('benfica'), cover: 2, name: 'Benfica' },
+    { images: venueImages('benfica'), cover: 0, name: 'Benfica' },
     { images: venueImages('alvito'), cover: 0, name: 'Alvito' },
     { images: venueImages('restelo_urban'), cover: 1, name: 'Restelo' }
   ];

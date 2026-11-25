@@ -28,7 +28,7 @@ const SOURCES = [
   { source: `${IMG}/Fotos/Locais/Marvila/Marvila2.webp`, base: "marvila2" },
   { source: `${IMG}/Fotos/Locais/Tapadinha/Tapa_9.webp`, base: "tapa9" },
   { source: `${IMG}/Fotos/Locais/Carnide/Carnide4.jpeg`, base: "carnide4" },
-  { source: `${IMG}/Fotos/Locais/Benfica/Benfica3.webp`, base: "benfica3" },
+  { source: join(outDir, "benfica/benfica1.webp"), base: "benfica1" },
   { source: `${IMG}/Fotos/Locais/Alvito/Alvito1.png`, base: "alvito1" },
   { source: `${IMG}/Fotos/Locais/Restelo/restelo3.webp`, base: "restelo3" },
   { source: `${IMG}/Fotos/Churrasco%20People.png`, base: "churrasco-people" },

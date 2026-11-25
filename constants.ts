@@ -182,17 +182,15 @@ export const LOCATIONS: VenueLocation[] = [
   {
     id: 'benfica',
     name: 'Benfica',
-    description: 'Espaço com história e carácter em pleno coração de Benfica. Perfeito para fins de semana em família.',
+    description: 'Pátio exclusivo, ligado direto com auditório e salas. Churrasco com ambiente diferente, a dois passos do Colombo e do metro do Colégio Militar.',
     images: [
-      `${IMG}/Fotos/Locais/Benfica/Benfica1.jpeg`,
-      `${IMG}/Fotos/Locais/Benfica/Benfica2.jpeg`,
-      `${IMG}/Fotos/Locais/Benfica/Benfica3.webp`,
-      `${IMG}/Fotos/Locais/Benfica/Benfica4.jpeg`,
-      `${IMG}/Fotos/Locais/Benfica/Benfica5.jpeg`
+      '/images/benfica/benfica1.webp',
+      '/images/benfica/benfica2.webp',
+      '/images/benfica/benfica3.webp',
+      '/images/benfica/benfica4.webp'
     ],
     minGuests: 20,
-    maxGuests: 120,
-    availableDays: [0, 6] // weekends only
+    maxGuests: 60
   },
   {
     id: 'musa_marvila',
