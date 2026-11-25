@@ -31,7 +31,7 @@ const SOURCES = [
   { source: join(outDir, "benfica/benfica1.webp"), base: "benfica1" },
   { source: `${IMG}/Fotos/Locais/Alvito/Alvito1.png`, base: "alvito1" },
   { source: `${IMG}/Fotos/Locais/Restelo/restelo3.webp`, base: "restelo3" },
-  { source: `${IMG}/Fotos/Churrasco%20People.png`, base: "churrasco-people" },
+  { source: join(outDir, "festa-mesa.webp"), base: "festa-mesa" },
   { source: `${IMG}/Fotos/grill.webp`, base: "grill" },
   { source: `${IMG}/Fotos/Carrinho%20de%20mao%20gelo.webp`, base: "carrinho-de-mao-gelo" },
   // Não há original em maior resolução para esta — a fonte é o próprio
