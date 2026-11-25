@@ -15,6 +15,7 @@ import { track, identifyLead } from './services/analytics';
 import { LANG_EVENT } from './services/consent';
 import { fetchArticles, fetchArticleBySlug } from './services/gitCms';
 import { Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 
 const BOOKINGS_STORAGE_KEY = 'bbq_leads_db_v1';
 
@@ -503,6 +504,7 @@ const App: React.FC = () => {
         } />
       </Routes>
       </Suspense>
+      <Analytics />
     </>
   );
 };
