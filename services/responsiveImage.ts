@@ -18,6 +18,7 @@ const LOCAL_VARIANTS: Record<string, { base: string; widths?: number[] }> = {
   [`${IMG}/Fotos/grill.webp`]: { base: "grill" },
   [`${IMG}/Fotos/Carrinho%20de%20mao%20gelo.webp`]: { base: "carrinho-de-mao-gelo" },
   "/images/mesa-churrasco.webp": { base: "mesa-churrasco" },
+  "/images/telheiras/telheiras1.webp": { base: "telheiras1" },
   // Hero.webp (824x448) é menor do que o full-bleed que a homepage mostra —
   // larguras próprias, maiores, geradas com upscaling controlado (Lanczos3 +
   // sharpen). Ver scripts/generate-image-variants.mjs.
