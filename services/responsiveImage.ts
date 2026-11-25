@@ -11,7 +11,7 @@ const LOCAL_VARIANTS: Record<string, { base: string; widths?: number[] }> = {
   [`${IMG}/Fotos/Locais/Marvila/Marvila2.webp`]: { base: "marvila2" },
   [`${IMG}/Fotos/Locais/Tapadinha/Tapa_9.webp`]: { base: "tapa9" },
   [`${IMG}/Fotos/Locais/Carnide/Carnide4.jpeg`]: { base: "carnide4" },
-  [`${IMG}/Fotos/Locais/Benfica/Benfica3.webp`]: { base: "benfica3" },
+  "/images/benfica/benfica1.webp": { base: "benfica1" },
   [`${IMG}/Fotos/Locais/Alvito/Alvito1.png`]: { base: "alvito1" },
   [`${IMG}/Fotos/Locais/Restelo/restelo3.webp`]: { base: "restelo3" },
   [`${IMG}/Fotos/Churrasco%20People.png`]: { base: "churrasco-people" },
